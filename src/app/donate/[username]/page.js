@@ -61,7 +61,7 @@ export default function DonatePage() {
     setError('');
 
     // Frontend validation
-    if (!formData.name || !formData.amount || !formData.message) {
+    if (!formData.name || !formData.amount) {
       toast.error('Semua field wajib diisi!');
       setDonating(false);
       return;
@@ -82,12 +82,6 @@ export default function DonatePage() {
 
     if (formData.name.length < 2) {
       toast.error('Nama minimal 2 karakter!');
-      setDonating(false);
-      return;
-    }
-
-    if (formData.message.length < 5) {
-      toast.error('Pesan minimal 5 karakter!');
       setDonating(false);
       return;
     }
