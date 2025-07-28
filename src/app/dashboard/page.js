@@ -549,7 +549,7 @@ export default function Dashboard() {
       <audio
         ref={audioRef}
         preload="auto"
-        src="/taco-bell-song-sfx.mp3"
+        src="/taco-bell-bong-sfx.mp3"
         onCanPlayThrough={() => {
           if (!audioReady) {
             initializeAudio();
