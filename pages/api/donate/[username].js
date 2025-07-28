@@ -100,8 +100,21 @@ export default async function handler(req, res) {
         status: 'PAID' // Donasi baru langsung PAID
       });
 
-      // Kirim notifikasi ke socket server Railway
+      // Kirim notifikasi ke socket server Railway dan lokal
       try {
+        // Emit ke socket lokal jika tersedia
+        if (global._io) {
+          global._io.emit('new-donation', {
+            name: donation.name,
+            amount: donation.amount,
+            message: donation.message,
+            createdAt: donation.createdAt,
+            ownerUsername: creator.username
+          });
+          console.log('Local socket notification sent');
+        }
+
+        // Kirim juga ke socket server Railway sebagai backup
         await fetch('https://socket-server-production-03be.up.railway.app/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -109,9 +122,11 @@ export default async function handler(req, res) {
             name: donation.name,
             amount: donation.amount,
             message: donation.message,
-            createdAt: donation.createdAt
+            createdAt: donation.createdAt,
+            ownerUsername: creator.username
           })
         });
+        console.log('External socket notification sent');
       } catch (err) {
         console.error('Gagal kirim notifikasi ke socket server:', err);
       }

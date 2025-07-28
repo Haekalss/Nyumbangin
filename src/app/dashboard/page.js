@@ -51,10 +51,33 @@ export default function Dashboard() {
   useEffect(() => {
     checkAuth();
     fetchData();
+    
     // Connect to socket.io server for realtime notification
     if (!socketRef.current) {
-      socketRef.current = io('https://socket-server-production-03be.up.railway.app/');
+      // Try local server first, fallback to external server
+      const socketUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://socket-server-production-03be.up.railway.app/' 
+        : 'http://localhost:3000';
+        
+      socketRef.current = io(socketUrl);
+      
+      socketRef.current.on('connect', () => {
+        console.log('Connected to socket server:', socketUrl);
+      });
+      
+      socketRef.current.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+      });
+      
       socketRef.current.on('new-donation', (data) => {
+        console.log('🎉 Received new donation notification:', data);
+        
+        // Hanya tampilkan notif jika donasi untuk user yang sedang login
+        if (data.ownerUsername && user?.username && data.ownerUsername !== user.username) {
+          console.log('Donation not for current user, ignoring notification');
+          return;
+        }
+        
         const notifObj = {
           message: `Donasi baru dari ${data.name} sebesar Rp ${data.amount.toLocaleString('id-ID')}`,
           detail: data.message,
@@ -69,6 +92,7 @@ export default function Dashboard() {
         }
         
         // Refresh data otomatis setiap ada donasi baru
+        console.log('🔄 Refreshing donation data...');
         fetchData();
       });
     }

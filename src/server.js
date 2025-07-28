@@ -1,6 +1,6 @@
 // Simple socket.io server for donation notification
 const { createServer } = require('http');
-// Removed socket.io server setup; socket is now hosted separately
+const { Server } = require('socket.io');
 const next = require('next');
 
 const dev = process.env.NODE_ENV !== 'production';
@@ -20,7 +20,11 @@ app.prepare().then(() => {
   });
 
   io.on('connection', (socket) => {
-    console.log('Admin connected:', socket.id);
+    console.log('🔗 Admin connected:', socket.id);
+    
+    socket.on('disconnect', () => {
+      console.log('❌ Admin disconnected:', socket.id);
+    });
   });
 
   // Expose io for API usage
