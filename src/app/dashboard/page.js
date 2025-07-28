@@ -33,24 +33,53 @@ export default function Dashboard() {
     confirmPassword: ''
   });
   const [profileLoading, setProfileLoading] = useState(false);
+  const [audioReady, setAudioReady] = useState(false);
   const socketRef = useRef(null);
   const audioRef = useRef(null);
 
   // Play notification sound using MP3 file
-  const playNotificationSound = () => {
+  const playNotificationSound = async () => {
     try {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0; // Reset to beginning
-        audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+      if (audioRef.current && audioReady) {
+        audioRef.current.currentTime = 0;
+        await audioRef.current.play();
       }
     } catch (error) {
-      console.log('Audio notification failed:', error);
+      console.warn('Audio notification failed:', error.message);
+    }
+  };
+
+  // Initialize audio on user interaction
+  const initializeAudio = async () => {
+    try {
+      if (audioRef.current && !audioReady) {
+        audioRef.current.volume = 0.7;
+        audioRef.current.muted = true;
+        await audioRef.current.play();
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.muted = false;
+        setAudioReady(true);
+      }
+    } catch (error) {
+      // Silent fail
+    }
+  };
+
+  // Handle click anywhere to initialize audio
+  const handleUserInteraction = () => {
+    if (!audioReady) {
+      initializeAudio();
     }
   };
 
   useEffect(() => {
     checkAuth();
     fetchData();
+    
+    // Add click listener to initialize audio
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
     
     // Connect to socket.io server for realtime notification
     if (!socketRef.current) {
@@ -87,12 +116,11 @@ export default function Dashboard() {
         setNotifProgress(0);
         
         // Play notification sound if enabled
-        if (soundEnabled) {
+        if (soundEnabled && audioReady) {
           playNotificationSound();
         }
         
         // Refresh data otomatis setiap ada donasi baru
-        console.log('🔄 Refreshing donation data...');
         fetchData();
       });
     }
@@ -107,6 +135,10 @@ export default function Dashboard() {
         socketRef.current.disconnect();
       }
       clearInterval(refreshInterval);
+      
+      // Cleanup event listeners
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
     };
   }, []);
 
@@ -518,6 +550,11 @@ export default function Dashboard() {
         ref={audioRef}
         preload="auto"
         src="/taco-bell-bong-sfx.mp3"
+        onCanPlayThrough={() => {
+          if (!audioReady) {
+            initializeAudio();
+          }
+        }}
       />
       
       {/* Header */}
