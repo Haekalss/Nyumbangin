@@ -23,14 +23,24 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Creator tidak ditemukan' });
       }
 
-      // Get recent donations for this creator
-      const donations = await Donation.find({ 
+      // Get donations for this creator
+      // If 'all=true' parameter is passed, return all donations (for leaderboard calculation)
+      // Otherwise, return only recent 10 donations (for public display)
+      const isAllRequested = req.query.all === 'true';
+      
+      let donationsQuery = Donation.find({ 
         ownerUsername: creator.username,
         status: 'PAID' // Only show paid donations publicly
       })
       .sort({ createdAt: -1 })
-      .limit(10)
       .select('name amount message createdAt');
+      
+      // Apply limit only if not requesting all donations
+      if (!isAllRequested) {
+        donationsQuery = donationsQuery.limit(10);
+      }
+      
+      const donations = await donationsQuery;
 
       // Get stats for this creator
       const stats = await Donation.aggregate([

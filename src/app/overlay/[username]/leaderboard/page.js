@@ -32,19 +32,25 @@ export default function LeaderboardOverlay() {
     }
   };
 
-  // Fetch leaderboard data
+  // Fetch leaderboard data - menggunakan perhitungan yang sama dengan dashboard
   const fetchLeaderboardData = async () => {
     try {
-      // Get donations for this specific creator
-      const response = await axios.get(`/api/donate/${username}`);
-      const allDonations = response.data.donations || [];
+      // Ambil semua donasi untuk creator ini dengan parameter all=true
+      const allDonationsResponse = await axios.get(`/api/donate/${username}?all=true`);
+      if (!allDonationsResponse.data.success) {
+        setLeaderboardData([]);
+        return;
+      }
+      
+      const allDonations = allDonationsResponse.data.donations || [];
       
       // Get current month and year for MONTHLY leaderboard (reset per bulan)
       const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // Juli = 6
+      const currentYear = now.getFullYear(); // 2025
       
-      // Filter donations for current month ONLY
+      // Filter donations for current month ONLY - leaderboard reset setiap bulan
+      // Semua donasi di bulan Juli (termasuk tanggal 27, 28, dst) harus masuk
       const thisMonthDonations = allDonations.filter(donation => {
         const donationDate = new Date(donation.createdAt);
         const donationMonth = donationDate.getMonth();
@@ -53,9 +59,10 @@ export default function LeaderboardOverlay() {
         return donationMonth === currentMonth && donationYear === currentYear;
       });
       
-      // Group donations by donor name and sum amounts
+      // Group donations by donor name and sum amounts - SAMA PERSIS DENGAN DASHBOARD
       const grouped = thisMonthDonations.reduce((acc, donation) => {
-        const name = donation.name || 'Anonymous';
+        // Check both name and donorName fields
+        const name = donation.name || donation.donorName || 'Anonymous';
         
         if (!acc[name]) {
           acc[name] = {
@@ -76,7 +83,7 @@ export default function LeaderboardOverlay() {
       // Convert to array and sort by total amount - Top 5 for overlay
       const leaderboardArray = Object.values(grouped)
         .sort((a, b) => b.totalAmount - a.totalAmount)
-        .slice(0, 5);
+        .slice(0, 5); // Top 5 donors untuk overlay
 
       setLeaderboardData(leaderboardArray);
     } catch (error) {
