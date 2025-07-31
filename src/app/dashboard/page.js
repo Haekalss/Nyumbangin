@@ -370,12 +370,6 @@ export default function Dashboard() {
       return;
     }
 
-    if (profileFormData.username.length < 3) {
-      toast.error('Username minimal 3 karakter!');
-      setProfileLoading(false);
-      return;
-    }
-
     const usernameRegex = /^[a-zA-Z0-9_-]+$/;
     if (!usernameRegex.test(profileFormData.username)) {
       toast.error('Username hanya boleh berisi huruf, angka, underscore, dan dash!');
@@ -712,17 +706,18 @@ export default function Dashboard() {
                       <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
                         Username
                       </label>
-                      <input
-                        type="text"
-                        value={profileFormData.username}
-                        onChange={(e) => setProfileFormData({...profileFormData, username: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-[#b8a492] bg-[#2d2d2d] text-[#b8a492] font-mono rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492]"
-                        placeholder="Username untuk link donasi"
-                      />
-                      <p className="text-xs text-[#b8a492]/70 mt-1 font-mono">
-                        Link donasi: /donate/{profileFormData.username || 'username'}
-                      </p>
-                    </div>
+                  <input
+                    type="text"
+                    value={profileFormData.username}
+                    disabled
+                    className="w-full px-3 py-2 border-2 border-[#b8a492]/50 bg-[#2d2d2d]/50 text-[#b8a492]/70 font-mono rounded-md cursor-not-allowed"
+                    placeholder="Username untuk link donasi"
+                  />
+                  <p className="text-xs text-[#b8a492]/70 mt-1 font-mono">
+                    Link donasi: /donate/{profileFormData.username || 'username'}
+                  </p>
+                </div>
+
                     
                     <div>
                       <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
