@@ -116,44 +116,6 @@ Nyumbangin adalah solusi lengkap untuk creator yang ingin:
 - MongoDB (local atau cloud)
 - Git
 
-### **Langkah Instalasi:**
-
-1. **Clone Repository**
-   ```bash
-   git clone https://github.com/yourusername/nyumbangin.git
-   cd nyumbangin
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Setup Environment Variables**
-   
-   Buat file `.env.local`:
-   ```env
-   # Database
-   MONGO_URI=mongodb://localhost:27017/nyumbangin
-   
-   # Authentication
-   JWT_SECRET=your-super-secret-jwt-key-here
-   
-   # Optional: MongoDB Atlas
-   # MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/nyumbangin
-   ```
-
-4. **Jalankan Development Server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Akses Aplikasi**
-   ```
-   - Homepage: http://localhost:3000
-   - Creator Register: http://localhost:3000/creator/register
-   - Login: http://localhost:3000/login
-   ```
 
 ## 📊 Database Schema
 
@@ -211,31 +173,6 @@ Nyumbangin adalah solusi lengkap untuk creator yang ingin:
 - **Input Validation** untuk mencegah injection attacks
 - **Auto-logout** untuk keamanan session
 
-## 🚀 Deployment
-
-### **Vercel (Recommended):**
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-### **Railway:**
-```bash
-# Connect to Railway
-railway login
-railway init
-railway up
-```
-
-### **Environment Variables untuk Production:**
-```env
-MONGO_URI=your-production-mongodb-uri
-JWT_SECRET=your-production-jwt-secret
-NODE_ENV=production
-```
 
 ## 📄 Lisensi
 
