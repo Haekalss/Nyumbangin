@@ -1,173 +1,248 @@
-# Nyumbangin - Platform Donasi Multi-Tenant
+# Nyumbangin - Platform Donasi untuk Content Creator & Live Streamer
 
-Platform donasi digital yang memungkinkan banyak creator untuk memiliki halaman donasi personal masing-masing dengan sistem multi-tenant.
+**Nyumbangin** adalah platform donasi digital yang dirancang khusus untuk content creator, streamer, dan influencer Indonesia. Platform ini memungkinkan creator untuk menerima donasi dari audience dengan fitur notifikasi real-time yang dapat diintegrasikan langsung ke dalam live streaming atau konten mereka.
 
-## 🎯 **Konsep Multi-Tenant System**
+## 🎯 Apa itu Nyumbangin?
 
-Setiap creator memiliki:
-- **Username unik** sebagai identifier
-- **Link donasi personal**: `/donate/username`  
-- **Dashboard admin pribadi** untuk mengelola donasi mereka sendiri
-- **Statistik terpisah** dari creator lain
+Nyumbangin adalah solusi lengkap untuk creator yang ingin:
+- **Menerima donasi** dari audience dengan mudah
+- **Menampilkan notifikasi donasi** secara real-time di live stream (OBS, TikTok Live Studio, dll)
+- **Mengelola donasi** melalui dashboard yang user-friendly
+- **Melihat leaderboard donatur** untuk engagement yang lebih baik
+- **Memiliki link donasi personal** yang mudah dibagikan
 
-## Fitur Utama
+## 🚀 Fitur Utama
 
-### � **System Architecture**
-1. **Multi-Creator Platform**
-   - Setiap creator daftar dengan username unik
-   - Link donasi personal: `/donate/{username}`
-   - Statistik dan donasi terpisah per creator
+### 💰 **Sistem Donasi Multi-Creator**
+- Setiap creator memiliki **username unik** dan **link donasi personal** (`/donate/username`)
+- Donasi langsung masuk tanpa perlu approval manual
+- Minimal donasi Rp 1.000 dengan sistem yang aman
+- Statistik donasi terpisah per creator
 
-2. **Creator Registration** (`/creator/register`)
-   - Username unik (akan jadi link donasi)
-   - Display name untuk tampilan
-   - Email dan password untuk login
-   - Deskripsi creator (opsional)
+### 🎮 **Overlay untuk Live Streaming**
+- **Notifikasi Donasi Real-time**: Tampilkan nama donatur, jumlah, dan pesan secara otomatis
+- **Leaderboard Donatur**: Tampilkan top donatur bulan ini dengan ranking
+- **Kompatibel dengan OBS**: Browser source yang siap pakai untuk streaming
+- **Efek Suara**: Notifikasi audio otomatis saat ada donasi masuk
+- **Konfigurasi Fleksibel**: Atur ukuran, posisi, dan tampilan overlay
 
-3. **Creator Login & Dashboard** (`/login` & `/dashboard`)
-   - Login dengan email/password
-   - Dashboard khusus menampilkan donasi creator tersebut
-   - Statistik personal (bukan platform-wide)
+### 📊 **Dashboard Creator**
+- **Manajemen Donasi**: Lihat, kelola, dan hapus donasi
+- **Statistik Real-time**: Total donasi, jumlah donatur, dan analytics
+- **Riwayat Harian**: Filter donasi berdasarkan tanggal
+- **Leaderboard Bulanan**: Lihat donatur terbaik yang reset setiap bulan
+- **Session Timeout**: Keamanan dengan auto-logout setelah 3 jam
 
-### 💰 **Donation Flow**
-1. **Halaman Donasi per Creator** (`/donate/{username}`)
-   - Profil creator (nama, deskripsi)
-   - Form donasi tanpa perlu login
-   - Statistik donasi creator tersebut
-   - Daftar donasi terbaru (hanya yang PAID)
+### 🔔 **Notifikasi Real-time**
+- **WebSocket Integration**: Notifikasi instan saat ada donasi baru
+- **Sound Effects**: Efek suara kustomisasi untuk setiap donasi
+- **Animasi Smooth**: Transisi yang menarik untuk overlay
+- **Auto-hide**: Notifikasi hilang otomatis setelah beberapa detik
 
-2. **Creator Dashboard** (`/dashboard`)
-   - Kelola semua donasi yang masuk ke creator tersebut
-   - Update status UNPAID → PAID
-   - Hapus donasi
-   - Statistik personal creator
+## 🎨 Halaman & Fitur
 
-### 🔧 **Backend API yang Terintegrasi**
-1. **Auth API**
-   - `POST /api/auth/register` - Registrasi creator (dengan username)
-   - `POST /api/auth/login` - Login creator
+### **Untuk Creator:**
+- **`/creator/register`** - Registrasi creator baru dengan username unik
+- **`/login`** - Login ke dashboard creator
+- **`/dashboard`** - Panel kontrol lengkap untuk mengelola donasi
+- **`/overlay/{username}/notifications`** - Halaman overlay notifikasi untuk OBS
+- **`/overlay/{username}/leaderboard`** - Halaman overlay leaderboard untuk OBS
 
-2. **Donation API per Creator**
-   - `GET /api/donate/[username]` - Ambil profil creator & donasi publik
-   - `POST /api/donate/[username]` - Buat donasi untuk creator tertentu
+### **Untuk Donatur (Public):**
+- **`/donate/{username}`** - Halaman donasi creator dengan profil dan form donasi
+- **`/`** - Homepage platform dengan informasi umum
 
-3. **Creator Stats API**
-   - `GET /api/stats` - Statistik creator (dengan auth)
+## 🛠️ Teknologi yang Digunakan
 
-### 🎨 **Frontend Pages**
-- **Homepage** (`/`) - Landing page platform
-- **Creator Register** (`/creator/register`) - Daftar creator baru
-- **Login** (`/login`) - Login creator
-- **Creator Dashboard** (`/dashboard`) - Panel admin creator
-- **Donation Page** (`/donate/[username]`) - Halaman donasi per creator
+### **Frontend:**
+- **Next.js 14** - React framework dengan App Router
+- **Tailwind CSS** - Styling yang responsive dan modern
+- **Socket.io Client** - Real-time communication
+- **Axios** - HTTP client untuk API calls
+- **React Hot Toast** - Notifikasi yang elegant
 
-## Database Models
+### **Backend:**
+- **Next.js API Routes** - Serverless API endpoints
+- **MongoDB** - Database NoSQL untuk menyimpan data
+- **Mongoose** - ODM untuk MongoDB
+- **JWT** - Authentication dengan session timeout 3 jam
+- **Socket.io** - Real-time WebSocket server
+- **bcryptjs** - Password hashing yang aman
 
-### User Model (Creator)
+### **External Services:**
+- **Railway Socket Server** - External WebSocket server untuk reliability
+- **MongoDB Atlas** - Cloud database (opsional)
+
+## 📱 Cara Penggunaan
+
+### **Untuk Creator:**
+
+1. **Daftar sebagai Creator**
+   ```
+   1. Kunjungi /creator/register
+   2. Isi email, password, username unik, dan display name
+   3. Username akan menjadi link donasi: /donate/username
+   ```
+
+2. **Setup Live Streaming**
+   ```
+   1. Login ke dashboard
+   2. Copy link overlay notifikasi dan leaderboard
+   3. Tambahkan sebagai Browser Source di OBS
+   4. Atur posisi dan ukuran sesuai kebutuhan
+   ```
+
+3. **Kelola Donasi**
+   ```
+   1. Monitor donasi real-time di dashboard
+   2. Lihat statistik dan leaderboard donatur
+   3. Kelola riwayat donasi harian/bulanan
+   ```
+
+### **Untuk Donatur:**
+
+1. **Berdonasi ke Creator**
+   ```
+   1. Kunjungi /donate/{username-creator}
+   2. Isi nama, jumlah donasi (min. Rp 1.000), dan pesan
+   3. Klik "Kirim Donasi"
+   4. Donasi langsung masuk dan muncul di overlay creator
+   ```
+
+## 🔧 Instalasi & Setup
+
+### **Prerequisites:**
+- Node.js 18+ 
+- MongoDB (local atau cloud)
+- Git
+
+### **Langkah Instalasi:**
+
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/yourusername/nyumbangin.git
+   cd nyumbangin
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Setup Environment Variables**
+   
+   Buat file `.env.local`:
+   ```env
+   # Database
+   MONGO_URI=mongodb://localhost:27017/nyumbangin
+   
+   # Authentication
+   JWT_SECRET=your-super-secret-jwt-key-here
+   
+   # Optional: MongoDB Atlas
+   # MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/nyumbangin
+   ```
+
+4. **Jalankan Development Server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Akses Aplikasi**
+   ```
+   - Homepage: http://localhost:3000
+   - Creator Register: http://localhost:3000/creator/register
+   - Login: http://localhost:3000/login
+   ```
+
+## 📊 Database Schema
+
+### **User (Creator) Model:**
 ```javascript
 {
-  email: String (required, unique),
-  password: String (required, hashed),
-  username: String (required, unique), // Username untuk link donasi
-  displayName: String (required), // Nama yang ditampilkan
-  description: String, // Deskripsi creator
-  role: String (default: 'admin') // Semua user adalah creator/admin
-}
-```
-
-### Donation Model
-```javascript
-{
-  name: String, // Nama donatur
-  amount: Number, // Jumlah donasi
-  message: String, // Pesan donatur
-  status: String (enum: ['UNPAID', 'PAID'], default: 'UNPAID'),
-  merchant_ref: String (unique, required),
-  owner: ObjectId (ref: 'User'), // Creator yang menerima donasi
-  ownerUsername: String, // Username creator (untuk query cepat)
+  email: String (unique, required),
+  password: String (hashed, required),
+  username: String (unique, required), // untuk link donasi
+  displayName: String (required),      // nama tampilan
+  description: String,                 // bio creator
+  role: String (default: 'admin'),
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-## Cara Menjalankan
-
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Setup environment variables**
-   Buat file `.env.local`:
-   ```
-   MONGO_URI=mongodb://localhost:27017/nyumbangin
-   JWT_SECRET=your-jwt-secret-key
-   ```
-
-3. **Jalankan development server**
-   ```bash
-   npm run dev
-   ```
-
-## Flow Aplikasi
-
-### Creator Registration Flow
-1. Creator daftar di `/creator/register`
-   - Input: email, password, username, displayName, description
-   - Username akan jadi link donasi: `/donate/username`
-2. Redirect ke login page
-
-### Creator Dashboard Flow  
-1. Creator login di `/login`
-2. Akses dashboard di `/dashboard`
-3. Melihat donasi yang masuk ke creator tersebut saja
-4. Kelola status donasi (UNPAID → PAID)
-5. Lihat statistik personal
-
-### Donation Flow (Public)
-1. User kunjungi `/donate/{username}`
-2. Lihat profil creator dan statistik donasi
-3. Isi form donasi (tanpa perlu daftar)
-4. Donasi masuk ke database dengan `owner` = creator tersebut
-5. Creator bisa lihat donasi baru di dashboard
-
-### Key Differences dari Sistem Sebelumnya
-- ✅ **Multi-tenant**: Setiap creator punya ruang terpisah
-- ✅ **Personal links**: `/donate/{username}` bukan `/donate` umum  
-- ✅ **Isolated stats**: Statistik per creator, bukan platform-wide
-- ✅ **Creator-focused**: Dashboard menampilkan donasi creator tersebut saja
-- ✅ **Scalable**: Bisa menampung ribuan creator
-
-## URL Structure
-
-```
-/ - Homepage platform
-/creator/register - Daftar creator baru
-/login - Login creator
-/dashboard - Dashboard creator (setelah login)
-/donate/{username} - Halaman donasi creator tertentu
+### **Donation Model:**
+```javascript
+{
+  name: String (required),           // nama donatur
+  amount: Number (required),         // jumlah donasi
+  message: String,                   // pesan donatur
+  status: String (default: 'PAID'), // status donasi
+  merchant_ref: String (unique),     // referensi unik
+  owner: ObjectId (ref: 'User'),     // creator penerima
+  ownerUsername: String,             // username creator
+  createdAt: Date,
+  updatedAt: Date
+}
 ```
 
-## Contoh Usage
+## 🎯 Use Cases
 
-1. **Creator "johndoe" daftar**:
-   - Link donasi: `/donate/johndoe`
-   - Dashboard: `/dashboard` (setelah login sebagai johndoe)
+### **Content Creator YouTube/TikTok:**
+- Tampilkan notifikasi donasi di video live streaming
+- Leaderboard donatur untuk meningkatkan engagement
+- Link donasi di bio untuk monetisasi konten
 
-2. **Creator "janedoe" daftar**:
-   - Link donasi: `/donate/janedoe` 
-   - Dashboard: `/dashboard` (setelah login sebagai janedoe)
+### **Live Streamer Gaming:**
+- Notifikasi donasi real-time saat streaming game
+- Sound effect kustomisasi untuk setiap donasi
+- Dashboard untuk tracking performa donasi
 
-3. **Donatur mau donasi ke johndoe**:
-   - Kunjungi `/donate/johndoe`
-   - Isi form donasi → masuk ke database dengan `ownerUsername: "johndoe"`
+### **Influencer & KOL:**
+- Platform donasi personal yang profesional
+- Analytics donasi untuk laporan sponsor
+- Engagement tools dengan leaderboard donatur
 
-4. **johndoe login**:
-   - Dashboard hanya menampilkan donasi yang `ownerUsername: "johndoe"`
-   - Statistik hanya untuk donasi johndoe
+## 🔒 Keamanan & Privasi
+
+- **JWT Authentication** dengan session timeout 3 jam
+- **Password Hashing** menggunakan bcryptjs
+- **Data Isolation** per creator (multi-tenant)
+- **Input Validation** untuk mencegah injection attacks
+- **Auto-logout** untuk keamanan session
+
+## 🚀 Deployment
+
+### **Vercel (Recommended):**
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+### **Railway:**
+```bash
+# Connect to Railway
+railway login
+railway init
+railway up
+```
+
+### **Environment Variables untuk Production:**
+```env
+MONGO_URI=your-production-mongodb-uri
+JWT_SECRET=your-production-jwt-secret
+NODE_ENV=production
+```
+
+## 📄 Lisensi
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Status**: ✅ **Multi-Tenant System Fully Implemented**
+**Nyumbangin** - Empowering Indonesian Content Creators 🇮🇩
 
-Sistem sekarang mendukung banyak creator dengan isolasi data yang tepat, mirip dengan platform donasi modern.
+*Made with ❤️ for Indonesian Creator Community*
