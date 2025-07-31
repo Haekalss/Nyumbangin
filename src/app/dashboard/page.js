@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
-import io from 'socket.io-client';
 import toast from 'react-hot-toast';
+import io from 'socket.io-client';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -14,15 +14,12 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [notif, setNotif] = useState(null);
-  const [notifProgress, setNotifProgress] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
   const [historyData, setHistoryData] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [filteredHistoryData, setFilteredHistoryData] = useState([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState([]);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [profileFormData, setProfileFormData] = useState({
     displayName: '',
@@ -33,97 +30,11 @@ export default function Dashboard() {
     confirmPassword: ''
   });
   const [profileLoading, setProfileLoading] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
   const socketRef = useRef(null);
-  const audioRef = useRef(null);
-
-  // Play notification sound using MP3 file
-  const playNotificationSound = async () => {
-    try {
-      if (audioRef.current && audioReady) {
-        audioRef.current.currentTime = 0;
-        await audioRef.current.play();
-      }
-    } catch (error) {
-      console.warn('Audio notification failed:', error.message);
-    }
-  };
-
-  // Initialize audio on user interaction
-  const initializeAudio = async () => {
-    try {
-      if (audioRef.current && !audioReady) {
-        audioRef.current.volume = 0.7;
-        audioRef.current.muted = true;
-        await audioRef.current.play();
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current.muted = false;
-        setAudioReady(true);
-      }
-    } catch (error) {
-      // Silent fail
-    }
-  };
-
-  // Handle click anywhere to initialize audio
-  const handleUserInteraction = () => {
-    if (!audioReady) {
-      initializeAudio();
-    }
-  };
 
   useEffect(() => {
     checkAuth();
     fetchData();
-    
-    // Add click listener to initialize audio
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('keydown', handleUserInteraction);
-    
-    // Connect to socket.io server for realtime notification
-    if (!socketRef.current) {
-      // Try local server first, fallback to external server
-      const socketUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://socket-server-production-03be.up.railway.app/' 
-        : 'http://localhost:3000';
-        
-      socketRef.current = io(socketUrl);
-      
-      socketRef.current.on('connect', () => {
-        console.log('Connected to socket server:', socketUrl);
-      });
-      
-      socketRef.current.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-      });
-      
-      socketRef.current.on('new-donation', (data) => {
-        console.log('🎉 Received new donation notification:', data);
-        
-        // Hanya tampilkan notif jika donasi untuk user yang sedang login
-        if (data.ownerUsername && user?.username && data.ownerUsername !== user.username) {
-          console.log('Donation not for current user, ignoring notification');
-          return;
-        }
-        
-        const notifObj = {
-          message: `Donasi baru dari ${data.name} sebesar Rp ${data.amount.toLocaleString('id-ID')}`,
-          detail: data.message,
-          time: new Date(data.createdAt).toLocaleTimeString('id-ID')
-        };
-        setNotif(notifObj);
-        setNotifProgress(0);
-        
-        // Play notification sound if enabled
-        if (soundEnabled && audioReady) {
-          playNotificationSound();
-        }
-        
-        // Refresh data otomatis setiap ada donasi baru
-        fetchData();
-      });
-    }
 
     // Set up interval to refresh data every hour to remove old donations
     const refreshInterval = setInterval(() => {
@@ -131,35 +42,47 @@ export default function Dashboard() {
     }, 60 * 60 * 1000); // Refresh every hour
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
       clearInterval(refreshInterval);
-      
-      // Cleanup event listeners
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
     };
   }, []);
 
-  // Auto-hide notification with progress bar
+  // WebSocket connection for auto-refresh when new donations come in
   useEffect(() => {
-    if (notif) {
-      setNotifProgress(0);
-      const duration = 5000; // 5 seconds
-      const interval = 50;
-      let elapsed = 0;
-      const timer = setInterval(() => {
-        elapsed += interval;
-        setNotifProgress((elapsed / duration) * 100);
-        if (elapsed >= duration) {
-          setNotif(null);
-          clearInterval(timer);
+    if (!user?.username) return;
+
+    // Connect to socket.io server for realtime data refresh
+    if (!socketRef.current) {
+      const socketUrl = 'https://socket-server-production-03be.up.railway.app/';
+        
+      socketRef.current = io(socketUrl);
+      
+      socketRef.current.on('connect', () => {
+        console.log('Dashboard connected to socket server for auto-refresh');
+      });
+      
+      socketRef.current.on('connect_error', (error) => {
+        console.error('Dashboard socket connection error:', error);
+      });
+      
+      socketRef.current.on('new-donation', (data) => {
+        console.log('🔄 New donation received, refreshing dashboard data:', data);
+        
+        // Only refresh if donation is for this user
+        if (data.ownerUsername && data.ownerUsername === user.username) {
+          console.log('Refreshing dashboard data for new donation');
+          // Refresh data automatically when new donation comes in
+          fetchData();
         }
-      }, interval);
-      return () => clearInterval(timer);
+      });
     }
-  }, [notif]);
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [user?.username]);
 
   const checkAuth = () => {
     const token = localStorage.getItem('token');
@@ -534,6 +457,29 @@ export default function Dashboard() {
     setShowProfile(true);
   };
 
+  // Show notification preview when clicking on donation row
+  const showNotificationPreview = (donation) => {
+    // Send notification data to overlay via localStorage
+    const notificationData = {
+      message: `Donasi baru dari ${donation.name} sebesar Rp ${donation.amount.toLocaleString('id-ID')}`,
+      detail: donation.message || '',
+      time: new Date(donation.createdAt).toLocaleTimeString('id-ID'),
+      timestamp: Date.now()
+    };
+    
+    // Store in localStorage for overlay to pick up
+    localStorage.setItem('overlay-notification-trigger', JSON.stringify(notificationData));
+    
+    // Trigger storage event for overlay pages
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'overlay-notification-trigger',
+      newValue: JSON.stringify(notificationData)
+    }));
+    
+    // Show toast for confirmation
+    toast.success('Preview notifikasi dikirim ke halaman overlay');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -545,18 +491,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
-      {/* Audio notification */}
-      <audio
-        ref={audioRef}
-        preload="auto"
-        src="/taco-bell-bong-sfx.mp3"
-        onCanPlayThrough={() => {
-          if (!audioReady) {
-            initializeAudio();
-          }
-        }}
-      />
-      
       {/* Header */}
       <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -578,15 +512,26 @@ export default function Dashboard() {
             </div>
             <div className="flex space-x-4">
               <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`px-4 py-2 rounded-lg font-bold border-2 transition-all ${
-                  soundEnabled 
-                    ? 'bg-[#b8a492] text-[#2d2d2d] border-[#2d2d2d] hover:bg-[#d6c6b9]' 
-                    : 'bg-transparent text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492]/10'
-                }`}
-                title={soundEnabled ? 'Matikan suara notifikasi' : 'Nyalakan suara notifikasi'}
+                onClick={() => {
+                  const notifUrl = `${window.location.origin}/overlay/${user?.username}/notifications`;
+                  navigator.clipboard.writeText(notifUrl);
+                  toast.success('Link notifikasi berhasil disalin!');
+                }}
+                className="bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all"
+                title="Copy Link Notifikasi"
               >
-                {soundEnabled ? '🔊' : '🔇'}
+                🔔 Copy Notif
+              </button>
+              <button
+                onClick={() => {
+                  const leaderboardUrl = `${window.location.origin}/overlay/${user?.username}/leaderboard`;
+                  navigator.clipboard.writeText(leaderboardUrl);
+                  toast.success('Link leaderboard berhasil disalin!');
+                }}
+                className="bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all"
+                title="Copy Link Leaderboard"
+              >
+                🏆 Copy Board
               </button>
               <button
                 onClick={openProfile}
@@ -606,17 +551,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Realtime Notification */}
-      {notif && (
-        <div className="fixed top-6 right-6 z-50 bg-[#b8a492] text-[#2d2d2d] px-6 py-4 rounded-xl border-4 border-[#2d2d2d] flex flex-col gap-1" style={{ minWidth: 320 }}>
-          <div className="font-bold text-lg font-mono">{notif.message}</div>
-          {notif.detail && <div className="text-sm font-mono">Pesan: {notif.detail}</div>}
-          <div className="text-xs opacity-80 font-mono">{notif.time}</div>
-          <div className="w-full h-1 bg-[#2d2d2d]/30 rounded mt-2 overflow-hidden">
-            <div className="h-1 bg-[#2d2d2d] transition-all duration-50" style={{ width: `${notifProgress}%` }}></div>
-          </div>
-        </div>
-      )}
 
       {/* History Modal */}
       {showHistory && (
@@ -865,6 +799,7 @@ export default function Dashboard() {
         </div>
       )}
 
+
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
         {stats && (
@@ -984,21 +919,11 @@ export default function Dashboard() {
               </thead>
               <tbody className="bg-[#2d2d2d] divide-y divide-[#b8a492]/10">
                 {donations.map((donation) => (
-                  <tr key={donation._id} className="hover:bg-[#d6c6b9]/20 transition-all">
+                  <tr key={donation._id} className="hover:bg-[#d6c6b9]/20 transition-all cursor-pointer" onClick={() => showNotificationPreview(donation)}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setNotif({
-                            message: `Donasi dari ${donation.name} sebesar Rp ${donation.amount.toLocaleString('id-ID')}`,
-                            detail: donation.message,
-                            time: new Date(donation.createdAt).toLocaleTimeString('id-ID')
-                          });
-                          setNotifProgress(0);
-                        }}
-                      >
-                        <div className="text-sm font-bold text-[#b8a492] font-mono hover:text-[#d6c6b9] transition-colors">{donation.name}</div>
-                        <div className="text-sm text-[#b8a492] font-mono hover:text-[#d6c6b9] transition-colors truncate">{donation.message || 'Tidak ada pesan'}</div>
+                      <div>
+                        <div className="text-sm font-bold text-[#b8a492] font-mono">{donation.name}</div>
+                        <div className="text-sm text-[#b8a492] font-mono truncate">{donation.message || 'Tidak ada pesan'}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1012,7 +937,10 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
                       <button
-                        onClick={() => deleteDonation(donation._id)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click when clicking delete
+                          deleteDonation(donation._id);
+                        }}
                         className="text-[#b8a492] hover:text-[#2d2d2d] transition-all font-mono"
                       >
                         Hapus
