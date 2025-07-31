@@ -6,9 +6,11 @@ import axios from 'axios';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';
+import { useSessionManager } from '@/utils/sessionManager';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { startMonitoring, stopMonitoring, logout } = useSessionManager();
   const [user, setUser] = useState(null);
   const [donations, setDonations] = useState([]);
   const [stats, setStats] = useState(null);
@@ -45,6 +47,17 @@ export default function Dashboard() {
       clearInterval(refreshInterval);
     };
   }, []);
+
+  // Start session monitoring when user is authenticated
+  useEffect(() => {
+    if (user) {
+      startMonitoring();
+    }
+
+    return () => {
+      stopMonitoring();
+    };
+  }, [user, startMonitoring, stopMonitoring]);
 
   // WebSocket connection for auto-refresh when new donations come in
   useEffect(() => {
