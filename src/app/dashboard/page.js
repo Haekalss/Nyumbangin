@@ -504,7 +504,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
-      {/* Header */}
+      {/* Header */} 
+
       <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">

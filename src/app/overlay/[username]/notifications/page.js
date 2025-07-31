@@ -102,7 +102,8 @@ export default function NotificationsOverlay() {
         const notifObj = {
           message: `Donasi baru dari ${data.name} sebesar Rp ${data.amount.toLocaleString('id-ID')}`,
           detail: data.message || '',
-          time: new Date(data.createdAt).toLocaleTimeString('id-ID')
+          time: new Date(data.createdAt).toLocaleTimeString('id-ID'),
+          timestamp: Date.now()
         };
         
         console.log('Setting notification:', notifObj);
@@ -112,6 +113,7 @@ export default function NotificationsOverlay() {
         // Play notification sound
         playNotificationSound();
       });
+
     }
 
     // Listen for localStorage events from dashboard (for preview notifications)
