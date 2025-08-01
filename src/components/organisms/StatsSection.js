@@ -1,5 +1,5 @@
 import React from 'react';
-import StatsCard from '../molecules/StatsCard';
+import StatsCard from '../StatsCard';
 
 const StatsSection = ({ stats, onHistoryClick, onLeaderboardClick }) => {
   if (!stats) return null;
