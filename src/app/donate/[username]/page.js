@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 export default function DonatePage() {
@@ -93,8 +92,7 @@ export default function DonatePage() {
         setSuccess(true);
         setFormData({ name: '', amount: '', message: '' });
         toast.success('Donasi berhasil dikirim! Terima kasih atas dukungannya.');
-        // Refresh data to show new donation
-        fetchCreatorData();
+        // Removed redirection after success
       }
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Terjadi kesalahan';
@@ -131,13 +129,6 @@ export default function DonatePage() {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#b8a492] mb-4 sm:mb-6 font-mono text-center">
             Dukung <span className="font-bold">{creator.displayName}</span>
           </h2>
-          {success && (
-            <div className="bg-[#b8a492]/20 border-l-4 border-[#b8a492] p-3 sm:p-4 mb-4 sm:mb-6 rounded-md">
-              <div className="text-xs sm:text-sm text-[#b8a492] font-mono">
-                Terima kasih! Donasi Anda berhasil dikirim.
-              </div>
-            </div>
-          )}
           {error && (
             <div className="bg-[#b8a492]/20 border-l-4 border-[#b8a492] p-3 sm:p-4 mb-4 sm:mb-6 rounded-md">
               <div className="text-xs sm:text-sm text-[#b8a492] font-mono">{error}</div>
@@ -215,12 +206,6 @@ export default function DonatePage() {
             >
               {donating ? 'Mengirim...' : `Donasi Rp ${formData.amount ? parseInt(formData.amount).toLocaleString('id-ID') : '0'}`}
             </button>
-
-            <div className="text-center">
-              <Link href="/" className="text-[#b8a492] hover:text-[#d6c6b9] underline font-mono text-xs sm:text-sm">
-                ← Kembali ke beranda
-              </Link>
-            </div>
           </form>
         </div>
       </div>
