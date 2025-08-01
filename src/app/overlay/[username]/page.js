@@ -1,10 +1,12 @@
 'use client'
 
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 
 export default function OverlayIndexPage() {
   const params = useParams();
   const username = params?.username;
+  const [copiedField, setCopiedField] = useState(null);
 
   if (!username) {
     return null;
@@ -16,6 +18,15 @@ export default function OverlayIndexPage() {
   const handleCopy = (text) => {
     if (navigator?.clipboard) {
       navigator.clipboard.writeText(text);
+    }
+  };
+
+  const handleCopyWithFeedback = (text, field) => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000); // Reset after 2 seconds
+      });
     }
   };
 
@@ -32,16 +43,19 @@ export default function OverlayIndexPage() {
               <input
                 readOnly
                 value={`${baseUrl}/overlay/${username}/notifications`}
-                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-1 rounded text-xs w-full"
+                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-1 rounded text-xs w-full cursor-pointer"
                 onClick={e => e.target.select()}
               />
-              <button
-                type="button"
-                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-1 rounded text-xs border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition"
-                onClick={() => handleCopy(`${baseUrl}/overlay/${username}/notifications`)}
+              <div
+                className="cursor-pointer"
+                onClick={() => handleCopyWithFeedback(`${baseUrl}/overlay/${username}/notifications`, 'notifications')}
               >
-                Copy
-              </button>
+                {copiedField === 'notifications' ? (
+                  <img src="/check-icon.svg" alt="Copied" className="w-5 h-5" />
+                ) : (
+                  <img src="/copy-icon.svg" alt="Copy" className="w-5 h-5" />
+                )}
+              </div>
             </div>
           </div>
 
@@ -55,22 +69,17 @@ export default function OverlayIndexPage() {
                 className="bg-[#2d2d2d] text-[#b8a492] px-2 py-1 rounded text-xs w-full"
                 onClick={e => e.target.select()}
               />
-              <button
-                type="button"
-                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-1 rounded text-xs border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition"
-                onClick={() => handleCopy(`${baseUrl}/overlay/${username}/leaderboard`)}
+              <div
+                className="cursor-pointer"
+                onClick={() => handleCopyWithFeedback(`${baseUrl}/overlay/${username}/leaderboard`, 'leaderboard')}
               >
-                Copy
-              </button>
+                {copiedField === 'leaderboard' ? (
+                  <img src="/check-icon.svg" alt="Copied" className="w-5 h-5" />
+                ) : (
+                  <img src="/copy-icon.svg" alt="Copy" className="w-5 h-5" />
+                )}
+              </div>
             </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold mb-2">📋 Cara Penggunaan</h3>
-            <ul className="text-sm space-y-1 list-disc list-inside">
-              <li>Copy kedua URL di atas</li>
-              <li>Tambahkan sebagai "Browser Source" di OBS/TikTok Live Studio</li>
-            </ul>
           </div>
 
           <div>
@@ -78,7 +87,7 @@ export default function OverlayIndexPage() {
             <p className="text-sm mb-2">Klik tombol di bawah untuk mengirim notifikasi tes ke overlay:</p>
             <button
               type="button"
-              className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded text-sm border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition"
+              className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded text-sm border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition cursor-pointer"
               onClick={() => {
                 const testNotification = {
                   message: 'Tes Notifikasi Donasi',
@@ -91,6 +100,7 @@ export default function OverlayIndexPage() {
                   key: 'overlay-notification-trigger',
                   newValue: JSON.stringify(testNotification)
                 }));
+                alert('Notifikasi tes berhasil dikirim!');
               }}
             >
               Kirim Notifikasi Tes
