@@ -10,11 +10,10 @@ export default function NotificationsOverlay() {
   
   const [notif, setNotif] = useState(null);
   const [notifProgress, setNotifProgress] = useState(0);
-  const [audioReady, setAudioReady] = useState(false);
   const socketRef = useRef(null);
   const audioRef = useRef(null);
 
-  // Play notification sound using MP3 file
+  // Play notification sound using MP3 file (simplified for OBS compatibility)
   const playNotificationSound = async () => {
     try {
       if (audioRef.current) {
@@ -30,52 +29,14 @@ export default function NotificationsOverlay() {
         }
       }
     } catch (error) {
-      console.warn('Audio notification failed:', error.message);
-      // Try to initialize audio if it failed
-      if (!audioReady) {
-        initializeAudio();
-      }
-    }
-  };
-
-  // Initialize audio on user interaction
-  const initializeAudio = async () => {
-    try {
-      if (audioRef.current) {
-        console.log('Initializing audio...');
-        audioRef.current.volume = 0.7;
-        audioRef.current.muted = true;
-        
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          await playPromise;
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-          audioRef.current.muted = false;
-          setAudioReady(true);
-          console.log('Audio initialized successfully');
-        }
-      }
-    } catch (error) {
-      console.warn('Audio initialization failed:', error.message);
-    }
-  };
-
-  // Handle click anywhere to initialize audio
-  const handleUserInteraction = () => {
-    console.log('User interaction detected, audio ready:', audioReady);
-    if (!audioReady) {
-      initializeAudio();
+      console.warn('Audio notification failed (this is normal in OBS):', error.message);
+      // Don't try to initialize audio on failure as it won't work in OBS anyway
     }
   };
 
   useEffect(() => {
     if (!username) return;
 
-    // Add click listener to initialize audio
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('keydown', handleUserInteraction);
-    
     // Connect to socket.io server for realtime notification
     if (!socketRef.current) {
       const socketUrl = 'https://socket-server-production-03be.up.railway.app/';
@@ -167,12 +128,10 @@ export default function NotificationsOverlay() {
       }
       
       // Cleanup event listeners
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(checkInterval);
     };
-  }, [username, audioReady]);
+  }, [username]);
 
   // Auto-hide notification with progress bar
   useEffect(() => {
@@ -204,12 +163,6 @@ export default function NotificationsOverlay() {
         ref={audioRef}
         preload="auto"
         src="/taco-bell-bong-sfx.mp3"
-        onCanPlayThrough={() => {
-          console.log('Audio can play through, initializing...');
-          if (!audioReady) {
-            initializeAudio();
-          }
-        }}
         onLoadedData={() => {
           console.log('Audio loaded successfully');
         }}
@@ -220,8 +173,8 @@ export default function NotificationsOverlay() {
       
       {/* Realtime Notification */}
       {notif && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="bg-[#b8a492] text-[#2d2d2d] px-8 py-6 rounded-xl border-4 border-[#2d2d2d] flex flex-col gap-2 shadow-lg pointer-events-auto" style={{ minWidth: 400, maxWidth: 600 }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="bg-[#b8a492] text-[#2d2d2d] px-8 py-6 rounded-xl border-4 border-[#2d2d2d] flex flex-col gap-2 shadow-lg" style={{ minWidth: 400, maxWidth: 600 }}>
             <div className="font-bold text-xl font-mono text-center">{notif.message}</div>
             {notif.detail && <div className="text-base font-mono text-center">Pesan: {notif.detail}</div>}
             <div className="text-sm opacity-80 font-mono text-center">{notif.time}</div>
