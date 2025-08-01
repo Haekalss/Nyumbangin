@@ -26,7 +26,7 @@ const Header = ({ user, onLogout, openProfile }) => {
               className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-all"
               title="Buka Overlay"
             >
-              🎥 Overlay
+              🎥 Live Widget
             </button>
             <button
               onClick={openProfile}
