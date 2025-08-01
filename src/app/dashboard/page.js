@@ -3,10 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';
 import { useSessionManager } from '@/utils/sessionManager';
+import ProfileModal from '@/components/organisms/ProfileModal';
+import Header from '@/components/organisms/Header';
+import DonationTable from '@/components/organisms/DonationTable';
+import StatsSection from '@/components/organisms/StatsSection';
+import LeaderboardModal from '@/components/organisms/LeaderboardModal';
+import HistoryModal from '@/components/organisms/HistoryModal';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -139,27 +144,6 @@ export default function Dashboard() {
       setError('Gagal memuat data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const updateDonationStatus = async (donationId, newStatus) => {
-    try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
-      await axios.patch(`/api/dashboard/donations/${donationId}`, 
-        { status: newStatus }, 
-        config
-      );
-      
-      // Refresh data
-      fetchData();
-      toast.success('Status donasi berhasil diupdate');
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Gagal mengupdate status donasi');
     }
   };
 
@@ -498,409 +482,46 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
-      {/* Header */} 
-
-      <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-4xl font-extrabold text-[#b8a492] tracking-wide font-mono">Nyumbangin Dashboard</h1>
-              <p className="text-[#b8a492] text-lg mt-2 font-mono">Selamat datang, <span className="font-bold">{user?.displayName || user?.email}</span></p>
-              {user?.username && (
-                <p className="text-sm text-[#b8a492] mt-1 font-mono flex items-center gap-2">
-                  Link donasi Anda:
-                  <Link
-                    href={`/donate/${user.username}`}
-                    className="ml-1 underline hover:text-[#d6c6b9]"
-                  >
-                    /donate/{user.username}
-                  </Link>
-                </p>
-              )}
-            </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => {
-                  const notifUrl = `${window.location.origin}/overlay/${user?.username}/notifications`;
-                  navigator.clipboard.writeText(notifUrl);
-                  toast.success('Link notifikasi berhasil disalin!');
-                }}
-                className="bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all"
-                title="Copy Link Notifikasi"
-              >
-                🔔 Copy Notif
-              </button>
-              <button
-                onClick={() => {
-                  const leaderboardUrl = `${window.location.origin}/overlay/${user?.username}/leaderboard`;
-                  navigator.clipboard.writeText(leaderboardUrl);
-                  toast.success('Link leaderboard berhasil disalin!');
-                }}
-                className="bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all"
-                title="Copy Link Leaderboard"
-              >
-                🏆 Copy Board
-              </button>
-              <button
-                onClick={openProfile}
-                className="bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all"
-                title="Edit Profil"
-              >
-                👤 Profil
-              </button>
-              <button
-                onClick={handleLogout}
-                className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-all"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header */}
+      <Header user={user} onLogout={handleLogout} openProfile={openProfile} />
 
 
       {/* History Modal */}
       {showHistory && (
-        <div className="fixed inset-1 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 max-w-5xl w-full max-h-full overflow-hidden shadow-xl relative">
-            <h3 className="text-2xl font-extrabold text-[#b8a492] mb-4 font-mono text-center">Riwayat Donasi Harian</h3>
-            <button
-              className="absolute top-3 right-3 px-3 py-1 rounded border-2 border-[#b8a492] bg-[#b8a492] text-[#2d2d2d] font-bold font-mono hover:bg-[#d6c6b9] transition-all"
-              onClick={() => setShowHistory(false)}
-            >
-              Tutup
-            </button>
-            
-            {/* Date Filter */}
-            <div className="mt-4 mb-6">
-              <label className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
-                Filter berdasarkan tanggal:
-              </label>
-              <select
-                value={selectedDate}
-                onChange={(e) => handleDateFilter(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-[#b8a492] bg-[#2d2d2d] text-[#b8a492] font-mono rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492]"
-              >
-                <option value="">Semua tanggal</option>
-                {historyData.map((day, idx) => (
-                  <option key={idx} value={day.date}>
-                    {day.date} - Rp {day.total.toLocaleString('id-ID')} ({day.count} donasi)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto flex flex-col gap-4 mt-4">
-              {filteredHistoryData.length === 0 ? (
-                <div className="text-[#b8a492] text-center font-mono">
-                  {selectedDate ? 'Tidak ada donasi pada tanggal tersebut' : 'Memuat data...'}
-                </div>
-              ) : (
-                filteredHistoryData.map((day, idx) => (
-                  <div key={idx} className="bg-[#b8a492]/20 border-2 border-[#b8a492] rounded-md p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="font-bold text-[#b8a492] font-mono text-lg">{day.date}</div>
-                      <div className="text-[#b8a492] font-mono">
-                        <span className="font-bold">Rp {day.total.toLocaleString('id-ID')}</span> ({day.count} donasi)
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      {day.donations.map((donation, i) => (
-                        <div key={i} className="text-sm text-[#b8a492] font-mono flex justify-between">
-                          <span>{donation.name}</span>
-                          <span>Rp {donation.amount.toLocaleString('id-ID')}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
+        <HistoryModal 
+          onClose={() => setShowHistory(false)} 
+          historyData={filteredHistoryData} 
+          selectedDate={selectedDate} 
+          onDateFilterChange={handleDateFilter} 
+        />
       )}
 
       {/* Leaderboard Modal */}
       {showLeaderboard && (
-        <div className="fixed inset-1 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 max-w-5xl w-full max-h-full overflow-hidden shadow-xl relative">
-            <h3 className="text-2xl font-extrabold text-[#b8a492] mb-4 font-mono text-center">Leaderboard</h3>
-            <button
-              className="absolute top-3 right-3 px-3 py-1 rounded border-2 border-[#b8a492] bg-[#b8a492] text-[#2d2d2d] font-bold font-mono hover:bg-[#d6c6b9] transition-all"
-              onClick={() => setShowLeaderboard(false)}
-            >
-              Tutup
-            </button>
-            
-            <div className="text-center text-[#b8a492] font-mono mb-6 text-sm">
-              Sultan bulan ini
-            </div>
-
-            <div>
-              {leaderboardData.length === 0 ? (
-                <div className="text-[#b8a492] text-center font-mono py-8">
-                  Belum ada donasi bulan ini
-                </div>
-              ) : (
-                <div className="bg-[#b8a492]/20 border-2 border-[#b8a492] rounded-md p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="font-bold text-[#b8a492] font-mono text-lg">Top Donatur</div>
-                    <div className="text-[#b8a492] font-mono text-sm">
-                      Total: {leaderboardData.reduce((sum, donor) => sum + donor.totalAmount, 0).toLocaleString('id-ID')} • {leaderboardData.length} donatur
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    {leaderboardData.map((donor, idx) => (
-                      <div key={idx} className="text-sm text-[#b8a492] font-mono flex justify-between items-center py-1">
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 bg-[#b8a492] text-[#2d2d2d] rounded-full flex items-center justify-center font-bold text-xs">
-                            {idx + 1}
-                          </span>
-                          <span>{donor.name}</span>
-                        </div>
-                        <span>Rp {donor.totalAmount.toLocaleString('id-ID')}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <LeaderboardModal 
+          onClose={() => setShowLeaderboard(false)} 
+          leaderboardData={leaderboardData} 
+        />
       )}
 
-      {/* Profile Modal */}
-      {showProfile && (
-        <div className="fixed inset-1 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 max-w-2xl w-full max-h-full overflow-hidden shadow-xl relative">
-            <h3 className="text-2xl font-extrabold text-[#b8a492] mb-4 font-mono text-center">Edit Profil</h3>
-            <button
-              className="absolute top-3 right-3 px-3 py-1 rounded border-2 border-[#b8a492] bg-[#b8a492] text-[#2d2d2d] font-bold font-mono hover:bg-[#d6c6b9] transition-all"
-              onClick={() => setShowProfile(false)}
-            >
-              Tutup
-            </button>
-            
-            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto pr-2">
-              <form onSubmit={handleProfileSubmit} className="space-y-4 mt-6">
-                {/* Basic Info */}
-                <div className="bg-[#b8a492]/10 p-4 rounded-lg border border-[#b8a492]/30">
-                  <h4 className="text-lg font-bold text-[#b8a492] mb-3 font-mono">Informasi Dasar</h4>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
-                        Nama Tampilan
-                      </label>
-                      <input
-                        type="text"
-                        value={profileFormData.displayName}
-                        onChange={(e) => setProfileFormData({...profileFormData, displayName: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-[#b8a492] bg-[#2d2d2d] text-[#b8a492] font-mono rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492]"
-                        placeholder="Nama yang akan ditampilkan"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
-                        Username
-                      </label>
-                  <input
-                    type="text"
-                    value={profileFormData.username}
-                    disabled
-                    className="w-full px-3 py-2 border-2 border-[#b8a492]/50 bg-[#2d2d2d]/50 text-[#b8a492]/70 font-mono rounded-md cursor-not-allowed"
-                    placeholder="Username untuk link donasi"
-                  />
-                  <p className="text-xs text-[#b8a492]/70 mt-1 font-mono">
-                    Link donasi: /donate/{profileFormData.username || 'username'}
-                  </p>
-                </div>
-
-                    
-                    <div>
-                      <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={profileFormData.email}
-                        disabled
-                        className="w-full px-3 py-2 border-2 border-[#b8a492]/50 bg-[#2d2d2d]/50 text-[#b8a492]/70 font-mono rounded-md cursor-not-allowed"
-                      />
-                      <p className="text-xs text-[#b8a492]/70 mt-1 font-mono">
-                        Email tidak dapat diubah
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Password Change */}
-                <div className="bg-[#b8a492]/10 p-4 rounded-lg border border-[#b8a492]/30">
-                  <h4 className="text-lg font-bold text-[#b8a492] mb-3 font-mono">Ubah Password</h4>
-                  <p className="text-xs text-[#b8a492]/70 mb-3 font-mono">
-                    Kosongkan jika tidak ingin mengubah password
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
-                        Password Saat Ini
-                      </label>
-                      <input
-                        type="password"
-                        value={profileFormData.currentPassword}
-                        onChange={(e) => setProfileFormData({...profileFormData, currentPassword: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-[#b8a492] bg-[#2d2d2d] text-[#b8a492] font-mono rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492]"
-                        placeholder="Masukkan password lama"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
-                        Password Baru
-                      </label>
-                      <input
-                        type="password"
-                        value={profileFormData.newPassword}
-                        onChange={(e) => setProfileFormData({...profileFormData, newPassword: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-[#b8a492] bg-[#2d2d2d] text-[#b8a492] font-mono rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492]"
-                        placeholder="Masukkan password baru"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-bold text-[#b8a492] font-mono mb-1">
-                        Konfirmasi Password Baru
-                      </label>
-                      <input
-                        type="password"
-                        value={profileFormData.confirmPassword}
-                        onChange={(e) => setProfileFormData({...profileFormData, confirmPassword: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-[#b8a492] bg-[#2d2d2d] text-[#b8a492] font-mono rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492]"
-                        placeholder="Ulangi password baru"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-3 pt-4 sticky bottom-0 bg-[#2d2d2d] pb-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowProfile(false)}
-                    className="flex-1 bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-3 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all font-mono"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={profileLoading}
-                    className="flex-1 bg-[#b8a492] text-[#2d2d2d] px-4 py-3 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-all font-mono disabled:opacity-50"
-                  >
-                    {profileLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProfileModal 
+        showProfile={showProfile}
+        onClose={() => setShowProfile(false)}
+        profileFormData={profileFormData}
+        onFormDataChange={setProfileFormData}
+        onSubmit={handleProfileSubmit}
+        loading={profileLoading}
+      />
 
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Stats Cards */}
+        {/* Stats Section */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#00fff7] to-[#333399] rounded-full flex items-center justify-center shadow-neon">
-                      <span className="text-[#181818] text-xl font-extrabold">#</span>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-[#b8a492] truncate font-mono">
-                        Total Donasi
-                      </dt>
-                      <dd className="text-2xl font-bold text-[#b8a492] font-mono">
-                        {stats.totalDonations || 0}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#ff00cc] to-[#00fff7] rounded-full flex items-center justify-center shadow-neon">
-                      <span className="text-[#181818] text-xl font-extrabold">Rp</span>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-[#b8a492] truncate font-mono">
-                        Total Terkumpul
-                      </dt>
-                      <dd className="text-2xl font-bold text-[#b8a492] font-mono">
-                        Rp {(stats.totalAmount || 0).toLocaleString('id-ID')}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl cursor-pointer hover:bg-[#b8a492]/10 transition-all" onClick={() => { setShowHistory(true); fetchHistoryData(); }}>
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#333399] to-[#00fff7] rounded-full flex items-center justify-center shadow-neon">
-                      <span className="text-[#181818] text-xl font-extrabold">📊</span>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-[#b8a492] truncate font-mono">
-                        Riwayat Harian
-                      </dt>
-                      <dd className="text-xl font-bold text-[#b8a492] font-mono">
-                        Klik untuk lihat
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl cursor-pointer hover:bg-[#b8a492]/10 transition-all" onClick={() => { setShowLeaderboard(true); fetchLeaderboardData(); }}>
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#ff00cc] to-[#333399] rounded-full flex items-center justify-center shadow-neon">
-                      <span className="text-[#181818] text-xl font-extrabold">🏆</span>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-[#b8a492] truncate font-mono">
-                        Leaderboard Bulanan
-                      </dt>
-                      <dd className="text-xl font-bold text-[#b8a492] font-mono">
-                        Klik untuk lihat
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <StatsSection 
+            stats={stats} 
+            onHistoryClick={() => { setShowHistory(true); fetchHistoryData(); }} 
+            onLeaderboardClick={() => { setShowLeaderboard(true); fetchLeaderboardData(); }} 
+          />
         )}
 
         {/* Donations Table */}
@@ -916,49 +537,7 @@ export default function Dashboard() {
           )}
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[#b8a492]/20">
-              <thead className="bg-[#2d2d2d]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Donatur</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Jumlah</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Tanggal</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="bg-[#2d2d2d] divide-y divide-[#b8a492]/10">
-                {donations.map((donation) => (
-                  <tr key={donation._id} className="hover:bg-[#d6c6b9]/20 transition-all cursor-pointer" onClick={() => showNotificationPreview(donation)}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-bold text-[#b8a492] font-mono">{donation.name}</div>
-                        <div className="text-sm text-[#b8a492] font-mono truncate">{donation.message || 'Tidak ada pesan'}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-[#b8a492] font-mono">Rp {donation.amount.toLocaleString('id-ID')}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-xs font-bold rounded-full px-2 py-1 bg-[#b8a492]/20 text-[#2d2d2d] border-2 border-[#b8a492] font-mono">PAID</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#b8a492] font-mono">
-                      {new Date(donation.createdAt).toLocaleDateString('id-ID')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent row click when clicking delete
-                          deleteDonation(donation._id);
-                        }}
-                        className="text-[#b8a492] hover:text-[#2d2d2d] transition-all font-mono"
-                      >
-                        Hapus
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DonationTable donations={donations} onDelete={deleteDonation} onPreviewNotification={showNotificationPreview} />
           </div>
           {donations.length === 0 && !loading && (
             <div className="text-center py-12">
