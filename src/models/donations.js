@@ -8,7 +8,7 @@ const DonationSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['UNPAID', 'PAID'],
-    default: 'UNPAID',
+    default: 'UNPAID', // Akan diubah menjadi PAID via webhook Midtrans setelah settlement
   },
   merchant_ref: {
     type: String,

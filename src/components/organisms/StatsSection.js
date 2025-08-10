@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatRupiah } from '@/utils/format';
 import StatsCard from '../StatsCard';
 
 const StatsSection = ({ stats, onHistoryClick, onLeaderboardClick }) => {
@@ -14,7 +15,7 @@ const StatsSection = ({ stats, onHistoryClick, onLeaderboardClick }) => {
       
       <StatsCard 
         title="Total Terkumpul"
-        value={`Rp ${(stats.totalAmount || 0).toLocaleString('id-ID')}`}
+  value={formatRupiah(stats.totalAmount || 0)}
         icon="Rp"
       />
       

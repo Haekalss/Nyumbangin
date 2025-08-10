@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import io from 'socket.io-client';
+import { formatRupiah } from '@/utils/format';
+import { SOCKET_SERVER_URL } from '@/constants/realtime';
 
 export default function NotificationsOverlay() {
   const params = useParams();
@@ -39,7 +41,7 @@ export default function NotificationsOverlay() {
 
     // Connect to socket.io server for realtime notification
     if (!socketRef.current) {
-      const socketUrl = 'https://socket-server-production-03be.up.railway.app/';
+  const socketUrl = SOCKET_SERVER_URL;
         
       socketRef.current = io(socketUrl);
       
@@ -61,7 +63,7 @@ export default function NotificationsOverlay() {
         }
         
         const notifObj = {
-          message: `Donasi baru dari ${data.name} sebesar Rp ${data.amount.toLocaleString('id-ID')}`,
+          message: `Donasi baru dari ${data.name} sebesar ${formatRupiah(data.amount)}`,
           detail: data.message || '',
           time: new Date(data.createdAt).toLocaleTimeString('id-ID'),
           timestamp: Date.now()

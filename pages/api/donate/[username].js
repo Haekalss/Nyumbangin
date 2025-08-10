@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import Donation from '@/models/donations';
+import { getSnap } from '@/lib/midtrans';
 
 // Generate unique merchant reference
 function generateMerchantRef() {
@@ -21,6 +22,12 @@ export default async function handler(req, res) {
 
       if (!creator) {
         return res.status(404).json({ error: 'Creator tidak ditemukan' });
+      }
+
+      // Cek apakah creator sudah mengisi data payout (rekening / e-wallet)
+      const payoutReady = creator.payoutAccountNumber && creator.payoutAccountHolder;
+      if (!payoutReady) {
+        return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
       }
 
       // Get donations for this creator
@@ -90,7 +97,12 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Creator tidak ditemukan' });
       }
 
-      const { name, amount, message = '' } = req.body;
+      const payoutReady = creator.payoutAccountNumber && creator.payoutAccountHolder;
+      if (!payoutReady) {
+        return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
+      }
+
+  const { name, amount, message = '' } = req.body;
 
       if (!name || !amount) {
         return res.status(400).json({ error: 'Nama dan jumlah donasi wajib diisi' });
@@ -100,57 +112,69 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Minimal donasi Rp 1.000' });
       }
 
+  const merchantRef = generateMerchantRef();
+
+  // Flow Midtrans real (selalu UNPAID dulu, menunggu webhook)
       const donation = await Donation.create({
         name,
         amount: parseInt(amount),
         message,
-        merchant_ref: generateMerchantRef(),
+        merchant_ref: merchantRef,
         owner: creator._id,
         ownerUsername: creator.username,
-        status: 'PAID' // Donasi baru langsung PAID
+        status: 'UNPAID'
       });
 
-      // Kirim notifikasi ke socket server Railway dan lokal
+      // Inisiasi transaksi Midtrans Snap
+      let snapToken = null;
+      let redirectUrl = null;
       try {
-        // Emit ke socket lokal jika tersedia
-        if (global._io) {
-          global._io.emit('new-donation', {
-            name: donation.name,
-            amount: donation.amount,
-            message: donation.message,
-            createdAt: donation.createdAt,
-            ownerUsername: creator.username
-          });
-          console.log('Local socket notification sent');
-        }
-
-        // Kirim juga ke socket server Railway sebagai backup
-        await fetch('https://socket-server-production-03be.up.railway.app/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: donation.name,
-            amount: donation.amount,
-            message: donation.message,
-            createdAt: donation.createdAt,
-            ownerUsername: creator.username
-          })
-        });
-        console.log('External socket notification sent');
+        const snap = getSnap();
+        const parameter = {
+          transaction_details: {
+            order_id: merchantRef,
+            gross_amount: donation.amount
+          },
+          customer_details: {
+            first_name: name,
+          },
+          item_details: [
+            {
+              id: 'donation',
+              price: donation.amount,
+              quantity: 1,
+              name: `Donasi untuk ${creator.displayName}`
+            }
+          ],
+          credit_card: {
+            secure: true
+          }
+        };
+        const snapRes = await snap.createTransaction(parameter);
+        snapToken = snapRes.token;
+        redirectUrl = snapRes.redirect_url;
       } catch (err) {
-        console.error('Gagal kirim notifikasi ke socket server:', err);
+        console.error('Midtrans init error:', err);
+        // Jika gagal membuat transaksi Midtrans, hapus record donasi agar tidak ada data sampah
+        await Donation.findByIdAndDelete(donation._id);
+        return res.status(500).json({ error: 'Gagal memproses pembayaran' });
       }
 
       res.status(201).json({
         success: true,
-        message: 'Donasi berhasil dibuat',
+        message: 'Donasi berhasil dibuat, lanjutkan pembayaran',
         donation: {
           id: donation._id,
           name: donation.name,
           amount: donation.amount,
           message: donation.message,
           merchant_ref: donation.merchant_ref,
-          createdAt: donation.createdAt
+          createdAt: donation.createdAt,
+          status: donation.status
+        },
+        payment: {
+          token: snapToken,
+            redirect_url: redirectUrl
         }
       });
     } catch (error) {

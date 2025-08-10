@@ -3,7 +3,7 @@ import User from '../../../src/models/User';
 import { verifyToken } from '../../../src/lib/jwt';
 
 export default async function handler(req, res) {
-  if (req.method !== 'PUT') {
+  if (!['PUT','GET'].includes(req.method)) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
@@ -21,12 +21,22 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Token tidak valid' });
     }
 
-    const { displayName, username } = req.body;
+    if (req.method === 'GET') {
+      const user = await User.findById(decoded.userId).select('-password');
+      if (!user) return res.status(404).json({ message: 'User tidak ditemukan' });
+      return res.status(200).json({ success: true, user });
+    }
+
+    const { displayName, username, payoutBankName, payoutAccountNumber, payoutAccountHolder } = req.body;
 
     // Validate input
     if (!displayName || !username) {
       return res.status(400).json({ message: 'Nama tampilan dan username harus diisi' });
     }
+
+    // Ambil user dulu agar bisa cek apakah payout sudah terkunci
+    const currentUser = await User.findById(decoded.userId);
+    if (!currentUser) return res.status(404).json({ message: 'User tidak ditemukan' });
 
     // Check if username already exists (except current user)
     const existingUser = await User.findOne({ 
@@ -38,24 +48,47 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Username sudah digunakan' });
     }
 
-    // Update user
-    const updatedUser = await User.findByIdAndUpdate(
-      decoded.userId,
-      { 
-        displayName,
-        username: username.toLowerCase()
-      },
-      { new: true, select: '-password' }
-    );
+    // Update basic fields
+    currentUser.displayName = displayName;
+    currentUser.username = username.toLowerCase();
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+    const payoutAlreadySet = !!(currentUser.payoutAccountNumber || currentUser.payoutAccountHolder || currentUser.payoutBankName);
+
+  if (payoutAlreadySet) {
+      // Jika user mencoba mengubah payout fields setelah terkunci
+      const tryingToChange = (
+        (payoutBankName && payoutBankName !== currentUser.payoutBankName) ||
+        (payoutAccountNumber && payoutAccountNumber !== currentUser.payoutAccountNumber) ||
+        (payoutAccountHolder && payoutAccountHolder !== currentUser.payoutAccountHolder)
+      );
+      if (tryingToChange) {
+        return res.status(400).json({ message: 'Data rekening sudah dikunci dan tidak bisa diubah. Hubungi support jika perlu perubahan.' });
+      }
+      // Jika ada request kosong, abaikan (jangan mengosongkan)
+    } else {
+      // Pertama kali set (hanya kalau ada isi minimal nomor & holder)
+      if (payoutAccountNumber && payoutAccountHolder) {
+        // Validasi nomor rekening hanya angka
+        if (!/^\d+$/.test(payoutAccountNumber)) {
+          return res.status(400).json({ message: 'Nomor rekening hanya boleh berisi angka' });
+        }
+        currentUser.payoutBankName = payoutBankName || '';
+        currentUser.payoutAccountNumber = payoutAccountNumber;
+        currentUser.payoutAccountHolder = payoutAccountHolder;
+      } else if (payoutBankName || payoutAccountNumber || payoutAccountHolder) {
+        // Partial fill not allowed
+        return res.status(400).json({ message: 'Lengkapi semua field rekening (Bank/Channel, Nomor, Nama Pemilik) sekaligus.' });
+      }
     }
+
+    await currentUser.save();
+    const sanitized = currentUser.toObject();
+    delete sanitized.password;
 
     res.status(200).json({
       success: true,
       message: 'Profil berhasil diupdate',
-      user: updatedUser
+      user: sanitized
     });
 
   } catch (error) {

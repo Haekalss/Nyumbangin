@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
+import { formatRupiah } from '@/utils/format';
+import { SOCKET_SERVER_URL } from '@/constants/realtime';
 import io from 'socket.io-client';
 
 export default function LeaderboardOverlay() {
@@ -127,7 +129,7 @@ export default function LeaderboardOverlay() {
     fetchLeaderboardData();
     
     // Connect to socket.io server to refresh leaderboard when new donations come
-    const socketUrl = 'https://socket-server-production-03be.up.railway.app/';
+  const socketUrl = SOCKET_SERVER_URL;
     const socket = io(socketUrl);
     
     socket.on('connect', () => {
@@ -176,7 +178,7 @@ export default function LeaderboardOverlay() {
                     </span>
                     <span className="truncate text-base">{donor.name}</span>
                   </div>
-                  <span className="text-sm font-bold">Rp {donor.totalAmount.toLocaleString('id-ID')}</span>
+                  <span className="text-sm font-bold">{formatRupiah(donor.totalAmount)}</span>
                 </div>
               ))}
             </div>

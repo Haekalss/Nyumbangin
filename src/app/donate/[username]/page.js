@@ -1,25 +1,56 @@
+
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { formatRupiah } from '@/utils/format';
+import { SOCKET_SERVER_URL } from '@/constants/realtime';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import io from 'socket.io-client';
+
 
 export default function DonatePage() {
   const params = useParams();
   const username = params.username;
-  
+  const socketRef = useRef(null);
+  // All state and variables must be declared before any useEffect
   const [creator, setCreator] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    amount: '',
-    message: ''
-  });
+  const [formData, setFormData] = useState({ name: '', amount: '', message: '' });
   const [donating, setDonating] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [pendingRef, setPendingRef] = useState(null); // merchant_ref pending (for future use)
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
+
+  // Connect to socket.io for realtime payment status
+  useEffect(() => {
+    if (!pendingRef) return;
+    if (!socketRef.current) {
+  socketRef.current = io(SOCKET_SERVER_URL);
+      socketRef.current.on('connect', () => {
+        // console.log('Donate page connected to socket server');
+      });
+      socketRef.current.on('connect_error', (err) => {
+        // console.error('Socket error:', err);
+      });
+    }
+    const handler = (data) => {
+      if (data?.merchant_ref && data.merchant_ref === pendingRef) {
+        toast.success('Pembayaran berhasil!');
+        setSuccess(true);
+        setFormData({ name: '', amount: '', message: '' });
+        setPendingRef(null);
+      }
+    };
+    socketRef.current.on('new-donation', handler);
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('new-donation', handler);
+      }
+    };
+  }, [pendingRef]);
 
   useEffect(() => {
     if (username) {
@@ -34,7 +65,13 @@ export default function DonatePage() {
       setCreator(data.creator);
     } catch (error) {
       console.error('Error fetching creator data:', error);
-      setError('Creator tidak ditemukan');
+      if (error.response?.status === 403) {
+        setError('Creator belum mengaktifkan donasi');
+      } else if (error.response?.status === 404) {
+        setError('Creator tidak ditemukan');
+      } else {
+        setError('Gagal memuat data creator');
+      }
     } finally {
       setLoading(false);
     }
@@ -51,6 +88,20 @@ export default function DonatePage() {
     setFormData({
       ...formData,
       amount: amount.toString()
+    });
+  };
+
+  const loadSnapScript = () => {
+    return new Promise((resolve, reject) => {
+      if (document.getElementById('midtrans-snap')) return resolve();
+      const script = document.createElement('script');
+      script.id = 'midtrans-snap';
+  // Force sandbox usage
+  script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+      script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '');
+      script.onload = () => resolve();
+      script.onerror = reject;
+      document.body.appendChild(script);
     });
   };
 
@@ -86,22 +137,48 @@ export default function DonatePage() {
     }
 
     try {
-      const response = await axios.post(`/api/donate/${username}`, formData);
-      
+  const response = await axios.post(`/api/donate/${username}`, formData);
       if (response.data.success) {
-        setSuccess(true);
-        setFormData({ name: '', amount: '', message: '' });
-        toast.success('Donasi berhasil dikirim! Terima kasih atas dukungannya.');
-        // Removed redirection after success
-      }
+        const token = response.data.payment?.token;
+        await loadSnapScript();
+    if (window.snap && token) {
+          window.snap.pay(token, {
+            onSuccess: function() {
+              toast.success('Pembayaran berhasil!');
+              setSuccess(true);
+              setFormData({ name: '', amount: '', message: '' });
+              setPendingRef(null);
+            },
+            onPending: function() {
+      toast('Menunggu pembayaran...');
+      // Simpan merchant_ref untuk simulasi settle
+              setPendingRef(response.data.donation.merchant_ref);
+            },
+            onError: function() {
+              toast.error('Pembayaran gagal');
+              setPendingRef(null);
+            },
+            onClose: function() {
+              toast('Popup pembayaran ditutup');
+            }
+          });
+        } else {
+          toast.error('Gagal memuat pembayaran');
+        }
+      }      
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Terjadi kesalahan';
+      let errorMessage = error.response?.data?.error || 'Terjadi kesalahan';
+      if (error.response?.status === 403) {
+        errorMessage = 'Donasi belum aktif untuk creator ini';
+      }
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setDonating(false);
     }
   };
+
+  // (Simulation helpers removed for production)
 
   if (loading) {
     return (
@@ -117,6 +194,20 @@ export default function DonatePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Creator Tidak Ditemukan</h1>
           <p className="text-gray-600 mb-8">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Jika creator ada tapi error karena belum aktifkan donasi
+  if (creator && error === 'Creator belum mengaktifkan donasi') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4">
+        <div className="max-w-md w-full mx-auto py-8">
+          <div className="bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492] shadow-lg p-6 text-center">
+            <h2 className="text-2xl font-extrabold text-[#b8a492] mb-4">Donasi Belum Aktif</h2>
+            <p className="text-[#b8a492]/80 mb-6">Creator ini belum mengisi informasi rekening / e-wallet untuk menerima donasi.</p>
+          </div>
         </div>
       </div>
     );
@@ -167,7 +258,7 @@ export default function DonatePage() {
                         : 'bg-[#2d2d2d] text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]'
                     }`}
                   >
-                    Rp {amount.toLocaleString('id-ID')}
+                    {formatRupiah(amount)}
                   </button>
                 ))}
               </div>
@@ -204,8 +295,10 @@ export default function DonatePage() {
               disabled={donating}
               className="w-full bg-[#b8a492] text-[#2d2d2d] py-3 sm:py-4 px-4 rounded-lg font-extrabold text-base sm:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] focus:outline-none focus:ring-2 focus:ring-[#b8a492] disabled:opacity-50 font-mono transition-all duration-200"
             >
-              {donating ? 'Mengirim...' : `Donasi Rp ${formData.amount ? parseInt(formData.amount).toLocaleString('id-ID') : '0'}`}
+              {donating ? 'Mengirim...' : `Donasi ${formatRupiah(formData.amount ? parseInt(formData.amount) : 0)}`}
             </button>
+
+            {/* Removed sandbox simulation controls */}
           </form>
         </div>
       </div>

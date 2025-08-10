@@ -1,4 +1,6 @@
 import React from 'react';
+import StatusBadge from '../atoms/StatusBadge';
+import { formatRupiah } from '@/utils/format';
 
 const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
   if (!donations || donations.length === 0) {
@@ -34,10 +36,10 @@ const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
               </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-              <div className="text-sm font-bold text-[#b8a492] font-mono">Rp {donation.amount.toLocaleString('id-ID')}</div>
+              <div className="text-sm font-bold text-[#b8a492] font-mono">{formatRupiah(donation.amount)}</div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-              <span className="text-xs font-bold rounded-full px-2 py-1 bg-[#b8a492]/20 text-[#2d2d2d] border-2 border-[#b8a492] font-mono">PAID</span>
+              <StatusBadge status={donation.status || 'PAID'}>{donation.status || 'PAID'}</StatusBadge>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#b8a492] font-mono">
               {new Date(donation.createdAt).toLocaleDateString('id-ID')}

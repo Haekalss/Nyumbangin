@@ -48,7 +48,11 @@ export default async function handler(req, res) {
         email: user.email, 
         username: user.username,
         displayName: user.displayName,
-        role: user.role 
+        role: user.role,
+        payoutBankName: user.payoutBankName,
+        payoutAccountNumber: user.payoutAccountNumber,
+        payoutAccountHolder: user.payoutAccountHolder,
+        isPayoutReady: user.isPayoutReady
       }
     });
   } catch (err) {

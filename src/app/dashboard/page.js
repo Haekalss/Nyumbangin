@@ -7,7 +7,10 @@ import toast from 'react-hot-toast';
 import io from 'socket.io-client';
 import { useSessionManager } from '@/utils/sessionManager';
 import ProfileModal from '@/components/organisms/ProfileModal';
+import { formatRupiah } from '@/utils/format';
+import { useProfileForm } from '@/hooks/useProfileForm';
 import Header from '@/components/organisms/Header';
+import { SOCKET_SERVER_URL } from '@/constants/realtime';
 import DonationTable from '@/components/organisms/DonationTable';
 import StatsSection from '@/components/organisms/StatsSection';
 import LeaderboardModal from '@/components/organisms/LeaderboardModal';
@@ -28,15 +31,12 @@ export default function Dashboard() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
-  const [profileFormData, setProfileFormData] = useState({
-    displayName: '',
-    username: '',
-    email: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  const [profileInitUser, setProfileInitUser] = useState(null);
+  const { formData: profileFormData, setFormData: setProfileFormData, submit: submitProfile, loading: profileLoading, payoutLocked } = useProfileForm(profileInitUser, (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setShowProfile(false);
   });
-  const [profileLoading, setProfileLoading] = useState(false);
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -70,9 +70,8 @@ export default function Dashboard() {
 
     // Connect to socket.io server for realtime data refresh
     if (!socketRef.current) {
-      const socketUrl = 'https://socket-server-production-03be.up.railway.app/';
-        
-      socketRef.current = io(socketUrl);
+  const socketUrl = SOCKET_SERVER_URL;
+  socketRef.current = io(socketUrl);
       
       socketRef.current.on('connect', () => {
         console.log('Dashboard connected to socket server for auto-refresh');
@@ -113,6 +112,21 @@ export default function Dashboard() {
 
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
+    // Fetch fresh profile to include payout fields (in case older localStorage missing them)
+    fetchFreshProfile(token, parsedUser);
+  };
+
+  const fetchFreshProfile = async (token, fallbackUser) => {
+    try {
+      const res = await axios.get('/api/user/profile', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data?.user) {
+        const merged = { ...fallbackUser, ...res.data.user };
+        setUser(merged);
+        localStorage.setItem('user', JSON.stringify(merged));
+      }
+    } catch (e) {
+      console.warn('Gagal mengambil profil terbaru:', e?.response?.data || e.message);
+    }
   };
 
   const fetchData = async () => {
@@ -344,108 +358,13 @@ export default function Dashboard() {
     });
   };
 
-  const handleProfileSubmit = async (e) => {
+  const handleProfileSubmit = (e) => {
     e.preventDefault();
-    setProfileLoading(true);
-
-    // Frontend validation
-    if (!profileFormData.displayName || !profileFormData.username) {
-      toast.error('Nama tampilan dan username wajib diisi!');
-      setProfileLoading(false);
-      return;
-    }
-
-    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
-    if (!usernameRegex.test(profileFormData.username)) {
-      toast.error('Username hanya boleh berisi huruf, angka, underscore, dan dash!');
-      setProfileLoading(false);
-      return;
-    }
-
-    // Validate password if provided
-    if (profileFormData.newPassword || profileFormData.currentPassword || profileFormData.confirmPassword) {
-      if (!profileFormData.currentPassword) {
-        toast.error('Password lama wajib diisi untuk mengubah password!');
-        setProfileLoading(false);
-        return;
-      }
-      
-      if (!profileFormData.newPassword) {
-        toast.error('Password baru wajib diisi!');
-        setProfileLoading(false);
-        return;
-      }
-
-      if (profileFormData.newPassword.length < 6) {
-        toast.error('Password baru minimal 6 karakter!');
-        setProfileLoading(false);
-        return;
-      }
-
-      if (profileFormData.newPassword !== profileFormData.confirmPassword) {
-        toast.error('Password baru dan konfirmasi password tidak sama!');
-        setProfileLoading(false);
-        return;
-      }
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
-      // Update profile info
-      const profileUpdate = {
-        displayName: profileFormData.displayName,
-        username: profileFormData.username
-      };
-
-      const response = await axios.put('/api/user/profile', profileUpdate, config);
-      
-      // Update password if provided
-      if (profileFormData.newPassword && profileFormData.currentPassword) {
-        await axios.put('/api/user/password', {
-          currentPassword: profileFormData.currentPassword,
-          newPassword: profileFormData.newPassword
-        }, config);
-        
-        toast.success('Profil dan password berhasil diupdate');
-      } else {
-        toast.success('Profil berhasil diupdate');
-      }
-
-      // Update local user data
-      const updatedUser = { ...user, ...response.data.user };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      setShowProfile(false);
-      // Reset form
-      setProfileFormData({
-        ...profileFormData,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error(error.response?.data?.message || 'Gagal mengupdate profil');
-    } finally {
-      setProfileLoading(false);
-    }
+    submitProfile(user);
   };
 
   const openProfile = () => {
-    setProfileFormData({
-      displayName: user?.displayName || '',
-      username: user?.username || '',
-      email: user?.email || '',
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+    setProfileInitUser(user);
     setShowProfile(true);
   };
 
@@ -453,7 +372,7 @@ export default function Dashboard() {
   const showNotificationPreview = (donation) => {
     // Send notification data to overlay via localStorage
     const notificationData = {
-      message: `Donasi baru dari ${donation.name} sebesar Rp ${donation.amount.toLocaleString('id-ID')}`,
+  message: `Donasi baru dari ${donation.name} sebesar ${formatRupiah(donation.amount)}`,
       detail: donation.message || '',
       time: new Date(donation.createdAt).toLocaleTimeString('id-ID'),
       timestamp: Date.now()
@@ -512,6 +431,7 @@ export default function Dashboard() {
         onFormDataChange={setProfileFormData}
         onSubmit={handleProfileSubmit}
         loading={profileLoading}
+  payoutLocked={payoutLocked}
       />
 
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Button from '../atoms/Button';
 
 const Header = ({ user, onLogout, openProfile }) => {
   const router = useRouter();
@@ -24,26 +25,29 @@ const Header = ({ user, onLogout, openProfile }) => {
             )}
           </div>
           <div className="flex space-x-4">
-            <button
+            <Button
+              variant="secondary"
+              size="medium"
               onClick={() => router.push(`/overlay/${user?.username}`)}
-              className="bg-transparent text-[#b8a492] px-6 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#b8a492]/10 transition-all"
               title="Buka Overlay"
             >
               🎥 Live Widget
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
+              size="medium"
               onClick={openProfile}
-              className="bg-transparent text-[#b8a492] border-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 hover:bg-[#b8a492]/10 transition-all"
               title="Edit Profil"
             >
               👤 Profil
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="medium"
               onClick={onLogout}
-              className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-all"
             >
               Logout
-            </button>
+            </Button>
           </div>
         </div>
       </div>
