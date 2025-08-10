@@ -7,7 +7,7 @@ const Header = ({ user, onLogout, openProfile }) => {
 
   return (
     <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           <div>
             <h1 className="text-4xl font-extrabold text-[#b8a492] tracking-wide font-mono">Nyumbangin</h1>

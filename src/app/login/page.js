@@ -39,9 +39,9 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success('Login berhasil!');
       if (res.data.user.role === "admin") {
-        router.push("/dashboard");
+        router.push("/admin");
       } else {
-        router.push("/");
+        router.push("/dashboard");
       }
     } catch (err) {
       const errorMessage = err.response?.data?.error || "Login gagal";

@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       username: username.toLowerCase(),
       displayName,
       description: description || '',
-      role: 'admin' // Semua user adalah creator/admin
+      role: 'user' // Semua user adalah creator
     });
 
     res.status(201).json({ 
