@@ -468,6 +468,13 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+      <footer className="w-full py-6 text-center text-[#b8a492] bg-[#2d2d2d] text-sm mt-8">
+        <a href="/privacy" className="underline hover:text-[#fff] transition-colors">Kebijakan Privasi</a>
+        <span className="mx-2">|</span>
+        <a href="/terms" className="underline hover:text-[#fff] transition-colors">Syarat & Ketentuan</a>
+        <span className="mx-2">|</span>
+        <a href="mailto:admin@nyumbangin.com" className="underline hover:text-[#fff] transition-colors">Hubungi Kami</a>
+      </footer>
       <style jsx global>{`
         body, .font-mono { font-family: 'IBM Plex Mono', 'Fira Mono', 'Roboto Mono', monospace; }
       `}</style>
