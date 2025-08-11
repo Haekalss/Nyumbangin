@@ -54,9 +54,6 @@ const HistoryModal = ({
           ))
         )}
       </div>
-      <div className="flex justify-end mt-4">
-        <Button variant="secondary" onClick={onClose}>Tutup</Button>
-      </div>
     </Modal>
   );
 };
