@@ -143,6 +143,8 @@ export default function Home() {
             <span className="mx-2">|</span>
             <a href="/terms" className="underline hover:text-[#fff] transition-colors">Syarat & Ketentuan</a>
             <span className="mx-2">|</span>
+            <a href="/faq" className="underline hover:text-[#fff] transition-colors">FAQ & Bantuan</a>
+            <span className="mx-2">|</span>
             <a href="mailto:admin@nyumbangin.com" className="underline hover:text-[#fff] transition-colors">Hubungi kami</a>
           </div>
           <div>

@@ -10,10 +10,10 @@ export default async function handler(req, res) {
   try {
     await dbConnect();
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+    if (!user) return res.status(400).json({ error: 'Email yang dimasukan salah' });
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+    if (!isMatch) return res.status(400).json({ error: 'Password yang dimasukan salah' });
 
     // Generate JWT with username
     const token = jwt.sign(

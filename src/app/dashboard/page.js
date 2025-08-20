@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,11 +17,17 @@ import LeaderboardModal from '@/components/organisms/LeaderboardModal';
 import HistoryModal from '@/components/organisms/HistoryModal';
 
 export default function Dashboard() {
+    const [payouts, setPayouts] = useState([]);
+  const [payoutLoading, setPayoutLoading] = useState(false);
+  const [requestingPayout, setRequestingPayout] = useState(false);
+  const [payoutError, setPayoutError] = useState('');
   const router = useRouter();
   const { startMonitoring, stopMonitoring, logout } = useSessionManager();
   const [user, setUser] = useState(null);
   const [donations, setDonations] = useState([]);
   const [stats, setStats] = useState(null);
+  // Tambahan: total payout processed untuk creator
+  const [totalPayoutProcessed, setTotalPayoutProcessed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -211,6 +217,108 @@ export default function Dashboard() {
       toast.error('Gagal menghapus donasi');
     }
   };
+
+  // Fetch payout history & total processed
+  const fetchPayouts = async () => {
+    setPayoutLoading(true);
+    try {
+      const res = await axios.get('/api/admin/payouts');
+      const allPayouts = res.data.data || [];
+      setPayouts(allPayouts);
+      // Hitung total payout processed untuk user
+      const processed = allPayouts
+        .filter(p => p.username === user?.username && p.status === 'processed')
+        .reduce((sum, p) => sum + (p.amount || 0), 0);
+      setTotalPayoutProcessed(processed);
+    } catch (e) {
+      setPayoutError('Gagal memuat riwayat pencairan');
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
+
+  // Request payout manual
+  const handleRequestPayout = async () => {
+    setRequestingPayout(true);
+    try {
+      const res = await axios.post('/api/creator/request-payout', { username: user?.username });
+      toast.success('Permintaan pencairan berhasil!');
+      fetchPayouts();
+    } catch (e) {
+      toast.error(e?.response?.data?.error || 'Gagal request pencairan');
+    } finally {
+      setRequestingPayout(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) fetchPayouts();
+  }, [user]);
+
+  // Debug: log saldo calculation values
+  useEffect(() => {
+    if (user) {
+      console.log('DEBUG saldo calculation:');
+      console.log('stats.paidAmount:', stats?.paidAmount);
+      console.log('totalPayoutProcessed:', totalPayoutProcessed);
+      console.log('payouts (user):', payouts.filter(p => p.username === user?.username));
+    }
+  }, [stats, totalPayoutProcessed, payouts, user]);
+      {/* Saldo & Pencairan Dana */}
+      <section className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl mb-8 p-6">
+        <h2 className="text-xl font-bold text-[#b8a492] mb-2">Saldo & Pencairan Dana</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <div className="text-sm text-[#b8a492]">Saldo Terkumpul</div>
+            <div className="text-2xl font-bold text-white mb-2">{formatRupiah(stats?.paidAmount || 0)}</div>
+            <div className="text-sm text-[#b8a492] mt-2">Saldo Siap Cair</div>
+            <div className="text-3xl font-extrabold text-white">{formatRupiah((stats?.paidAmount || 0) - totalPayoutProcessed)}</div>
+          </div>
+          <button
+            className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#d6c6b9] transition-all disabled:opacity-50"
+            disabled={requestingPayout || (((stats?.paidAmount || 0) - totalPayoutProcessed) < 50000) || payouts.some(p => p.status === 'pending' && p.username === user?.username)}
+            onClick={handleRequestPayout}
+          >
+            {requestingPayout ? 'Memproses...' : 'Ajukan Pencairan'}
+          </button>
+        </div>
+        <div className="text-xs text-[#b8a492] mb-2">Jika tidak mengajukan, dana akan otomatis dicairkan setiap minggu.</div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-[#b8a492]/20">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Tanggal Request</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Nominal</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Status</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Tanggal Proses</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Catatan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payoutLoading ? (
+                <tr><td colSpan={5} className="text-center py-6 text-[#b8a492]">Memuat...</td></tr>
+              ) : payouts.filter(p => p.username === user?.username).length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-6 text-[#b8a492]">Belum ada riwayat pencairan</td></tr>
+              ) : (
+                payouts.filter(p => p.username === user?.username).map(p => (
+                  <tr key={p._id}>
+                    <td className="px-4 py-2 text-sm text-white">{new Date(p.requestedAt).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-sm text-white">{formatRupiah(p.amount)}</td>
+                    <td className="px-4 py-2 text-sm font-bold">
+                      {p.status === 'pending' && <span className="bg-yellow-900/30 text-yellow-200 border border-yellow-400/40 rounded px-2 py-1">Pending</span>}
+                      {p.status === 'processed' && <span className="bg-green-900/30 text-green-300 border border-green-400/40 rounded px-2 py-1">Selesai</span>}
+                      {p.status === 'failed' && <span className="bg-red-900/30 text-red-300 border border-red-400/40 rounded px-2 py-1">Gagal</span>}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-white">{p.processedAt ? new Date(p.processedAt).toLocaleString() : '-'}</td>
+                    <td className="px-4 py-2 text-sm text-white">{p.notes || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        {payoutError && <div className="text-red-500 mt-2 text-sm">{payoutError}</div>}
+      </section>
 
   const fetchHistoryData = async () => {
     try {
@@ -405,7 +513,6 @@ export default function Dashboard() {
       {/* Header */}
       <Header user={user} onLogout={handleLogout} openProfile={openProfile} />
 
-
       {/* History Modal */}
       {showHistory && (
         <HistoryModal 
@@ -431,11 +538,77 @@ export default function Dashboard() {
         onFormDataChange={setProfileFormData}
         onSubmit={handleProfileSubmit}
         loading={profileLoading}
-  payoutLocked={payoutLocked}
+        payoutLocked={payoutLocked}
       />
 
-
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Payout Section */}
+        <section className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl mb-8 p-6">
+          <h2 className="text-xl font-bold text-[#b8a492] mb-2">Saldo & Pencairan Dana</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <div className="text-sm text-[#b8a492]">Saldo Siap Cair</div>
+              <div className="text-3xl font-extrabold text-white">{formatRupiah(stats?.saldoPaid || 0)}</div>
+            </div>
+            <button
+              className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#d6c6b9] transition-all disabled:opacity-50"
+              disabled={requestingPayout || (stats?.saldoPaid < 50000) || payouts.some(p => p.status === 'pending' && p.username === user?.username)}
+              onClick={async () => {
+                setRequestingPayout(true);
+                try {
+                  const res = await axios.post('/api/creator/request-payout', { username: user?.username });
+                  toast.success('Permintaan pencairan berhasil!');
+                  // Refresh payout history
+                  const payoutRes = await axios.get('/api/admin/payouts');
+                  setPayouts(payoutRes.data.data || []);
+                } catch (e) {
+                  toast.error(e?.response?.data?.error || 'Gagal request pencairan');
+                } finally {
+                  setRequestingPayout(false);
+                }
+              }}
+            >
+              {requestingPayout ? 'Memproses...' : 'Ajukan Pencairan'}
+            </button>
+          </div>
+          <div className="text-xs text-[#b8a492] mb-2">Jika tidak mengajukan, dana akan otomatis dicairkan setiap minggu.</div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-[#b8a492]/20">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Tanggal Request</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Nominal</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Status</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Tanggal Proses</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-[#b8a492] uppercase">Catatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payoutLoading ? (
+                  <tr><td colSpan={5} className="text-center py-6 text-[#b8a492]">Memuat...</td></tr>
+                ) : payouts.filter(p => p.username === user?.username).length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-6 text-[#b8a492]">Belum ada riwayat pencairan</td></tr>
+                ) : (
+                  payouts.filter(p => p.username === user?.username).map(p => (
+                    <tr key={p._id}>
+                      <td className="px-4 py-2 text-sm text-white">{new Date(p.requestedAt).toLocaleString()}</td>
+                      <td className="px-4 py-2 text-sm text-white">{formatRupiah(p.amount)}</td>
+                      <td className="px-4 py-2 text-sm font-bold">
+                        {p.status === 'pending' && <span className="bg-yellow-900/30 text-yellow-200 border border-yellow-400/40 rounded px-2 py-1">Pending</span>}
+                        {p.status === 'processed' && <span className="bg-green-900/30 text-green-300 border-green-400/40 rounded px-2 py-1">Selesai</span>}
+                        {p.status === 'failed' && <span className="bg-red-900/30 text-red-300 border-red-400/40 rounded px-2 py-1">Gagal</span>}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-white">{p.processedAt ? new Date(p.processedAt).toLocaleString() : '-'}</td>
+                      <td className="px-4 py-2 text-sm text-white">{p.notes || '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {payoutError && <div className="text-red-500 mt-2 text-sm">{payoutError}</div>}
+        </section>
+
         {/* Stats Section */}
         {stats && (
           <StatsSection 
@@ -473,6 +646,8 @@ export default function Dashboard() {
           <a href="/privacy" className="underline hover:text-[#fff] transition-colors">Kebijakan Privasi</a>
           <span className="mx-2">|</span>
           <a href="/terms" className="underline hover:text-[#fff] transition-colors">Syarat & Ketentuan</a>
+          <span className="mx-2">|</span>
+          <a href="/faq" className="underline hover:text-[#fff] transition-colors">FAQ & Bantuan</a>
           <span className="mx-2">|</span>
           <a href="mailto:admin@nyumbangin.com" className="underline hover:text-[#fff] transition-colors">Hubungi Kami</a>
         </div>
