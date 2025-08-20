@@ -9,6 +9,10 @@ export default function TermsPage() {
           <li>Penyalahgunaan platform akan dikenakan sanksi sesuai kebijakan admin.</li>
           <li>Platform dapat berubah sewaktu-waktu untuk peningkatan layanan.</li>
           <li>Dengan menggunakan Nyumbangin, Anda setuju dengan kebijakan privasi dan syarat ini.</li>
+            <li>Setiap donasi yang masuk akan dikenakan <span className="font-bold">biaya platform 5%</span> dari total donasi. Sisanya akan diteruskan ke creator sesuai data rekening/e-wallet yang terdaftar. Biaya ini digunakan untuk operasional, pengembangan, dan layanan Nyumbangin.</li>
+            <li>Donasi yang belum berstatus <span className="font-bold">PAID</span> belum bisa dicairkan.</li>
+            <li>Data rekening/e-wallet harus valid dan sesuai identitas.</li>
+            <li>Proses payout mengikuti jam operasional dan hari kerja. Nyumbangin berhak melakukan verifikasi tambahan jika diperlukan.</li>
         </ol>
   <p className="mt-8 text-[#2d2d2d]">Jika ada pertanyaan, silakan hubungi admin di <a href="mailto:admin@nyumbangin.com" className="underline text-[#b8a492] hover:text-[#2d2d2d]">admin@nyumbangin.com</a>.</p>
       </div>
