@@ -5,12 +5,12 @@ import StatusBadge from '../../components/atoms/StatusBadge';
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { Chart, registerables } from 'chart.js';
 import { useState, useEffect, useRef } from "react";
 
 
 export default function AdminPage() {
-
   // Chart.js registration
   Chart.register(...registerables);
 
@@ -37,14 +37,40 @@ export default function AdminPage() {
   const payoutsArray = Array.isArray(payouts) ? payouts : [];
   const creatorsArray = Array.isArray(creators) ? creators : [];
 
-  // Calculate top creators by total donation
+  // State for all donations
+  const [donations, setDonations] = useState([]);
+  const [donationLoading, setDonationLoading] = useState(true);
+
+  // Fetch all donations for all creators (admin)
+  useEffect(() => {
+    async function fetchDonations() {
+      setDonationLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get('/api/dashboard/donations?limit=100', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setDonations(res.data?.data || []);
+      } catch (err) {
+        setDonations([]);
+      } finally {
+        setDonationLoading(false);
+      }
+    }
+    fetchDonations();
+  }, []);
+
+  // Calculate top creators by total donation (from donations, not payouts)
+  const donationByCreator = {};
+  donations.forEach(d => {
+    if (!donationByCreator[d.ownerUsername]) donationByCreator[d.ownerUsername] = 0;
+    donationByCreator[d.ownerUsername] += d.amount || 0;
+  });
   const topCreators = creatorsArray
     .map(c => ({
       username: c.username,
       displayName: c.displayName,
-      totalDonation: payoutsArray
-        .filter(p => p.username === c.username)
-        .reduce((sum, p) => sum + (p.amount || 0), 0)
+      totalDonation: donationByCreator[c.username] || 0
     }))
     .sort((a, b) => b.totalDonation - a.totalDonation)
     .slice(0, 5);
@@ -163,12 +189,49 @@ export default function AdminPage() {
     c.displayName?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Fix: define handleLogout
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/login");
+    toast.dismiss(); // Dismiss all active toasts before showing confirmation
+    toast((t) => (
+      <div className="flex flex-col space-y-2">
+        <span className="font-medium">Yakin ingin keluar?</span>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              toast.promise(
+                new Promise((resolve) => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('user');
+                  setTimeout(() => {
+                    resolve();
+                    router.replace('/login');
+                    setTimeout(() => { window.location.reload(); }, 100);
+                  }, 500);
+                }),
+                {
+                  loading: 'Keluar dari akun...',
+                  success: 'Berhasil logout!',
+                  error: 'Gagal logout'
+                }
+              );
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
+          >
+            Ya, Keluar
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm font-medium"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: 6000,
+    });
   };
+
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] text-[#2d2d2d] font-mono">
   {/* SIDEBAR */}
