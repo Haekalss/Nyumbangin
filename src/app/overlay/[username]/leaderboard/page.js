@@ -53,12 +53,16 @@ export default function LeaderboardOverlay() {
       
       // Filter donations for current month ONLY - leaderboard reset setiap bulan
       // Semua donasi di bulan Juli (termasuk tanggal 27, 28, dst) harus masuk
+      // DAN hanya yang sudah PAID yang masuk leaderboard
       const thisMonthDonations = allDonations.filter(donation => {
         const donationDate = new Date(donation.createdAt);
         const donationMonth = donationDate.getMonth();
         const donationYear = donationDate.getFullYear();
         
-        return donationMonth === currentMonth && donationYear === currentYear;
+        // Hanya donasi yang sudah paid dan di bulan ini
+        return donationMonth === currentMonth && 
+               donationYear === currentYear && 
+               donation.payment_status === 'paid';
       });
       
       // Group donations by donor name and sum amounts - SAMA PERSIS DENGAN DASHBOARD
