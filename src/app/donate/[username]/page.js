@@ -22,6 +22,7 @@ export default function DonatePage() {
   const [donating, setDonating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [pendingRef, setPendingRef] = useState(null); // merchant_ref pending (for future use)
+  const [agreedToTerms, setAgreedToTerms] = useState(false); // State untuk checkbox persetujuan
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
   // Connect to socket.io for realtime payment status
@@ -41,6 +42,7 @@ export default function DonatePage() {
         toast.success('Pembayaran berhasil!');
         setSuccess(true);
         setFormData({ name: '', amount: '', message: '' });
+        setAgreedToTerms(false); // Reset checkbox
         setPendingRef(null);
       }
     };
@@ -117,6 +119,12 @@ export default function DonatePage() {
       return;
     }
 
+    if (!agreedToTerms) {
+      toast.error('Anda harus menyetujui syarat dan ketentuan!');
+      setDonating(false);
+      return;
+    }
+
     const amount = parseInt(formData.amount);
     if (isNaN(amount) || amount < 1000) {
       toast.error('Minimal donasi adalah Rp 1.000!');
@@ -147,6 +155,7 @@ export default function DonatePage() {
               toast.success('Pembayaran berhasil!');
               setSuccess(true);
               setFormData({ name: '', amount: '', message: '' });
+              setAgreedToTerms(false); // Reset checkbox
               setPendingRef(null);
             },
             onPending: function() {
@@ -228,7 +237,7 @@ export default function DonatePage() {
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
-                Nama Anda
+                Nama Anda <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
@@ -244,7 +253,7 @@ export default function DonatePage() {
 
             <div>
               <label htmlFor="amount" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-2">
-                Jumlah Donasi
+                Jumlah Donasi <span className="text-red-400">*</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-3">
                 {presetAmounts.map((amount) => (
@@ -290,10 +299,25 @@ export default function DonatePage() {
               />
             </div>
 
+            {/* Checkbox Persetujuan */}
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 sm:w-5 sm:h-5 accent-[#b8a492] cursor-pointer flex-shrink-0"
+              />
+              <label htmlFor="terms" className="text-[10px] sm:text-xs text-[#b8a492] font-mono leading-relaxed cursor-pointer">
+                Saya menyetujui bahwa donasi ini bersifat sukarela dan tidak dapat dikembalikan. Saya telah membaca dan menyetujui{' '}
+                <a href="/terms" target="_blank" className="underline hover:text-[#d6c6b9]">syarat dan ketentuan</a> Nyumbangin.
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={donating}
-              className="w-full bg-[#b8a492] text-[#2d2d2d] py-3 sm:py-4 px-4 rounded-lg font-extrabold text-base sm:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] focus:outline-none focus:ring-2 focus:ring-[#b8a492] disabled:opacity-50 font-mono transition-all duration-200"
+              disabled={donating || !agreedToTerms}
+              className="w-full bg-[#b8a492] text-[#2d2d2d] py-3 sm:py-4 px-4 rounded-lg font-extrabold text-base sm:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] focus:outline-none focus:ring-2 focus:ring-[#b8a492] disabled:opacity-50 disabled:cursor-not-allowed font-mono transition-all duration-200"
             >
               {donating ? 'Mengirim...' : `Donasi ${formatRupiah(formData.amount ? parseInt(formData.amount) : 0)}`}
             </button>
