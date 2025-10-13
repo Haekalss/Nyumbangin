@@ -117,11 +117,6 @@ export default function PayoutPage() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
-  };
-
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
@@ -151,12 +146,6 @@ export default function PayoutPage() {
                 className="px-4 py-2 text-base font-bold font-mono transition-all rounded-lg border-2 bg-transparent text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492]/10"
               >
                 ← Kembali
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-base font-bold font-mono transition-all rounded-lg border-2 bg-[#b8a492] text-[#2d2d2d] border-[#2d2d2d] hover:bg-[#d6c6b9]"
-              >
-                Logout
               </button>
             </div>
           </div>
