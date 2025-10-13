@@ -56,9 +56,10 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
       {/* Header */}
       <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center py-6">
-          <h1 className="text-3xl font-extrabold text-[#b8a492] tracking-wide">Nyumbangin</h1>
-          <nav className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <h1 className="text-3xl font-extrabold text-[#b8a492] tracking-wide">Nyumbangin</h1>
+            <nav className="flex items-center gap-4">
             <Link href="/creator/register" className="bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
               Daftar Creator
             </Link>
@@ -79,11 +80,15 @@ export default function Home() {
               </Link>
             )}
           </nav>
+          </div>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="max-w-5xl mx-auto text-center py-16 px-4">
+        <div className="flex justify-center mb-8">
+          <img src="/logo.png" alt="Nyumbangin Logo" className="w-32 h-32 animate-bounce" />
+        </div>
         <h2 className="text-5xl font-extrabold text-[#2d2d2d]">Buat Halaman Donasi Pribadi Anda</h2>
         <p className="mt-4 text-lg text-[#2d2d2d] max-w-2xl mx-auto">
           Nyumbangin adalah platform donasi digital yang memudahkan kreator menerima dukungan dari fans dan followers dengan aman, cepat, dan transparan.

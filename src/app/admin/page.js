@@ -237,7 +237,8 @@ export default function AdminPage() {
   {/* SIDEBAR */}
   <aside className="w-64 h-screen bg-[#2d2d2d] border-r-4 border-[#b8a492] flex flex-col justify-between py-8 px-6 fixed left-0 top-0 z-40">
         <div>
-          <div className="mb-2">
+          <div className="mb-2 flex items-center gap-3">
+            <img src="/logo.png" alt="Nyumbangin Logo" className="w-12 h-12" />
             <span className="text-3xl font-extrabold text-[#b8a492] tracking-wide block">Nyumbangin</span>
           </div>
           <div className="mb-8">

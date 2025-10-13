@@ -13,7 +13,8 @@ const ProfileModal = ({
   onFormDataChange,
   onSubmit,
   loading,
-  payoutLocked = false
+  payoutLocked = false,
+  onLogout
 }) => {
   return (
     <Modal isOpen={showProfile} onClose={onClose} title="Edit Profil">
@@ -92,6 +93,20 @@ const ProfileModal = ({
             {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
           </Button>
         </div>
+        
+        {/* Logout Button */}
+        {onLogout && (
+          <div className="pt-4 border-t border-[#b8a492]/20 mt-4">
+            <Button 
+              variant="danger" 
+              className="w-full" 
+              type="button" 
+              onClick={onLogout}
+            >
+              Logout
+            </Button>
+          </div>
+        )}
       </form>
     </Modal>
   );

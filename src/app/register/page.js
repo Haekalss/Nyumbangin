@@ -63,6 +63,9 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-[#2d2d2d] p-6 sm:p-8 rounded-xl border-4 border-[#b8a492]">
         <div>
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="Nyumbangin Logo" className="w-20 h-20" />
+          </div>
           <h2 className="mt-2 text-center text-2xl sm:text-3xl font-extrabold text-[#b8a492] font-mono">
             Buat Akun Baru
           </h2>

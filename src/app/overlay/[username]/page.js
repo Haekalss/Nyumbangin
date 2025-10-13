@@ -51,9 +51,40 @@ export default function OverlayIndexPage() {
         className="w-6 h-6 transition-transform duration-300 hover:scale-110 hover:rotate-180"
       />
     </button>
-        <h1 className="text-3xl font-bold mb-6 text-center">Live Widget</h1>
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <img src="/logo.png" alt="Nyumbangin Logo" className="w-12 h-12" />
+          <h1 className="text-3xl font-bold text-center">Live Widget</h1>
+        </div>
         
         <div className="space-y-4">
+          {/* Link Donasi */}
+          <div>
+            <h3 className="text-lg font-bold mb-2">💰 Link Donasi</h3>
+            <p className="text-sm mb-2">Link untuk menerima donasi:</p>
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredField('donate')}
+              onMouseLeave={() => setHoveredField(null)}
+            >
+              <input
+                readOnly
+                value={`${baseUrl}/donate/${username}`}
+                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-xs w-full cursor-pointer"
+                onClick={e => e.target.select()}
+              />
+              <div
+                className={`absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer transition-opacity duration-500 ${hoveredField === 'donate' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
+                onClick={() => handleCopyWithFeedback(`${baseUrl}/donate/${username}`, 'donate')}
+              >
+                {copiedField === 'donate' ? (
+                  <img src="/check.png" alt="Copied" className="w-5 h-5 transition-transform duration-500" />
+                ) : (
+                  <img src="/copy.png" alt="Copy" className="w-5 h-5 transition-transform duration-500" />
+                )}
+              </div>
+            </div>
+          </div>
+
           <div>
             <h3 className="text-lg font-bold mb-2">🔔 Notifikasi Donasi</h3>
             <p className="text-sm mb-2">Untuk menampilkan notifikasi donasi real-time</p>
