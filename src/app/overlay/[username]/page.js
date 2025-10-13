@@ -35,8 +35,8 @@ export default function OverlayIndexPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-[#2d2d2d] font-mono flex items-center justify-center">
-      <div className="bg-[#b8a492] text-[#2d2d2d] p-8 rounded-xl border-4 border-[#2d2d2d] max-w-2xl">
+    <div className="fixed inset-0 bg-[#2d2d2d] font-mono flex items-center justify-center overflow-y-auto py-8">
+      <div className="bg-[#b8a492] text-[#2d2d2d] p-8 rounded-xl border-4 border-[#2d2d2d] max-w-2xl w-full mx-4 my-auto">
         <button
       type="button"
       className="bg-[#2d2d2d] text-[#b8a492] p-2 rounded-full border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] hover:border-[#2d2d2d] transition cursor-pointer mb-6"
@@ -53,25 +53,27 @@ export default function OverlayIndexPage() {
     </button>
         <div className="flex items-center justify-center gap-3 mb-6">
           <img src="/logo.png" alt="Nyumbangin Logo" className="w-12 h-12" />
-          <h1 className="text-3xl font-bold text-center">Live Widget</h1>
+          <h1 className="text-4xl font-bold text-center">Live Widget</h1>
         </div>
         
         <div className="space-y-4">
           {/* Link Donasi */}
           <div>
-            <h3 className="text-lg font-bold mb-2">💰 Link Donasi</h3>
-            <p className="text-sm mb-2">Link untuk menerima donasi:</p>
+            <h3 className="text-xl font-bold mb-2">💰 Link Donasi</h3>
+            <p className="text-base mb-2">Link untuk menerima donasi:</p>
             <div
               className="relative group"
               onMouseEnter={() => setHoveredField('donate')}
               onMouseLeave={() => setHoveredField(null)}
             >
-              <input
-                readOnly
-                value={`${baseUrl}/donate/${username}`}
-                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-xs w-full cursor-pointer"
-                onClick={e => e.target.select()}
-              />
+              <a
+                href={`${baseUrl}/donate/${username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-sm w-full cursor-pointer hover:bg-[#3d3d3d] transition"
+              >
+                {`${baseUrl}/donate/${username}`}
+              </a>
               <div
                 className={`absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer transition-opacity duration-500 ${hoveredField === 'donate' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
                 onClick={() => handleCopyWithFeedback(`${baseUrl}/donate/${username}`, 'donate')}
@@ -85,9 +87,37 @@ export default function OverlayIndexPage() {
             </div>
           </div>
 
+          {/* QR Code Donasi - BARU */}
           <div>
-            <h3 className="text-lg font-bold mb-2">🔔 Notifikasi Donasi</h3>
-            <p className="text-sm mb-2">Untuk menampilkan notifikasi donasi real-time</p>
+            <h3 className="text-xl font-bold mb-2">📱 QR Code Donasi</h3>
+            <p className="text-base mb-2">Tampilkan QR code untuk memudahkan viewer scan & donate:</p>
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredField('qr-donate')}
+              onMouseLeave={() => setHoveredField(null)}
+            >
+              <input
+                readOnly
+                value={`${baseUrl}/overlay/${username}/qr-donate`}
+                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-sm w-full cursor-pointer"
+                onClick={e => e.target.select()}
+              />
+              <div
+                className={`absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer transition-opacity duration-500 ${hoveredField === 'qr-donate' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
+                onClick={() => handleCopyWithFeedback(`${baseUrl}/overlay/${username}/qr-donate`, 'qr-donate')}
+              >
+                {copiedField === 'qr-donate' ? (
+                  <img src="/check.png" alt="Copied" className="w-5 h-5 transition-transform duration-500" />
+                ) : (
+                  <img src="/copy.png" alt="Copy" className="w-5 h-5 transition-transform duration-500" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-bold mb-2">🔔 Notifikasi Donasi</h3>
+            <p className="text-base mb-2">Untuk menampilkan notifikasi donasi real-time</p>
             <div
               className="relative group"
               onMouseEnter={() => setHoveredField('notifications')}
@@ -96,7 +126,7 @@ export default function OverlayIndexPage() {
               <input
                 readOnly
                 value={`${baseUrl}/overlay/${username}/notifications`}
-                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-xs w-full cursor-pointer"
+                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-sm w-full cursor-pointer"
                 onClick={e => e.target.select()}
               />
               <div
@@ -113,8 +143,8 @@ export default function OverlayIndexPage() {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold mb-2">🏆 Leaderboard</h3>
-            <p className="text-sm mb-2">Untuk menampilkan leaderboard donatur bulanan:</p>
+            <h3 className="text-xl font-bold mb-2">🏆 Leaderboard</h3>
+            <p className="text-base mb-2">Untuk menampilkan leaderboard donatur bulanan:</p>
             <div
               className="relative group"
               onMouseEnter={() => setHoveredField('leaderboard')}
@@ -123,7 +153,7 @@ export default function OverlayIndexPage() {
               <input
                 readOnly
                 value={`${baseUrl}/overlay/${username}/leaderboard`}
-                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-xs w-full"
+                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-sm w-full"
                 onClick={e => e.target.select()}
               />
               <div
@@ -140,11 +170,11 @@ export default function OverlayIndexPage() {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold mb-2">🛠️ Tes Notifikasi</h3>
-            <p className="text-sm mb-2">Klik tombol di bawah untuk mengirim notifikasi tes ke overlay:</p>
+            <h3 className="text-xl font-bold mb-2">🛠️ Tes Notifikasi</h3>
+            <p className="text-base mb-2">Klik tombol di bawah untuk mengirim notifikasi tes ke overlay:</p>
             <button
               type="button"
-              className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded text-sm border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] hover:border-1 hover:border-[#2d2d2d] transition cursor-pointer"
+              className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded text-base border border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] hover:border-1 hover:border-[#2d2d2d] transition cursor-pointer"
               onClick={() => {
                 const testNotification = {
                   message: 'Tes Notifikasi Donasi',
