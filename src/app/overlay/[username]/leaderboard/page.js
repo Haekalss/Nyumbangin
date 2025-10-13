@@ -59,10 +59,10 @@ export default function LeaderboardOverlay() {
         const donationMonth = donationDate.getMonth();
         const donationYear = donationDate.getFullYear();
         
-        // Hanya donasi yang sudah paid dan di bulan ini
+        // Hanya donasi yang sudah PAID dan di bulan ini
         return donationMonth === currentMonth && 
                donationYear === currentYear && 
-               donation.payment_status === 'paid';
+               donation.status === 'PAID';
       });
       
       // Group donations by donor name and sum amounts - SAMA PERSIS DENGAN DASHBOARD

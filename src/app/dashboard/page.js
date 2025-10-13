@@ -205,7 +205,12 @@ export default function Dashboard() {
       };
 
       await axios.delete(`/api/dashboard/donations/${donationId}`, config);
+      
+      // Refresh semua data setelah delete
       fetchData();
+      fetchHistoryData();
+      fetchLeaderboardData();
+      
       toast.success('Donasi berhasil dihapus');
     } catch (error) {
       console.error('Error deleting donation:', error);
@@ -273,10 +278,10 @@ export default function Dashboard() {
         const donationMonth = donationDate.getMonth();
         const donationYear = donationDate.getFullYear();
         
-        // Hanya donasi yang sudah paid dan di bulan ini
+        // Hanya donasi yang sudah PAID dan di bulan ini
         return donationMonth === currentMonth && 
                donationYear === currentYear && 
-               donation.payment_status === 'paid';
+               donation.status === 'PAID';
       });
       
       // Group donations by donor name and sum amounts
@@ -484,7 +489,7 @@ export default function Dashboard() {
           <a href="mailto:admin@nyumbangin.com" className="underline hover:text-[#fff] transition-colors">Hubungi Kami</a>
         </div>
         <div>
-          &copy; {new Date().getFullYear()} Nyumbangin. Dibuat dengan ❤️ untuk kreator Indonesia.
+          &copy; {new Date().getFullYear()} Nyumbangin.
         </div>
       </footer>
       <style jsx global>{`

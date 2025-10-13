@@ -220,7 +220,7 @@ export default function PayoutPage() {
           <a href="mailto:admin@nyumbangin.com" className="underline hover:text-[#fff] transition-colors">Hubungi Kami</a>
         </div>
         <div>
-          &copy; {new Date().getFullYear()} Nyumbangin. Dibuat dengan ❤️ untuk kreator Indonesia.
+          &copy; {new Date().getFullYear()} Nyumbangin.
         </div>
       </footer>
       <style jsx global>{`

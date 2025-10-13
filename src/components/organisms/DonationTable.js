@@ -50,7 +50,7 @@ const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
                   e.stopPropagation();
                   onDelete(donation._id);
                 }}
-                className="text-[#b8a492] hover:text-[#2d2d2d] transition-all font-mono"
+                className="text-[#b8a492] hover:text-[#2d2d2d] transition-all font-mono cursor-pointer"
               >
                 Hapus
               </button>
