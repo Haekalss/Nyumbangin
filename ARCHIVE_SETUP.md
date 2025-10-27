@@ -19,7 +19,15 @@ Sistem ini otomatis memindahkan donasi yang sudah lebih dari 24 jam dari collect
 
 ### Opsi 1: Vercel Cron (Recommended untuk Production)
 
-Jika deploy di Vercel, cron job sudah dikonfigurasi di `vercel.json`:
+Jika deploy di Vercel, setup cron job melalui **Vercel Dashboard**:
+
+1. **Buka Vercel Dashboard** → Project Settings
+2. **Pilih tab "Cron Jobs"** (untuk Pro/Team plan) atau gunakan external service
+3. **Untuk Free Plan**, gunakan **Opsi 2** (External Cron Service)
+
+**Note:** Vercel Cron Jobs hanya tersedia untuk **Pro plan ke atas**. Untuk free plan, gunakan external service seperti cron-job.org.
+
+**Alternative:** Setup via `vercel.json` (jika punya Pro plan):
 ```json
 {
   "crons": [
@@ -32,8 +40,6 @@ Jika deploy di Vercel, cron job sudah dikonfigurasi di `vercel.json`:
 ```
 
 **Schedule:** Berjalan setiap 6 jam sekali
-
-**Vercel akan otomatis menjalankan** endpoint `/api/cron/archive-donations` sesuai schedule.
 
 ### Opsi 2: External Cron Service (cron-job.org)
 
