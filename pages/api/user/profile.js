@@ -1,5 +1,5 @@
 import dbConnect from '../../../src/lib/db';
-import User from '../../../src/models/User';
+import Creator from '../../../src/models/Creator';
 import { verifyToken } from '../../../src/lib/jwt';
 
 export default async function handler(req, res) {
@@ -22,44 +22,45 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      const user = await User.findById(decoded.userId).select('-password');
-      if (!user) return res.status(404).json({ message: 'User tidak ditemukan' });
-      return res.status(200).json({ success: true, user });
+      const creator = await Creator.findById(decoded.id || decoded.userId).select('-password');
+      if (!creator) return res.status(404).json({ message: 'Creator tidak ditemukan' });
+      return res.status(200).json({ success: true, user: creator });
     }
 
-    const { displayName, username, payoutBankName, payoutAccountNumber, payoutAccountHolder } = req.body;
+    const { displayName, username, payoutBankName, payoutAccountNumber, payoutAccountHolder, bio } = req.body;
 
     // Validate input
     if (!displayName || !username) {
       return res.status(400).json({ message: 'Nama tampilan dan username harus diisi' });
     }
 
-    // Ambil user dulu agar bisa cek apakah payout sudah terkunci
-    const currentUser = await User.findById(decoded.userId);
-    if (!currentUser) return res.status(404).json({ message: 'User tidak ditemukan' });
+    // Ambil creator dulu agar bisa cek apakah payout sudah terkunci
+    const currentCreator = await Creator.findById(decoded.id || decoded.userId);
+    if (!currentCreator) return res.status(404).json({ message: 'Creator tidak ditemukan' });
 
-    // Check if username already exists (except current user)
-    const existingUser = await User.findOne({ 
+    // Check if username already exists (except current creator)
+    const existingCreator = await Creator.findOne({ 
       username: username,
-      _id: { $ne: decoded.userId }
+      _id: { $ne: decoded.id || decoded.userId }
     });
 
-    if (existingUser) {
+    if (existingCreator) {
       return res.status(400).json({ message: 'Username sudah digunakan' });
     }
 
     // Update basic fields
-    currentUser.displayName = displayName;
-    currentUser.username = username.toLowerCase();
+    currentCreator.displayName = displayName;
+    currentCreator.username = username.toLowerCase();
+    if (bio !== undefined) currentCreator.bio = bio;
 
-    const payoutAlreadySet = !!(currentUser.payoutAccountNumber || currentUser.payoutAccountHolder || currentUser.payoutBankName);
+    const payoutAlreadySet = currentCreator.hasCompletePayoutSettings();
 
   if (payoutAlreadySet) {
-      // Jika user mencoba mengubah payout fields setelah terkunci
+      // Jika creator mencoba mengubah payout fields setelah terkunci
       const tryingToChange = (
-        (payoutBankName && payoutBankName !== currentUser.payoutBankName) ||
-        (payoutAccountNumber && payoutAccountNumber !== currentUser.payoutAccountNumber) ||
-        (payoutAccountHolder && payoutAccountHolder !== currentUser.payoutAccountHolder)
+        (payoutBankName && payoutBankName !== currentCreator.payoutSettings.bankName) ||
+        (payoutAccountNumber && payoutAccountNumber !== currentCreator.payoutSettings.accountNumber) ||
+        (payoutAccountHolder && payoutAccountHolder !== currentCreator.payoutSettings.accountName)
       );
       if (tryingToChange) {
         return res.status(400).json({ message: 'Data rekening sudah dikunci dan tidak bisa diubah. Hubungi support jika perlu perubahan.' });
@@ -72,17 +73,17 @@ export default async function handler(req, res) {
         if (!/^\d+$/.test(payoutAccountNumber)) {
           return res.status(400).json({ message: 'Nomor rekening hanya boleh berisi angka' });
         }
-        currentUser.payoutBankName = payoutBankName || '';
-        currentUser.payoutAccountNumber = payoutAccountNumber;
-        currentUser.payoutAccountHolder = payoutAccountHolder;
+        currentCreator.payoutSettings.bankName = payoutBankName || '';
+        currentCreator.payoutSettings.accountNumber = payoutAccountNumber;
+        currentCreator.payoutSettings.accountName = payoutAccountHolder;
       } else if (payoutBankName || payoutAccountNumber || payoutAccountHolder) {
         // Partial fill not allowed
         return res.status(400).json({ message: 'Lengkapi semua field rekening (Bank/Channel, Nomor, Nama Pemilik) sekaligus.' });
       }
     }
 
-    await currentUser.save();
-    const sanitized = currentUser.toObject();
+    await currentCreator.save();
+    const sanitized = currentCreator.toObject();
     delete sanitized.password;
 
     res.status(200).json({

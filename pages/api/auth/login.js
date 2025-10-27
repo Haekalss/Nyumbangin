@@ -1,6 +1,8 @@
 import dbConnect from '@/lib/db';
-import User from '@/models/User';
-import jwt from 'jsonwebtoken';
+import Creator from '@/models/Creator';
+import Admin from '@/models/Admin';
+import { signToken } from '@/lib/jwt';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -9,39 +11,72 @@ export default async function handler(req, res) {
 
   try {
     await dbConnect();
-    const user = await User.findOne({ email });
+    
+    let user = null;
+    let userType = null;
+    
+    // Check if it's a creator first
+    user = await Creator.findOne({ email });
+    if (user) {
+      userType = 'creator';
+    } else {
+      // Check if it's an admin
+      user = await Admin.findOne({ email });
+      if (user) {
+        userType = 'admin';
+      }
+    }
+    
     if (!user) return res.status(400).json({ error: 'Email yang dimasukan salah' });
 
-    const isMatch = await user.comparePassword(password);
+    // Compare password (both models use bcrypt)
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Password yang dimasukan salah' });
 
-    // Generate JWT with username
-    const token = jwt.sign(
-      { 
-        userId: user._id, 
+    // Update login tracking
+    user.lastLogin = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save();
+
+    // Generate JWT with user type
+    const token = signToken(user, userType);
+
+    // Prepare response based on user type
+    let responseUser = {};
+    
+    if (userType === 'creator') {
+      responseUser = { 
         email: user.email, 
         username: user.username,
-        role: user.role 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+        displayName: user.displayName,
+        bio: user.bio,
+        userType: 'creator',
+        role: 'user', // For backwards compatibility
+        payoutSettings: user.payoutSettings,
+        donationSettings: user.donationSettings,
+        isPayoutReady: user.hasCompletePayoutSettings(),
+        stats: user.stats
+      };
+    } else if (userType === 'admin') {
+      responseUser = {
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        userType: 'admin',
+        role: 'admin', // For backwards compatibility
+        adminRole: user.role,
+        permissions: user.permissions,
+        stats: user.stats
+      };
+    }
 
     res.status(200).json({ 
       success: true,
       token, 
-      user: { 
-        email: user.email, 
-        username: user.username,
-        displayName: user.displayName,
-        role: user.role,
-        payoutBankName: user.payoutBankName,
-        payoutAccountNumber: user.payoutAccountNumber,
-        payoutAccountHolder: user.payoutAccountHolder,
-        isPayoutReady: user.isPayoutReady
-      } 
+      user: responseUser
     });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: err.message });
   }
 }

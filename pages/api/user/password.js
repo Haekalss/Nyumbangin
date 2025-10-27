@@ -1,5 +1,6 @@
 import dbConnect from '../../../src/lib/db';
-import User from '../../../src/models/User';
+import Creator from '../../../src/models/Creator';
+import Admin from '../../../src/models/Admin';
 import { verifyToken } from '../../../src/lib/jwt';
 import bcrypt from 'bcryptjs';
 
@@ -33,8 +34,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Password baru minimal 6 karakter' });
     }
 
-    // Get user with password
-    const user = await User.findById(decoded.userId);
+    // Find user by ID and type
+    let user;
+    if (decoded.userType === 'admin') {
+      user = await Admin.findById(decoded.userId);
+    } else {
+      user = await Creator.findById(decoded.userId);
+    }
+    
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
     }
@@ -48,10 +55,16 @@ export default async function handler(req, res) {
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
-    // Update password
-    await User.findByIdAndUpdate(decoded.userId, {
-      password: hashedNewPassword
-    });
+    // Update password based on user type
+    if (decoded.userType === 'admin') {
+      await Admin.findByIdAndUpdate(decoded.userId, {
+        password: hashedNewPassword
+      });
+    } else {
+      await Creator.findByIdAndUpdate(decoded.userId, {
+        password: hashedNewPassword
+      });
+    }
 
     res.status(200).json({
       success: true,

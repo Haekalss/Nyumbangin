@@ -1,3 +1,6 @@
+import dbConnect from '@/lib/db';
+import Creator from '@/models/Creator';
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -10,8 +13,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Return notifications-specific configuration
-    const notificationsConfig = {
+    await dbConnect();
+    
+    // Check if creator exists
+    const creator = await Creator.findOne({ username });
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    // Return notifications-specific configuration from creator settings or default
+    const notificationsConfig = creator.overlaySettings?.notifications || {
       showNotifications: true,
       notificationPosition: "top-right",
       notificationDuration: 5000,

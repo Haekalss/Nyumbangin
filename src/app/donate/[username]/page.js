@@ -148,27 +148,59 @@ export default function DonatePage() {
   const response = await axios.post(`/api/donate/${username}`, formData);
       if (response.data.success) {
         const token = response.data.payment?.token;
+        const merchantRef = response.data.donation.merchant_ref;
+        
         await loadSnapScript();
     if (window.snap && token) {
           window.snap.pay(token, {
-            onSuccess: function() {
+            onSuccess: async function() {
               toast.success('Pembayaran berhasil!');
+              
+              // Check payment status to update database
+              try {
+                await axios.post('/api/check-payment-status', { merchant_ref: merchantRef });
+              } catch (err) {
+                console.error('Failed to check payment status:', err);
+              }
+              
               setSuccess(true);
               setFormData({ name: '', amount: '', message: '' });
-              setAgreedToTerms(false); // Reset checkbox
+              setAgreedToTerms(false);
               setPendingRef(null);
             },
             onPending: function() {
       toast('Menunggu pembayaran...');
-      // Simpan merchant_ref untuk simulasi settle
-              setPendingRef(response.data.donation.merchant_ref);
+              setPendingRef(merchantRef);
             },
             onError: function() {
               toast.error('Pembayaran gagal');
               setPendingRef(null);
             },
-            onClose: function() {
-              toast('Popup pembayaran ditutup');
+            onClose: async function() {
+              // When user closes popup, check payment status
+              toast('Mengecek status pembayaran...');
+              
+              try {
+                const statusCheck = await axios.post('/api/check-payment-status', { 
+                  merchant_ref: merchantRef 
+                });
+                
+                if (statusCheck.data.status === 'PAID') {
+                  toast.success('Pembayaran berhasil!');
+                  setSuccess(true);
+                  setFormData({ name: '', amount: '', message: '' });
+                  setAgreedToTerms(false);
+                  setPendingRef(null);
+                } else if (statusCheck.data.status === 'PENDING') {
+                  toast('Pembayaran masih pending. Silakan selesaikan pembayaran.');
+                  setPendingRef(merchantRef);
+                } else {
+                  toast('Popup pembayaran ditutup');
+                }
+              } catch (err) {
+                console.error('Failed to check payment status:', err);
+                toast('Popup pembayaran ditutup');
+              }
             }
           });
         } else {

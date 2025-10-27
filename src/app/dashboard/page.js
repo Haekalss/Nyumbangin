@@ -85,7 +85,7 @@ export default function Dashboard() {
         console.log('🔄 New donation received, refreshing dashboard data:', data);
         
         // Only refresh if donation is for this user
-        if (data.ownerUsername && data.ownerUsername === user.username) {
+        if (data.createdByUsername && data.createdByUsername === user.username) {
           console.log('Refreshing dashboard data for new donation');
           // Refresh data automatically when new donation comes in
           fetchData();

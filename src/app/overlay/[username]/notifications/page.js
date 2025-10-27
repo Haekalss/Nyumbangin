@@ -57,7 +57,7 @@ export default function NotificationsOverlay() {
         console.log('🎉 Received new donation notification:', data);
         
         // Only show notification if donation is for this username
-        if (data.ownerUsername && data.ownerUsername !== username) {
+        if (data.createdByUsername && data.createdByUsername !== username) {
           console.log('Donation not for current user, ignoring notification');
           return;
         }

@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
-import jwt from 'jsonwebtoken';
+import Creator from '@/models/Creator';
+import { verifyToken } from '@/lib/jwt';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -17,15 +18,15 @@ export default async function handler(req, res) {
     }
     const token = authHeader.replace('Bearer ', '');
 
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
+    const decoded = verifyToken(token);
+    if (!decoded || decoded.userType !== 'creator') {
       return res.status(401).json({ error: 'Token tidak valid' });
     }
 
-    if (!decoded || !decoded.username) {
-      return res.status(401).json({ error: 'Token tidak valid' });
+    // Verify creator exists
+    const creator = await Creator.findById(decoded.userId);
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator tidak ditemukan' });
     }
 
     // Sanitize and parse limit
@@ -38,7 +39,13 @@ export default async function handler(req, res) {
     }
 
     // Only fetch donations for the authenticated creator
-    const donations = await Donation.find({ ownerUsername: decoded.username })
+    // Support both old and new data structure
+    const donations = await Donation.find({ 
+      $or: [
+        { createdByUsername: creator.username },
+        { createdBy: creator._id }
+      ]
+    })
       .sort({ createdAt: -1 })
       .limit(limit);
 

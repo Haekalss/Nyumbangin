@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
-import jwt from 'jsonwebtoken';
+import Creator from '@/models/Creator';
+import { verifyToken } from '@/lib/jwt';
 
 export default async function handler(req, res) {
   await dbConnect();
@@ -18,34 +19,62 @@ export default async function handler(req, res) {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyToken(token);
     
-    if (!decoded.username) {
+    if (!decoded || decoded.userType !== 'creator') {
       return res.status(401).json({ error: 'Token tidak valid' });
     }
 
+    // Verify creator exists
+    const creator = await Creator.findById(decoded.userId);
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator tidak ditemukan' });
+    }
+
     // Get stats for this specific creator only
+    // Support both old and new data structure
     const totalDonations = await Donation.countDocuments({ 
-      ownerUsername: decoded.username 
+      $or: [
+        { createdByUsername: creator.username },
+        { createdBy: creator._id }
+      ]
     });
     
     const totalAmount = await Donation.aggregate([
-      { $match: { ownerUsername: decoded.username } },
+      { 
+        $match: { 
+          $or: [
+            { createdByUsername: creator.username },
+            { createdBy: creator._id }
+          ]
+        } 
+      },
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
 
     const paidAmount = await Donation.aggregate([
       { 
         $match: { 
-          ownerUsername: decoded.username,
-          status: 'PAID' 
+          $or: [
+            { 
+              createdByUsername: creator.username,
+              status: 'PAID' 
+            },
+            { 
+              createdBy: creator._id,
+              status: 'PAID' 
+            }
+          ]
         } 
       },
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
 
     const uniqueDonors = await Donation.distinct("name", { 
-      ownerUsername: decoded.username 
+      $or: [
+        { createdByUsername: creator.username },
+        { createdBy: creator._id }
+      ]
     });
 
     res.status(200).json({
@@ -60,9 +89,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error fetching stats:', error);
     
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Token tidak valid' });
-    }
+
     
     res.status(500).json({ success: false, error: error.message });
   }

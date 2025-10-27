@@ -65,7 +65,7 @@ export default function Home() {
             </Link>
             {user ? (
               <>
-                {user.role === 'admin' && (
+                {(user.userType === 'admin' || user.role === 'admin') && (
                   <Link href="/dashboard" className="bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
                     Dashboard
                   </Link>

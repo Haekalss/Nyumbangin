@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
-import jwt from 'jsonwebtoken';
+import Creator from '@/models/Creator';
+import { verifyToken } from '@/lib/jwt';
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -16,16 +17,22 @@ export default async function handler(req, res) {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyToken(token);
     
-    if (!decoded.username) {
+    if (!decoded || decoded.userType !== 'creator') {
       return res.status(401).json({ error: 'Token tidak valid' });
+    }
+
+    // Verify creator exists
+    const creator = await Creator.findById(decoded.userId);
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator tidak ditemukan' });
     }
 
     // Find donation and verify ownership
     const donation = await Donation.findOne({
       _id: id,
-      ownerUsername: decoded.username // Pastikan hanya owner yang bisa akses
+      createdByUsername: creator.username // Pastikan hanya owner yang bisa akses
     });
 
     if (!donation) {
@@ -74,9 +81,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error handling donation:', error);
     
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Token tidak valid' });
-    }
+
     
     res.status(500).json({ error: 'Server error' });
   }

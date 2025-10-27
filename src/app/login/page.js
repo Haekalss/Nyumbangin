@@ -38,7 +38,7 @@ export default function LoginPage() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success('Login berhasil!');
-      if (res.data.user.role === "admin") {
+      if (res.data.user.userType === "admin" || res.data.user.role === "admin") {
         router.push("/admin");
       } else {
         router.push("/dashboard");

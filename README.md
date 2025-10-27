@@ -2,6 +2,31 @@
 
 **Nyumbangin** adalah platform donasi digital yang dirancang khusus untuk content creator, streamer, dan influencer Indonesia. Platform ini memungkinkan creator untuk menerima donasi dari audience dengan fitur notifikasi real-time yang dapat diintegrasikan langsung ke dalam live streaming atau konten mereka.
 
+## 🚀 Quick Start Development
+
+**Mau langsung testing donation tanpa ribet?** 
+
+👉 Baca [QUICKSTART.md](./QUICKSTART.md) - Setup ngrok untuk webhook yang work!
+
+**Development dengan webhook support:**
+```bash
+# Terminal 1: Run server
+npm run dev
+
+# Terminal 2: Run ngrok untuk webhook
+ngrok http 3000
+
+# Set webhook URL di Midtrans dashboard
+# https://your-ngrok-url.ngrok.io/api/webhook/midtrans
+```
+
+📚 **Dokumentasi:**
+- [QUICKSTART.md](./QUICKSTART.md) - Setup cepat tanpa script
+- [WEBHOOK_SETUP.md](./WEBHOOK_SETUP.md) - Setup webhook lengkap
+- [TESTING.md](./TESTING.md) - Guide testing donation
+
+---
+
 ## 🎯 Apa itu Nyumbangin?
 
 Nyumbangin adalah solusi lengkap untuk creator yang ingin:
@@ -141,8 +166,8 @@ Nyumbangin adalah solusi lengkap untuk creator yang ingin:
   message: String,                   // pesan donatur
   status: String (default: 'PAID'), // status donasi
   merchant_ref: String (unique),     // referensi unik
-  owner: ObjectId (ref: 'User'),     // creator penerima
-  ownerUsername: String,             // username creator
+  createdBy: ObjectId (ref: 'Creator'), // creator penerima
+  createdByUsername: String,         // username creator
   createdAt: Date,
   updatedAt: Date
 }

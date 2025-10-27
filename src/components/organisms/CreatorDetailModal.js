@@ -26,9 +26,9 @@ export default function CreatorDetailModal({ creator, onClose }) {
           <div><span className="font-bold text-[#b8a492]">Username:</span> <span className="text-white">{creator.username}</span></div>
           <div><span className="font-bold text-[#b8a492]">Email:</span> <span className="text-white">{creator.email}</span></div>
           <div><span className="font-bold text-[#b8a492]">Nama:</span> <span className="text-white">{creator.displayName}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Payout Account:</span> <span className="text-white">{creator.payoutAccountNumber || <span className='text-red-400'>-</span>}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Payout Holder:</span> <span className="text-white">{creator.payoutAccountHolder || <span className='text-red-400'>-</span>}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Role:</span> <span className="text-white">{creator.role || '-'}</span></div>
+          <div><span className="font-bold text-[#b8a492]">Payout Account:</span> <span className="text-white">{creator.payoutSettings?.accountNumber || <span className='text-red-400'>-</span>}</span></div>
+          <div><span className="font-bold text-[#b8a492]">Payout Holder:</span> <span className="text-white">{creator.payoutSettings?.accountHolder || <span className='text-red-400'>-</span>}</span></div>
+          <div><span className="font-bold text-[#b8a492]">Payout Type:</span> <span className="text-white">{creator.payoutSettings?.type || <span className='text-red-400'>-</span>}</span></div>
           <div><span className="font-bold text-[#b8a492]">Tanggal Daftar:</span> <span className="text-white">{creator.createdAt ? new Date(creator.createdAt).toLocaleString() : '-'}</span></div>
         </div>
       </div>

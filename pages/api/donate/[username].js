@@ -1,5 +1,5 @@
 import dbConnect from '@/lib/db';
-import User from '@/models/User';
+import Creator from '@/models/Creator';
 import Donation from '@/models/donations';
 import { getSnap } from '@/lib/midtrans';
 
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     try {
       await dbConnect();
 
-      const creator = await User.findOne({ 
+      const creator = await Creator.findOne({ 
         username: username.toLowerCase() 
       }).select('-password');
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       }
 
       // Cek apakah creator sudah mengisi data payout (rekening / e-wallet)
-      const payoutReady = creator.payoutAccountNumber && creator.payoutAccountHolder;
+      const payoutReady = creator.hasCompletePayoutSettings();
       if (!payoutReady) {
         return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
       }
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       const isAllRequested = req.query.all === 'true';
       
       let donationsQuery = Donation.find({ 
-        ownerUsername: creator.username,
+        createdByUsername: creator.username,
         status: 'PAID' // Only show paid donations publicly
       })
       .sort({ createdAt: -1 })
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
 
       // Get stats for this creator
       const stats = await Donation.aggregate([
-        { $match: { ownerUsername: creator.username, status: 'PAID' } },
+        { $match: { createdByUsername: creator.username, status: 'PAID' } },
         {
           $group: {
             _id: null,
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         creator: {
           username: creator.username,
           displayName: creator.displayName,
-          description: creator.description
+          description: creator.bio
         },
         donations,
         stats: {
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     try {
       await dbConnect();
 
-      const creator = await User.findOne({ 
+      const creator = await Creator.findOne({ 
         username: username.toLowerCase() 
       });
 
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Creator tidak ditemukan' });
       }
 
-      const payoutReady = creator.payoutAccountNumber && creator.payoutAccountHolder;
+      const payoutReady = creator.hasCompletePayoutSettings();
       if (!payoutReady) {
         return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
       }
@@ -114,15 +114,15 @@ export default async function handler(req, res) {
 
   const merchantRef = generateMerchantRef();
 
-  // Flow Midtrans real (selalu UNPAID dulu, menunggu webhook)
+  // Flow Midtrans real (selalu PENDING dulu, menunggu webhook)
       const donation = await Donation.create({
         name,
         amount: parseInt(amount),
         message,
         merchant_ref: merchantRef,
-        owner: creator._id,
-        ownerUsername: creator.username,
-        status: 'UNPAID'
+        createdBy: creator._id,
+        createdByUsername: creator.username,
+        status: 'PENDING'
       });
 
       // Inisiasi transaksi Midtrans Snap

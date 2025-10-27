@@ -1,3 +1,6 @@
+import dbConnect from '@/lib/db';
+import Creator from '@/models/Creator';
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -10,13 +13,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Return default configuration for any username
-    // This allows the overlay to work even if the user doesn't exist yet
-    // Can be enhanced later to store user-specific settings in database
-    const overlayConfig = {
+    await dbConnect();
+    
+    // Check if creator exists
+    const creator = await Creator.findOne({ username });
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    // Return overlay configuration from creator settings or default
+    const overlayConfig = creator.overlaySettings || {
       showLeaderboard: true,
       leaderboardSize: "medium",
-      leaderboardPosition: "top-right"
+      leaderboardPosition: "top-right",
+      showNotifications: true,
+      notificationDuration: 5000
     };
 
     res.status(200).json(overlayConfig);

@@ -142,7 +142,7 @@ export default function LeaderboardOverlay() {
     
     socket.on('new-donation', (data) => {
       // Only refresh if donation is for this username
-      if (data.ownerUsername && data.ownerUsername === username) {
+      if (data.createdByUsername && data.createdByUsername === username) {
         console.log('Refreshing leaderboard for new donation');
         fetchLeaderboardData();
       }

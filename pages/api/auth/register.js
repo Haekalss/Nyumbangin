@@ -1,10 +1,11 @@
 import dbConnect from '@/lib/db';
-import User from '@/models/User';
+import Creator from '@/models/Creator';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { email, password, username, displayName, description } = req.body;
+  const { email, password, username, displayName, bio } = req.body;
 
   if (!email || !password || !username || !displayName) {
     return res.status(400).json({ error: 'Email, password, username, dan display name wajib diisi' });
@@ -18,11 +19,15 @@ export default async function handler(req, res) {
     });
   }
 
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password minimal 6 karakter' });
+  }
+
   try {
     await dbConnect();
     
-    // Check if email or username already exists
-    const existing = await User.findOne({
+    // Check if email or username already exists in Creator collection
+    const existing = await Creator.findOne({
       $or: [{ email }, { username: username.toLowerCase() }]
     });
     
@@ -32,27 +37,32 @@ export default async function handler(req, res) {
       });
     }
 
-    const user = await User.create({ 
+    // Hash password before creating user
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const creator = await Creator.create({ 
       email, 
-      password, 
+      password: hashedPassword, 
       username: username.toLowerCase(),
       displayName,
-      description: description || '',
-      role: 'user' // Semua user adalah creator
+      bio: bio || '',
+      isActive: true
     });
 
     res.status(201).json({ 
       success: true, 
       message: 'Creator berhasil didaftarkan',
       user: { 
-        email: user.email, 
-        username: user.username,
-        displayName: user.displayName,
-        role: user.role,
-        payoutBankName: user.payoutBankName,
-        payoutAccountNumber: user.payoutAccountNumber,
-        payoutAccountHolder: user.payoutAccountHolder,
-        isPayoutReady: user.isPayoutReady
+        email: creator.email, 
+        username: creator.username,
+        displayName: creator.displayName,
+        bio: creator.bio,
+        userType: 'creator',
+        role: 'user', // For backwards compatibility
+        payoutSettings: creator.payoutSettings,
+        donationSettings: creator.donationSettings,
+        isPayoutReady: creator.hasCompletePayoutSettings(),
+        stats: creator.stats
       }
     });
   } catch (err) {

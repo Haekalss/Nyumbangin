@@ -63,8 +63,8 @@ export default function AdminPage() {
   // Calculate top creators by total donation (from donations, not payouts)
   const donationByCreator = {};
   donations.forEach(d => {
-    if (!donationByCreator[d.ownerUsername]) donationByCreator[d.ownerUsername] = 0;
-    donationByCreator[d.ownerUsername] += d.amount || 0;
+    if (!donationByCreator[d.createdByUsername]) donationByCreator[d.createdByUsername] = 0;
+    donationByCreator[d.createdByUsername] += d.amount || 0;
   });
   const topCreators = creatorsArray
     .map(c => ({

@@ -13,63 +13,105 @@ function verifySignature(order_id, status_code, gross_amount, signature_key) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  await dbConnect();
+  console.log('=== MIDTRANS WEBHOOK RECEIVED ===');
+  console.log('Method:', req.method);
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  
+  if (req.method !== 'POST') {
+    console.log('❌ Invalid method:', req.method);
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
   try {
+    await dbConnect();
+    console.log('✅ Database connected');
+    
     const { order_id, transaction_status, status_code, gross_amount, signature_key } = req.body || {};
-    if (!order_id) return res.status(400).json({ error: 'Missing order_id' });
+    
+    console.log('📋 Parsed data:', { order_id, transaction_status, status_code, gross_amount });
+    
+    if (!order_id) {
+      console.error('❌ Missing order_id');
+      return res.status(400).json({ error: 'Missing order_id' });
+    }
+    
     if (signature_key && !verifySignature(order_id, status_code, gross_amount, signature_key)) {
+      console.error('❌ Invalid signature');
       return res.status(403).json({ error: 'Invalid signature' });
     }
 
     const donation = await Donation.findOne({ merchant_ref: order_id });
-    if (!donation) return res.status(404).json({ error: 'Donation not found' });
+    
+    if (!donation) {
+      console.error('❌ Donation not found for order_id:', order_id);
+      return res.status(404).json({ error: 'Donation not found' });
+    }
+    
+    console.log('✅ Donation found:', donation._id);
 
     // Extra integrity check: amount must match
     if (gross_amount && parseInt(gross_amount) !== donation.amount) {
+      console.error('❌ Amount mismatch:', { expected: donation.amount, received: gross_amount });
       return res.status(400).json({ error: 'Amount mismatch' });
     }
 
     let newStatus = donation.status;
-    if (['capture', 'settlement'].includes(transaction_status)) newStatus = 'PAID';
-    if (['expire', 'cancel', 'deny'].includes(transaction_status)) newStatus = 'UNPAID';
+    
+    // Update status based on transaction_status
+    if (['capture', 'settlement'].includes(transaction_status)) {
+      newStatus = 'PAID';
+      console.log('💰 Status will be updated to PAID');
+    }
+    if (['expire', 'cancel', 'deny'].includes(transaction_status)) {
+      newStatus = 'UNPAID';
+      console.log('❌ Status will be updated to UNPAID');
+    }
 
     if (newStatus !== donation.status) {
       donation.status = newStatus;
       await donation.save();
+      console.log('✅ Donation status updated to:', newStatus);
     }
 
-  if (donation && donation.status === 'PAID') {
+    if (donation && donation.status === 'PAID') {
+      console.log('📤 Sending socket notification...');
+      
+      const notificationData = {
+        name: donation.name,
+        amount: donation.amount,
+        message: donation.message,
+        createdAt: donation.createdAt,
+        createdByUsername: donation.createdByUsername
+      };
+      
       try {
         if (global._io) {
-          global._io.emit('new-donation', {
-            name: donation.name,
-            amount: donation.amount,
-            message: donation.message,
-            createdAt: donation.createdAt,
-            ownerUsername: donation.ownerUsername
-          });
+          global._io.emit('new-donation', notificationData);
+          console.log('✅ Local socket notification sent');
         }
-        await fetch('https://socket-server-production-03be.up.railway.app/notify', {
+      } catch (e) {
+        console.error('❌ Local socket failed:', e);
+      }
+      
+      try {
+        await fetch('https://socket-server-production-03be.up.railway.app/new-donation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: donation.name,
-            amount: donation.amount,
-            message: donation.message,
-            createdAt: donation.createdAt,
-            ownerUsername: donation.ownerUsername
-          })
+          body: JSON.stringify(notificationData)
         });
+        console.log('✅ Railway socket notification sent');
       } catch (e) {
-        console.error('Socket notify failed:', e);
+        console.error('❌ Railway socket failed:', e);
       }
     }
 
+    console.log('=== ✅ WEBHOOK PROCESSED SUCCESSFULLY ===');
     return res.json({ success: true });
   } catch (err) {
-    console.error('Midtrans webhook error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('=== ❌ WEBHOOK ERROR ===');
+    console.error('Error details:', err);
+    console.error('Stack trace:', err.stack);
+    return res.status(500).json({ error: 'Server error', details: err.message });
   }
 }
 
