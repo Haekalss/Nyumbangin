@@ -3,6 +3,7 @@
 // Only fields needed now: order_id, transaction_status, status_code, gross_amount, signature_key
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
+import Notification from '@/models/Notification';
 import crypto from 'crypto';
 
 function verifySignature(order_id, status_code, gross_amount, signature_key) {
@@ -69,8 +70,21 @@ export default async function handler(req, res) {
 
     if (newStatus !== donation.status) {
       donation.status = newStatus;
+      donation.transactionId = req.body.transaction_id;
+      donation.paymentMethod = req.body.payment_type;
+      donation.midtransData = req.body;
       await donation.save();
       console.log('✅ Donation status updated to:', newStatus);
+      
+      // ✅ CREATE NOTIFICATION when payment is successful
+      if (newStatus === 'PAID') {
+        try {
+          await Notification.createDonationNotification(donation);
+          console.log('✅ Notification created for donation:', donation._id);
+        } catch (notifErr) {
+          console.error('❌ Failed to create notification:', notifErr);
+        }
+      }
     }
 
     if (donation && donation.status === 'PAID') {

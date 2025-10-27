@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -14,6 +14,29 @@ export default function ContactPage() {
     message: ''
   });
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userType, setUserType] = useState(null); // 'creator' or 'admin'
+
+  // Check login status on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      setIsLoggedIn(true);
+      try {
+        const userData = JSON.parse(user);
+        // Detect user type from user data
+        if (userData.role === 'admin' || userData.isAdmin) {
+          setUserType('admin');
+        } else {
+          setUserType('creator');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,6 +44,20 @@ export default function ContactPage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Handle back navigation based on user status
+  const handleBack = () => {
+    if (!isLoggedIn) {
+      // Not logged in -> go to landing page
+      router.push('/');
+    } else if (userType === 'admin') {
+      // Admin -> go to admin dashboard
+      router.push('/admin');
+    } else {
+      // Creator -> go to creator dashboard
+      router.push('/dashboard');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -63,10 +100,10 @@ export default function ContactPage() {
               </div>
             </div>
             <button
-              onClick={() => router.push('/')}
+              onClick={handleBack}
               className="px-4 py-2 text-base font-bold font-mono transition-all rounded-lg border-2 bg-transparent text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492]/10"
             >
-              ← Kembali ke Beranda
+              ← Kembali ke {isLoggedIn ? 'Dashboard' : 'Beranda'}
             </button>
           </div>
         </div>
