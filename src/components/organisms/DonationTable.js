@@ -4,11 +4,6 @@ import { formatRupiah } from '@/utils/format';
 
 const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
   if (!donations || donations.length === 0) {
-    return (
-      <div className="text-center py-12 text-[#b8a492] font-mono">
-        Belum ada donasi hari ini
-      </div>
-    );
   }
 
   return (

@@ -217,7 +217,7 @@ export default function PayoutPage() {
           <span className="mx-2">|</span>
           <a href="/faq" className="underline hover:text-[#fff] transition-colors">FAQ & Bantuan</a>
           <span className="mx-2">|</span>
-          <a href="mailto:admin@nyumbangin.com" className="underline hover:text-[#fff] transition-colors">Hubungi Kami</a>
+          <a href="/contact" className="underline hover:text-[#fff] transition-colors">Hubungi Kami</a>
         </div>
         <div>
           &copy; {new Date().getFullYear()} Nyumbangin.

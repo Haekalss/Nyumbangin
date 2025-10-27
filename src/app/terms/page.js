@@ -14,7 +14,7 @@ export default function TermsPage() {
             <li>Data rekening/e-wallet harus valid dan sesuai identitas.</li>
             <li>Proses payout mengikuti jam operasional dan hari kerja. Nyumbangin berhak melakukan verifikasi tambahan jika diperlukan.</li>
         </ol>
-  <p className="mt-8 text-[#2d2d2d]">Jika ada pertanyaan, silakan hubungi admin di <a href="mailto:admin@nyumbangin.com" className="underline text-[#b8a492] hover:text-[#2d2d2d]">admin@nyumbangin.com</a>.</p>
+  <p className="mt-8 text-[#2d2d2d]">Jika ada pertanyaan, silakan <a href="/contact" className="underline text-[#b8a492] hover:text-[#2d2d2d]">hubungi tim kami</a>.</p>
       </div>
     </div>
   );

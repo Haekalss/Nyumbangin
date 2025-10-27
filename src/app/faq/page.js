@@ -19,7 +19,7 @@ export default function FaqPage() {
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#b8a492] mb-2">Bagaimana jika ada masalah payout?</h2>
-            <p>Pastikan data rekening/e-wallet sudah benar dan sesuai. Jika ada kendala, hubungi support melalui email <a href="mailto:admin@nyumbangin.com" className="underline text-[#b8a492] hover:text-[#2d2d2d]">admin@nyumbangin.com</a>.</p>
+            <p>Pastikan data rekening/e-wallet sudah benar dan sesuai. Jika ada kendala, <a href="/contact" className="underline text-[#b8a492] hover:text-[#2d2d2d]">hubungi support kami</a>.</p>
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#b8a492] mb-2">Apakah donasi bisa anonim?</h2>
@@ -35,7 +35,7 @@ export default function FaqPage() {
             </ul>
           </div>
         </div>
-        <p className="mt-8 text-[#2d2d2d]">Jika ada pertanyaan lain, silakan hubungi admin di <a href="mailto:admin@nyumbangin.com" className="underline text-[#b8a492] hover:text-[#2d2d2d]">admin@nyumbangin.com</a>.</p>
+        <p className="mt-8 text-[#2d2d2d]">Jika ada pertanyaan lain, silakan <a href="/contact" className="underline text-[#b8a492] hover:text-[#2d2d2d]">hubungi tim kami</a>.</p>
       </div>
     </div>
   );

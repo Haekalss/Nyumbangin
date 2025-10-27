@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
           <li>Anda dapat meminta penghapusan akun dan data kapan saja</li>
           <li>Data Anda dilindungi dan tidak dijual ke pihak lain</li>
         </ul>
-  <p className="mt-8 text-[#2d2d2d]">Untuk pertanyaan lebih lanjut, hubungi admin di <a href="mailto:admin@nyumbangin.com" className="underline text-[#b8a492] hover:text-[#2d2d2d]">admin@nyumbangin.com</a>.</p>
+  <p className="mt-8 text-[#2d2d2d]">Untuk pertanyaan lebih lanjut, <a href="/contact" className="underline text-[#b8a492] hover:text-[#2d2d2d]">hubungi tim kami</a>.</p>
       </div>
     </div>
   );
