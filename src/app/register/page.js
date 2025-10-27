@@ -10,9 +10,11 @@ import toast from 'react-hot-toast';
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
-    role: 'user'
+    displayName: '',
+    bio: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,8 +29,22 @@ export default function RegisterPage() {
     setError('');
 
     // Frontend validation
-    if (!formData.email || !formData.password) {
-      toast.error('Email dan password wajib diisi!');
+    if (!formData.username || !formData.email || !formData.password || !formData.displayName) {
+      toast.error('Username, email, password, dan nama tampilan wajib diisi!');
+      setLoading(false);
+      return;
+    }
+
+    // Validate username format
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!usernameRegex.test(formData.username)) {
+      toast.error('Username hanya boleh berisi huruf, angka, underscore (_), dan dash (-)');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.username.length < 3 || formData.username.length > 30) {
+      toast.error('Username harus 3-30 karakter!');
       setLoading(false);
       return;
     }
@@ -42,6 +58,12 @@ export default function RegisterPage() {
 
     if (formData.password.length < 6) {
       toast.error('Password minimal 6 karakter!');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.displayName.length < 2 || formData.displayName.length > 50) {
+      toast.error('Nama tampilan harus 2-50 karakter!');
       setLoading(false);
       return;
     }
@@ -77,7 +99,40 @@ export default function RegisterPage() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md shadow-sm space-y-3">
+            <div>
+              <label htmlFor="username" className="sr-only">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
+                placeholder="Username (untuk link donasi)"
+                value={formData.username}
+                onChange={handleChange}
+              />
+              <p className="mt-1 text-xs text-[#b8a492]/70">Contoh: johndoe (huruf, angka, _, -)</p>
+            </div>
+            <div>
+              <label htmlFor="displayName" className="sr-only">
+                Nama Tampilan
+              </label>
+              <input
+                id="displayName"
+                name="displayName"
+                type="text"
+                autoComplete="name"
+                required
+                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
+                placeholder="Nama Tampilan (untuk ditampilkan)"
+                value={formData.displayName}
+                onChange={handleChange}
+              />
+            </div>
             <div>
               <label htmlFor="email" className="sr-only">
                 Email
@@ -88,7 +143,7 @@ export default function RegisterPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-t-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
+                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
                 placeholder="Alamat email"
                 value={formData.email}
                 onChange={handleChange}
@@ -104,26 +159,27 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
-                placeholder="Password"
+                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
+                placeholder="Password (min. 6 karakter)"
                 value={formData.password}
                 onChange={handleChange}
               />
             </div>
             <div>
-              <label htmlFor="role" className="sr-only">
-                Role
+              <label htmlFor="bio" className="sr-only">
+                Bio (Opsional)
               </label>
-              <select
-                id="role"
-                name="role"
-                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-b-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono"
-                value={formData.role}
+              <textarea
+                id="bio"
+                name="bio"
+                rows="3"
+                className="relative block w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492] text-[#b8a492] bg-[#2d2d2d] rounded-md focus:outline-none focus:ring-[#b8a492] focus:border-[#b8a492] focus:z-10 text-sm sm:text-base font-mono resize-none"
+                placeholder="Bio / Deskripsi (opsional)"
+                value={formData.bio}
                 onChange={handleChange}
-              >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
+                maxLength="500"
+              />
+              <p className="mt-1 text-xs text-[#b8a492]/70">Max. 500 karakter</p>
             </div>
           </div>
 
