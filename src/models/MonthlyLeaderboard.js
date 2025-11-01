@@ -101,9 +101,9 @@ const MonthlyLeaderboardSchema = new mongoose.Schema({
 });
 
 // Compound indexes
-MonthlyLeaderboardSchema.index({ creatorId: 1, year: 1, month: 1 }, { unique: true });
+// Using monthYear (YYYY-MM format) is more efficient than separate year/month
 MonthlyLeaderboardSchema.index({ creatorId: 1, monthYear: 1 }, { unique: true });
-MonthlyLeaderboardSchema.index({ year: 1, month: 1 });
+MonthlyLeaderboardSchema.index({ monthYear: 1, 'monthlyStats.totalAmount': -1 }); // For leaderboard
 MonthlyLeaderboardSchema.index({ lastUpdated: -1 });
 
 // Virtual for month name

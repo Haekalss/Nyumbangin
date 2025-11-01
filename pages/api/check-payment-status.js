@@ -2,6 +2,9 @@
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
 import Notification from '@/models/Notification';
+import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
+import Creator from '@/models/Creator';
+import MediaShare from '@/models/MediaShare';
 import { getSnap } from '@/lib/midtrans';
 
 export default async function handler(req, res) {
@@ -78,14 +81,81 @@ export default async function handler(req, res) {
         console.log('✅ Status updated from', donation.status, 'to', newStatus);
       }
       
-      // Send notification if paid
+      // Send notification if paid (but skip for media share donations)
       if (newStatus === 'PAID') {
         try {
-          await Notification.createDonationNotification(donation);
-          console.log('✅ Notification created for donation:', donation._id);
-          console.log('💡 Overlay will pick up this donation via polling');
+          const hasMediaShare = donation.mediaShareRequest && donation.mediaShareRequest.enabled;
+          
+          if (!hasMediaShare) {
+            await Notification.createDonationNotification(donation);
+            console.log('✅ Notification created for donation:', donation._id);
+            console.log('💡 Overlay will pick up this donation via polling');
+          } else {
+            console.log('⏩ Skipping notification - this is a media share donation');
+            console.log('💡 Processing media share...');
+            
+            // Create media share directly (since webhook might not be called in development)
+            if (!donation.mediaShareRequest.processed) {
+              const videoId = MediaShare.extractVideoId(donation.mediaShareRequest.youtubeUrl);
+              
+              if (videoId) {
+                const lastInQueue = await MediaShare.findOne({
+                  createdByUsername: donation.createdByUsername,
+                  status: { $in: ['PENDING', 'PLAYING'] }
+                }).sort({ queuePosition: -1 });
+
+                const queuePosition = lastInQueue ? lastInQueue.queuePosition + 1 : 1;
+
+                await MediaShare.create({
+                  donationId: donation._id,
+                  createdBy: donation.createdBy,
+                  createdByUsername: donation.createdByUsername,
+                  donorName: donation.name,
+                  donorEmail: donation.email || 'anonymous@nyumbangin.com',
+                  amount: donation.amount,
+                  youtubeUrl: donation.mediaShareRequest.youtubeUrl,
+                  videoId,
+                  requestedDuration: donation.mediaShareRequest.duration,
+                  message: donation.message || '',
+                  merchant_ref: donation.merchant_ref,
+                  queuePosition,
+                  isApproved: true
+                });
+
+                donation.mediaShareRequest.processed = true;
+                await donation.save();
+
+                console.log('✅ Media share created successfully');
+                
+                // Update leaderboard
+                if (donation.createdBy) {
+                  try {
+                    await MonthlyLeaderboard.updateCurrentMonth(donation.createdBy);
+                    console.log('✅ Leaderboard updated');
+                  } catch (err) {
+                    console.error('❌ Leaderboard update failed:', err);
+                  }
+                }
+                
+                // Update creator stats
+                if (donation.createdBy) {
+                  try {
+                    const creator = await Creator.findById(donation.createdBy);
+                    if (creator) {
+                      await creator.updateStats();
+                      console.log('✅ Creator stats updated');
+                    }
+                  } catch (err) {
+                    console.error('❌ Creator stats update failed:', err);
+                  }
+                }
+              } else {
+                console.error('❌ Invalid YouTube URL:', donation.mediaShareRequest.youtubeUrl);
+              }
+            }
+          }
         } catch (notifErr) {
-          console.error('❌ Failed to create notification:', notifErr);
+          console.error('❌ Failed in PAID processing:', notifErr);
         }
       }
       

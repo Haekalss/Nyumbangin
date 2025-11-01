@@ -102,7 +102,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
       }
 
-  const { name, amount, message = '' } = req.body;
+  const { name, amount, message = '', mediaShare } = req.body;
 
       if (!name || !amount) {
         return res.status(400).json({ error: 'Nama dan jumlah donasi wajib diisi' });
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
   const merchantRef = generateMerchantRef();
 
   // Flow Midtrans real (selalu PENDING dulu, menunggu webhook)
-      const donation = await Donation.create({
+      const donationData = {
         name,
         amount: parseInt(amount),
         message,
@@ -123,7 +123,19 @@ export default async function handler(req, res) {
         createdBy: creator._id,
         createdByUsername: creator.username,
         status: 'PENDING'
-      });
+      };
+
+      // Add media share request if enabled
+      if (mediaShare && mediaShare.enabled && mediaShare.youtubeUrl) {
+        donationData.mediaShareRequest = {
+          enabled: true,
+          youtubeUrl: mediaShare.youtubeUrl.trim(), // ✅ Trim whitespace
+          duration: mediaShare.duration || 30,
+          processed: false
+        };
+      }
+
+      const donation = await Donation.create(donationData);
 
       // Inisiasi transaksi Midtrans Snap
       let snapToken = null;

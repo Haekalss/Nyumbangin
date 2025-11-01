@@ -170,6 +170,36 @@ export default function OverlayIndexPage() {
           </div>
 
           <div>
+            <h3 className="text-xl font-bold mb-2">🎥 Media Share</h3>
+            <p className="text-base mb-2">Untuk menampilkan video YouTube dari donatur:</p>
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredField('mediashare')}
+              onMouseLeave={() => setHoveredField(null)}
+            >
+              <input
+                readOnly
+                value={`${baseUrl}/overlay/${username}/mediashare`}
+                className="bg-[#2d2d2d] text-[#b8a492] px-2 py-2 rounded text-sm w-full"
+                onClick={e => e.target.select()}
+              />
+              <div
+                className={`absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer transition-opacity duration-500 ${hoveredField === 'mediashare' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
+                onClick={() => handleCopyWithFeedback(`${baseUrl}/overlay/${username}/mediashare`, 'mediashare')}
+              >
+                {copiedField === 'mediashare' ? (
+                  <img src="/check.png" alt="Copied" className="w-5 h-5 transition-transform duration-500" />
+                ) : (
+                  <img src="/copy.png" alt="Copy" className="w-5 h-5 transition-transform duration-500" />
+                )}
+              </div>
+            </div>
+            <p className="text-xs mt-2 opacity-80">
+              💡 OBS: Width 1920, Height 1080, Control audio via OBS
+            </p>
+          </div>
+
+          <div>
             <h3 className="text-xl font-bold mb-2">🛠️ Tes Notifikasi</h3>
             <p className="text-base mb-2">Klik tombol di bawah untuk mengirim notifikasi tes ke overlay:</p>
             <button
@@ -192,6 +222,21 @@ export default function OverlayIndexPage() {
             >
               Kirim Notifikasi Tes
             </button>
+          </div>
+
+          {/* Media Share Info */}
+          <div className="border-2 border-[#2d2d2d] rounded-lg p-4 bg-[#2d2d2d]/10">
+            <h3 className="text-lg font-bold mb-2 text-[#2d2d2d]">ℹ️ Info Media Share</h3>
+            <div className="text-sm space-y-1">
+              <p><strong>• Durasi berdasarkan donasi:</strong></p>
+              <p className="ml-4">Rp 10.000 = 30 detik</p>
+              <p className="ml-4">Rp 20.000 = 1 menit</p>
+              <p className="ml-4">Rp 50.000 = 2 menit</p>
+              <p className="ml-4">Rp 100.000+ = 5 menit</p>
+              <p className="mt-2"><strong>• Format:</strong> YouTube videos only</p>
+              <p><strong>• Auto-play:</strong> Videos play from queue automatically</p>
+              <p><strong>• Audio:</strong> Control volume via OBS</p>
+            </div>
           </div>
         </div>
       </div>

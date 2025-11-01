@@ -19,7 +19,11 @@ export default function DonatePage() {
   const [formData, setFormData] = useState({ name: '', amount: '', message: '' });
   const [donating, setDonating] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false); // State untuk checkbox persetujuan
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [enableMediaShare, setEnableMediaShare] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [mediaDuration, setMediaDuration] = useState(30);
+  const [pendingRef, setPendingRef] = useState(null);
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
   useEffect(() => {
@@ -60,6 +64,26 @@ export default function DonatePage() {
       amount: amount.toString()
     });
   };
+
+  // Calculate max duration based on amount
+  const getMaxDuration = (amount) => {
+    const amt = parseInt(amount) || 0;
+    if (amt >= 100000) return 300; // 5 minutes
+    if (amt >= 50000) return 120;  // 2 minutes
+    if (amt >= 20000) return 60;   // 1 minute
+    if (amt >= 10000) return 30;   // 30 seconds
+    return 15; // 15 seconds minimum
+  };
+
+  // Update media duration when amount changes
+  useEffect(() => {
+    if (formData.amount && enableMediaShare) {
+      const maxDur = getMaxDuration(formData.amount);
+      if (mediaDuration > maxDur) {
+        setMediaDuration(maxDur);
+      }
+    }
+  }, [formData.amount, enableMediaShare]);
 
   const loadSnapScript = () => {
     return new Promise((resolve, reject) => {
@@ -112,11 +136,55 @@ export default function DonatePage() {
       return;
     }
 
+    // Validate media share if enabled
+    if (enableMediaShare) {
+      if (!youtubeUrl) {
+        toast.error('URL YouTube wajib diisi untuk Media Share!');
+        setDonating(false);
+        return;
+      }
+      
+      const youtubePattern = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+      if (!youtubePattern.test(youtubeUrl)) {
+        toast.error('Format URL YouTube tidak valid!');
+        setDonating(false);
+        return;
+      }
+
+      const maxDur = getMaxDuration(amount);
+      if (mediaDuration > maxDur) {
+        toast.error(`Maksimal durasi untuk donasi Rp ${amount.toLocaleString('id-ID')} adalah ${maxDur} detik!`);
+        setDonating(false);
+        return;
+      }
+
+      if (mediaDuration < 10) {
+        toast.error('Minimal durasi video adalah 10 detik!');
+        setDonating(false);
+        return;
+      }
+    }
+
     try {
-  const response = await axios.post(`/api/donate/${username}`, formData);
+      // Prepare donation data
+      const donationData = {
+        ...formData
+      };
+
+      // Add media share request if enabled
+      if (enableMediaShare && youtubeUrl) {
+        donationData.mediaShare = {
+          enabled: true,
+          youtubeUrl: youtubeUrl,
+          duration: mediaDuration
+        };
+      }
+
+  const response = await axios.post(`/api/donate/${username}`, donationData);
       if (response.data.success) {
         const token = response.data.payment?.token;
         const merchantRef = response.data.donation.merchant_ref;
+        const donationId = response.data.donation._id;
         
         await loadSnapScript();
     if (window.snap && token) {
@@ -127,6 +195,11 @@ export default function DonatePage() {
               // Check payment status to update database
               try {
                 await axios.post('/api/check-payment-status', { merchant_ref: merchantRef });
+                
+                // Media share will be auto-created by webhook after payment confirmed
+                if (enableMediaShare) {
+                  toast.success('Media share akan segera diproses!');
+                }
               } catch (err) {
                 console.error('Failed to check payment status:', err);
               }
@@ -134,6 +207,9 @@ export default function DonatePage() {
               setSuccess(true);
               setFormData({ name: '', amount: '', message: '' });
               setAgreedToTerms(false);
+              setEnableMediaShare(false);
+              setYoutubeUrl('');
+              setMediaDuration(30);
               setPendingRef(null);
             },
             onPending: function() {
@@ -297,6 +373,83 @@ export default function DonatePage() {
                 className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base resize-none"
                 placeholder="Tulis pesan dukungan Anda..."
               />
+            </div>
+
+            {/* Media Share Section */}
+            <div className="border-2 border-[#b8a492]/30 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-[#b8a492] font-mono">
+                  🎥 Media Share (YouTube)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEnableMediaShare(!enableMediaShare);
+                    if (!enableMediaShare) {
+                      const maxDur = getMaxDuration(formData.amount);
+                      setMediaDuration(Math.min(30, maxDur));
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    enableMediaShare
+                      ? 'bg-[#b8a492] text-[#2d2d2d]'
+                      : 'bg-[#2d2d2d] text-[#b8a492] border border-[#b8a492]'
+                  }`}
+                >
+                  {enableMediaShare ? 'Aktif' : 'Nonaktif'}
+                </button>
+              </div>
+
+              {enableMediaShare && (
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <label htmlFor="youtubeUrl" className="block text-xs font-bold text-[#b8a492] font-mono mb-1">
+                      URL YouTube <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="youtubeUrl"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm"
+                      placeholder="https://youtube.com/watch?v=..."
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label htmlFor="mediaDuration" className="block text-xs font-bold text-[#b8a492] font-mono">
+                        Durasi Video (detik)
+                      </label>
+                      <span className="text-xs text-[#b8a492]/70 font-mono">
+                        Max: {getMaxDuration(formData.amount)}s
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      id="mediaDuration"
+                      min="10"
+                      max={getMaxDuration(formData.amount)}
+                      value={mediaDuration}
+                      onChange={(e) => setMediaDuration(parseInt(e.target.value))}
+                      className="w-full h-2 bg-[#b8a492]/20 rounded-lg appearance-none cursor-pointer accent-[#b8a492]"
+                    />
+                    <div className="text-center mt-1">
+                      <span className="text-lg font-bold text-[#b8a492] font-mono">{mediaDuration}s</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#b8a492]/10 rounded-lg p-3">
+                    <p className="text-xs text-[#b8a492]/80 font-mono leading-relaxed">
+                      💡 <strong>Info:</strong><br/>
+                      • Rp 10.000 = 30 detik<br/>
+                      • Rp 20.000 = 1 menit<br/>
+                      • Rp 50.000 = 2 menit<br/>
+                      • Rp 100.000+ = 5 menit
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Checkbox Persetujuan */}

@@ -68,7 +68,15 @@ const DonationSchema = new mongoose.Schema({
   
   // Display settings for overlay
   isDisplayedInOverlay: { type: Boolean, default: false },
-  displayedAt: Date
+  displayedAt: Date,
+  
+  // Media Share request (optional)
+  mediaShareRequest: {
+    enabled: { type: Boolean, default: false },
+    youtubeUrl: { type: String, default: '' },
+    duration: { type: Number, default: 0 },
+    processed: { type: Boolean, default: false } // Flag to check if media share already created
+  }
   
 }, { 
   timestamps: true,
