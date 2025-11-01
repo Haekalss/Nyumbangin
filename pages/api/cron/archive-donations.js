@@ -3,6 +3,7 @@
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
 import DonationHistory from '@/models/DonationHistory';
+import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
 
 export default async function handler(req, res) {
   console.log('=== CRON: ARCHIVE DONATIONS ===');
@@ -40,10 +41,17 @@ export default async function handler(req, res) {
     
     let archived = 0;
     let failed = 0;
+    let leaderboardUpdated = 0;
     const errors = [];
+    const affectedCreators = new Set();
     
     for (const donation of oldDonations) {
       try {
+        // Track affected creator untuk update leaderboard nanti
+        if (donation.createdBy) {
+          affectedCreators.add(donation.createdBy.toString());
+        }
+        
         // Archive to donation_history collection
         await DonationHistory.archiveDonation(donation, 'AUTO_24H');
         
@@ -60,12 +68,27 @@ export default async function handler(req, res) {
       }
     }
     
+    // Update leaderboard untuk semua creator yang terpengaruh
+    console.log(`📊 Updating leaderboard for ${affectedCreators.size} creators...`);
+    for (const creatorId of affectedCreators) {
+      try {
+        await MonthlyLeaderboard.updateCurrentMonth(creatorId);
+        leaderboardUpdated++;
+        console.log(`✅ Leaderboard updated for creator: ${creatorId}`);
+      } catch (error) {
+        console.error(`❌ Failed to update leaderboard for ${creatorId}:`, error.message);
+        // Don't fail the whole job if leaderboard update fails
+      }
+    }
+    
     const summary = {
       success: true,
       timestamp: new Date().toISOString(),
       total: oldDonations.length,
       archived,
       failed,
+      leaderboardUpdated,
+      affectedCreators: affectedCreators.size,
       errors: failed > 0 ? errors : undefined
     };
     

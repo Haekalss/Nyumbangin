@@ -4,6 +4,7 @@
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
 import Notification from '@/models/Notification';
+import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
 import crypto from 'crypto';
 
 function verifySignature(order_id, status_code, gross_amount, signature_key) {
@@ -82,6 +83,17 @@ export default async function handler(req, res) {
           await Notification.createDonationNotification(donation);
           console.log('✅ Notification created for donation:', donation._id);
           console.log('💡 Overlay will pick up this donation via polling');
+          
+          // ✅ UPDATE LEADERBOARD immediately after successful payment
+          if (donation.createdBy) {
+            try {
+              await MonthlyLeaderboard.updateCurrentMonth(donation.createdBy);
+              console.log('✅ Leaderboard updated for creator:', donation.createdByUsername);
+            } catch (leaderboardErr) {
+              console.error('❌ Failed to update leaderboard:', leaderboardErr);
+              // Don't fail webhook if leaderboard update fails
+            }
+          }
         } catch (notifErr) {
           console.error('❌ Failed to create notification:', notifErr);
         }

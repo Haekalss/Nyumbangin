@@ -32,64 +32,16 @@ export default function LeaderboardOverlay() {
     }
   };
 
-  // Fetch leaderboard data - menggunakan perhitungan yang sama dengan dashboard
+  // Fetch leaderboard data dari database (sudah pre-computed)
   const fetchLeaderboardData = async () => {
     try {
-      // Ambil semua donasi untuk creator ini dengan parameter all=true
-      const allDonationsResponse = await axios.get(`/api/donate/${username}?all=true`);
-      if (!allDonationsResponse.data.success) {
+      const response = await axios.get(`/api/overlay/leaderboard?username=${username}`);
+      
+      if (response.data.success && response.data.leaderboard) {
+        setLeaderboardData(response.data.leaderboard);
+      } else {
         setLeaderboardData([]);
-        return;
       }
-      
-      const allDonations = allDonationsResponse.data.donations || [];
-      
-      // Get current month and year for MONTHLY leaderboard (reset per bulan)
-      const now = new Date();
-      const currentMonth = now.getMonth(); // Juli = 6
-      const currentYear = now.getFullYear(); // 2025
-      
-      // Filter donations for current month ONLY - leaderboard reset setiap bulan
-      // Semua donasi di bulan Juli (termasuk tanggal 27, 28, dst) harus masuk
-      // DAN hanya yang sudah PAID yang masuk leaderboard
-      const thisMonthDonations = allDonations.filter(donation => {
-        const donationDate = new Date(donation.createdAt);
-        const donationMonth = donationDate.getMonth();
-        const donationYear = donationDate.getFullYear();
-        
-        // Hanya donasi yang sudah PAID dan di bulan ini
-        return donationMonth === currentMonth && 
-               donationYear === currentYear && 
-               donation.status === 'PAID';
-      });
-      
-      // Group donations by donor name and sum amounts - SAMA PERSIS DENGAN DASHBOARD
-      const grouped = thisMonthDonations.reduce((acc, donation) => {
-        // Check both name and donorName fields
-        const name = donation.name || donation.donorName || 'Anonymous';
-        
-        if (!acc[name]) {
-          acc[name] = {
-            name,
-            totalAmount: 0,
-            donationCount: 0,
-            lastDonation: donation.createdAt
-          };
-        }
-        acc[name].totalAmount += donation.amount;
-        acc[name].donationCount += 1;
-        if (new Date(donation.createdAt) > new Date(acc[name].lastDonation)) {
-          acc[name].lastDonation = donation.createdAt;
-        }
-        return acc;
-      }, {});
-
-      // Convert to array and sort by total amount - Top 5 for overlay
-      const leaderboardArray = Object.values(grouped)
-        .sort((a, b) => b.totalAmount - a.totalAmount)
-        .slice(0, 5); // Top 5 donors untuk overlay
-
-      setLeaderboardData(leaderboardArray);
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
       // Set empty leaderboard if user doesn't exist or API fails
@@ -177,7 +129,7 @@ export default function LeaderboardOverlay() {
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
           <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
             <div className="text-center text-[#b8a492] font-mono font-bold mb-4 text-lg">
-              🏆 Top Donatur Bulan Ini
+              🏆 Sultan Bulan Ini
             </div>
             <div className="text-center text-[#b8a492] font-mono text-base opacity-70 py-4">
               Belum ada donasi bulan ini
