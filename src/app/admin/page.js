@@ -32,6 +32,57 @@ export default function AdminPage() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  // Auth check - must be admin
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (!token || !userData) {
+        router.replace('/login');
+        return;
+      }
+
+      try {
+        const parsedUser = JSON.parse(userData);
+        
+        // Must be admin
+        if (parsedUser.userType !== 'admin') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          router.replace('/login');
+          return;
+        }
+        
+        setUser(parsedUser);
+      } catch (e) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.replace('/login');
+      } finally {
+        setIsAuthChecking(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  // Prevent back button after logout
+  useEffect(() => {
+    if (!user) return;
+    
+    const handlePopState = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.replace('/login');
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user, router]);
 
   // Helper: always use array for payouts/creators
   const payoutsArray = Array.isArray(payouts) ? payouts : [];
@@ -132,18 +183,21 @@ export default function AdminPage() {
       await axios.put(`/api/admin/payouts`, { id: notesModalId, status: notesModalType, notes: notesInput }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      toast.success(notesModalType === 'processed' ? 'Payout berhasil diproses!' : 'Payout ditandai gagal!');
+      toast.success(notesModalType === 'PROCESSED' ? 'Payout berhasil diproses!' : 'Payout ditolak!');
       setShowNotesModal(false);
       setNotesModalId(null);
       setNotesModalType('');
       setNotesInput('');
       // Refresh payout data
       setPayoutLoading(true);
-      const res = await axios.get('/api/admin/payouts');
+      const token = localStorage.getItem("token");
+      const res = await axios.get('/api/admin/payouts', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setPayouts(res.data?.data || []);
       setPayoutLoading(false);
     } catch (err) {
-      toast.error('Gagal memproses payout!');
+      toast.error(err.response?.data?.error || 'Gagal memproses payout!');
     }
   };
 
@@ -167,7 +221,10 @@ export default function AdminPage() {
   // Fetch payouts
   useEffect(() => {
     setPayoutLoading(true);
-    axios.get('/api/admin/payouts')
+    const token = localStorage.getItem("token");
+    axios.get('/api/admin/payouts', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(res => {
         console.log('Payouts API response:', res.data);
         setPayouts(res.data?.data || []);
@@ -176,7 +233,7 @@ export default function AdminPage() {
       .catch((err) => {
         console.error('Payouts API error:', err);
         setPayouts([]);
-        setPayoutError("Gagal memuat data pengajuan payout");
+        setPayoutError(err.response?.data?.error || "Gagal memuat data pengajuan payout");
       })
       .finally(() => setPayoutLoading(false));
   }, []);
@@ -198,22 +255,23 @@ export default function AdminPage() {
           <button
             onClick={() => {
               toast.dismiss(t.id);
-              toast.promise(
-                new Promise((resolve) => {
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('user');
-                  setTimeout(() => {
-                    resolve();
-                    router.replace('/login');
-                    setTimeout(() => { window.location.reload(); }, 100);
-                  }, 500);
-                }),
-                {
-                  loading: 'Keluar dari akun...',
-                  success: 'Berhasil logout!',
-                  error: 'Gagal logout'
-                }
-              );
+              
+              // Clear all data
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              sessionStorage.clear();
+              
+              // Show success toast
+              toast.success('Berhasil logout!', { duration: 1000 });
+              
+              // Redirect immediately
+              setTimeout(() => {
+                router.replace('/login');
+                // Force reload to clear any cached state
+                setTimeout(() => {
+                  window.location.href = '/login';
+                }, 100);
+              }, 500);
             }}
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
           >
@@ -231,6 +289,18 @@ export default function AdminPage() {
       duration: 6000,
     });
   };
+
+  // Show loading while checking auth
+  if (isAuthChecking || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#2d2d2d] mx-auto mb-4"></div>
+          <p className="text-[#2d2d2d] font-mono font-bold">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] text-[#2d2d2d] font-mono">
@@ -285,7 +355,7 @@ export default function AdminPage() {
                 </div>
                 <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
                   <span className="text-lg text-[#b8a492] font-bold mb-2">Total Payout Selesai</span>
-                  <span className="text-3xl font-extrabold text-white">{payoutsArray.filter(p => p.status === 'processed').length}</span>
+                  <span className="text-3xl font-extrabold text-white">{payoutsArray.filter(p => p.status === 'PROCESSED').length}</span>
                 </div>
               </div>
               {/* Bar Chart for Top Creators */}
@@ -322,26 +392,27 @@ export default function AdminPage() {
                     ) : (
                       payoutsArray.map(p => (
                         <tr key={p._id}>
-                          <td className="px-4 py-2 text-sm text-white">{p.username}</td>
-                          <td className="px-4 py-2 text-sm text-white">{new Date(p.requestedAt).toLocaleString()}</td>
+                          <td className="px-4 py-2 text-sm text-white">{p.creatorUsername}</td>
+                          <td className="px-4 py-2 text-sm text-white">{new Date(p.requestedAt).toLocaleString('id-ID')}</td>
                           <td className="px-4 py-2 text-sm text-white">{p.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>
                           <td className="px-4 py-2 text-sm font-bold">
-                            {p.status === 'pending' && <span className="bg-yellow-900/30 text-yellow-200 border border-yellow-400/40 rounded px-2 py-1">Pending</span>}
-                            {p.status === 'processed' && <span className="bg-green-900/30 text-green-300 border-green-400/40 rounded px-2 py-1">Selesai</span>}
-                            {p.status === 'failed' && <span className="bg-red-900/30 text-red-300 border-red-400/40 rounded px-2 py-1">Gagal</span>}
+                            {p.status === 'PENDING' && <span className="bg-yellow-900/30 text-yellow-200 border border-yellow-400/40 rounded px-2 py-1">Pending</span>}
+                            {p.status === 'APPROVED' && <span className="bg-blue-900/30 text-blue-300 border border-blue-400/40 rounded px-2 py-1">Disetujui</span>}
+                            {p.status === 'PROCESSED' && <span className="bg-green-900/30 text-green-300 border border-green-400/40 rounded px-2 py-1">Selesai</span>}
+                            {p.status === 'REJECTED' && <span className="bg-red-900/30 text-red-300 border border-red-400/40 rounded px-2 py-1">Ditolak</span>}
                           </td>
-                          <td className="px-4 py-2 text-sm text-white">{p.processedAt ? new Date(p.processedAt).toLocaleString() : '-'}</td>
-                          <td className="px-4 py-2 text-sm text-white">{p.notes || '-'}</td>
+                          <td className="px-4 py-2 text-sm text-white">{p.processedAt ? new Date(p.processedAt).toLocaleString('id-ID') : '-'}</td>
+                          <td className="px-4 py-2 text-sm text-white">{p.adminNote || '-'}</td>
                           <td className="px-4 py-2 text-sm">
-                            {p.status === 'pending' && (
+                            {p.status === 'PENDING' && (
                               <>
-                                <button className="bg-green-700 text-white px-3 py-1 rounded mr-2 cursor-pointer" onClick={() => openNotesModal(p._id, 'processed')}>Proses</button>
-                                <button className="bg-red-700 text-white px-3 py-1 rounded cursor-pointer" onClick={() => openNotesModal(p._id, 'failed')}>X</button>
+                                <button className="bg-green-700 text-white px-3 py-1 rounded mr-2 cursor-pointer hover:bg-green-600" onClick={() => openNotesModal(p._id, 'PROCESSED')}>Proses</button>
+                                <button className="bg-red-700 text-white px-3 py-1 rounded cursor-pointer hover:bg-red-600" onClick={() => openNotesModal(p._id, 'REJECTED')}>Tolak</button>
                                 {/* Modal for input catatan payout */}
                                 {showNotesModal && (
                                   <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
                                     <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 w-full max-w-md shadow-xl">
-                                      <h2 className="text-xl font-extrabold text-[#b8a492] mb-2">{notesModalType === 'processed' ? 'Proses Payout' : 'Tandai Gagal Payout'}</h2>
+                                      <h2 className="text-xl font-extrabold text-[#b8a492] mb-2">{notesModalType === 'PROCESSED' ? 'Proses Payout' : 'Tolak Payout'}</h2>
                                       <label className="block mb-2 font-semibold text-[#b8a492]">Catatan (opsional)</label>
                                       <textarea
                                         className="w-full border-2 border-[#b8a492] rounded-lg p-2 mb-4 bg-[#fbe8d4] text-[#2d2d2d] font-mono focus:outline-none focus:ring-2 focus:ring-[#b8a492] placeholder-[#b8a492]"

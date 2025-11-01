@@ -75,9 +75,9 @@ const AdminSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Index for efficient queries
-AdminSchema.index({ username: 1 });
-AdminSchema.index({ email: 1 });
+// Indexes are created automatically from field definitions (unique: true)
+// username and email already have unique: true, so no need to add manual index
+// Only add compound or non-unique indexes here
 AdminSchema.index({ role: 1 });
 AdminSchema.index({ isActive: 1 });
 
@@ -111,10 +111,10 @@ AdminSchema.methods.canManageCreators = function() {
 
 // Method to update payout stats
 AdminSchema.methods.updatePayoutStats = async function() {
-  const PayoutHistory = mongoose.models.PayoutHistory;
+  const Payout = mongoose.models.Payout;
   
-  if (PayoutHistory) {
-    const stats = await PayoutHistory.aggregate([
+  if (Payout) {
+    const stats = await Payout.aggregate([
       { $match: { processedBy: this._id } },
       { 
         $group: { 
@@ -128,9 +128,9 @@ AdminSchema.methods.updatePayoutStats = async function() {
     let approved = 0, rejected = 0, totalAmount = 0;
     
     stats.forEach(stat => {
-      if (stat._id === 'APPROVED') {
-        approved = stat.count;
-        totalAmount = stat.totalAmount;
+      if (stat._id === 'APPROVED' || stat._id === 'PROCESSED') {
+        approved += stat.count;
+        totalAmount += stat.totalAmount;
       } else if (stat._id === 'REJECTED') {
         rejected = stat.count;
       }

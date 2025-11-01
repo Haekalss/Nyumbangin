@@ -55,7 +55,7 @@ const PayoutSchema = new mongoose.Schema({
   // Reference for tracking
   payoutReference: { type: String, unique: true },
   
-  // Auto-archive flag (processed payouts will be moved to PayoutHistory)
+  // Archive flag
   isArchived: { type: Boolean, default: false }
   
 }, { 

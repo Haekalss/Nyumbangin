@@ -77,10 +77,10 @@ const DonationSchema = new mongoose.Schema({
 });
 
 // Indexes for efficient queries
+// Note: merchant_ref already has unique: true, so automatic index is created
 DonationSchema.index({ createdBy: 1, createdAt: -1 });
 DonationSchema.index({ createdByUsername: 1, status: 1 });
 DonationSchema.index({ status: 1, createdAt: -1 });
-DonationSchema.index({ merchant_ref: 1 });
 DonationSchema.index({ createdAt: -1 }); // For auto-archive queries
 
 // Virtual for formatted amount

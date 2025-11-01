@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
 import Notification from '@/models/Notification';
 import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
+import Creator from '@/models/Creator';
 import crypto from 'crypto';
 
 function verifySignature(order_id, status_code, gross_amount, signature_key) {
@@ -92,6 +93,20 @@ export default async function handler(req, res) {
             } catch (leaderboardErr) {
               console.error('❌ Failed to update leaderboard:', leaderboardErr);
               // Don't fail webhook if leaderboard update fails
+            }
+          }
+          
+          // ✅ UPDATE CREATOR STATS immediately after successful payment
+          if (donation.createdBy) {
+            try {
+              const creator = await Creator.findById(donation.createdBy);
+              if (creator) {
+                await creator.updateStats();
+                console.log('✅ Creator stats updated:', donation.createdByUsername);
+              }
+            } catch (statsErr) {
+              console.error('❌ Failed to update creator stats:', statsErr);
+              // Don't fail webhook if stats update fails
             }
           }
         } catch (notifErr) {

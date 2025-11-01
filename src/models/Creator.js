@@ -90,7 +90,9 @@ const CreatorSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Index for efficient queries (username and email already have unique: true)
+// Indexes are created automatically from field definitions (unique: true)
+// username and email already have unique: true
+// Only add compound or non-unique indexes here
 CreatorSchema.index({ isActive: 1 });
 
 // Virtual for donation URL
@@ -157,8 +159,15 @@ CreatorSchema.methods.hasCompletePayoutSettings = function() {
 // Method to update stats (will be called from other operations)
 CreatorSchema.methods.updateStats = async function() {
   const Donation = mongoose.models.Donation;
+  const DonationHistory = mongoose.models.DonationHistory;
   const Payout = mongoose.models.Payout;
   
+  // Reset stats
+  this.stats.totalDonations = 0;
+  this.stats.totalAmount = 0;
+  this.stats.totalPayouts = 0;
+  
+  // Hitung dari donations aktif (yang belum di-payout)
   if (Donation) {
     const donationStats = await Donation.aggregate([
       { $match: { createdBy: this._id, status: 'PAID' } },
@@ -177,9 +186,34 @@ CreatorSchema.methods.updateStats = async function() {
     }
   }
   
+  // Hitung dari donation history (yang sudah di-archive)
+  if (DonationHistory) {
+    const historyStats = await DonationHistory.aggregate([
+      { $match: { createdBy: this._id, status: 'PAID' } },
+      { 
+        $group: { 
+          _id: null, 
+          totalAmount: { $sum: '$amount' },
+          totalCount: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    if (historyStats.length > 0) {
+      this.stats.totalDonations += historyStats[0].totalCount;
+      this.stats.totalAmount += historyStats[0].totalAmount;
+    }
+  }
+  
+  // Hitung total payouts yang sudah approved/processed
   if (Payout) {
     const payoutStats = await Payout.aggregate([
-      { $match: { creatorId: this._id, status: 'APPROVED' } },
+      { 
+        $match: { 
+          creatorId: this._id, 
+          status: { $in: ['APPROVED', 'PROCESSED'] }
+        } 
+      },
       { 
         $group: { 
           _id: null, 

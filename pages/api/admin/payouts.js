@@ -23,11 +23,11 @@ export default async function handler(req, res) {
     
     // Verify admin exists and has permission
     const admin = await Admin.findById(decoded.userId);
-    if (!admin || !admin.hasPermission('manage_payouts')) {
+    if (!admin || !admin.hasPermission('MANAGE_PAYOUTS')) {
       return res.status(403).json({ error: 'Permission denied' });
     }
     
-    const payouts = await Payout.find().sort({ requestedAt: -1 }).populate('creator', 'username displayName email');
+    const payouts = await Payout.find().sort({ requestedAt: -1 }).populate('creatorId', 'username displayName email');
     return res.status(200).json({ success: true, data: payouts });
   }
 
@@ -95,19 +95,36 @@ export default async function handler(req, res) {
     
     // Verify admin exists and has permission
     const admin = await Admin.findById(decoded.userId);
-    if (!admin || !admin.hasPermission('process_payouts')) {
+    if (!admin || !admin.hasPermission('MANAGE_PAYOUTS')) {
       return res.status(403).json({ error: 'Permission denied' });
     }
     
     const { id, status, notes } = req.body;
-    const payout = await Payout.findById(id);
+    const payout = await Payout.findById(id).populate('creatorId');
     if (!payout) return res.status(404).json({ error: 'Payout tidak ditemukan' });
     
     payout.status = status;
     payout.processedAt = new Date();
     payout.processedBy = decoded.userId;
-    payout.notes = notes;
+    payout.adminNote = notes;
     await payout.save();
+    
+    // Jika approved atau processed, reset donasi dan update stats creator
+    if (status === 'APPROVED' || status === 'PROCESSED') {
+      // Hapus semua donasi PAID untuk creator ini (reset saldo)
+      await Donation.deleteMany({
+        createdByUsername: payout.creatorUsername,
+        status: 'PAID'
+      });
+      
+      // Update stats creator
+      const creator = await Creator.findById(payout.creatorId);
+      if (creator) {
+        await creator.updateStats();
+      }
+      
+      console.log(`✅ Payout ${status} - Donasi reset & stats updated for ${payout.creatorUsername}`);
+    }
     
     return res.status(200).json({ success: true, data: payout });
   }

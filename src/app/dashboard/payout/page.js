@@ -68,19 +68,32 @@ export default function PayoutPage() {
       setPayoutLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/admin/payouts', {
+        
+        // Use different endpoint based on user type
+        const endpoint = user.userType === 'admin' 
+          ? '/api/admin/payouts' 
+          : '/api/creator/payouts';
+          
+        const res = await axios.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const allPayouts = res.data.data || [];
         setPayouts(allPayouts);
-        // Hitung total payout processed untuk user
-        const processed = allPayouts
-          .filter(p => p.username === user?.username && p.status === 'processed')
-          .reduce((sum, p) => sum + (p.amount || 0), 0);
-        setTotalPayoutProcessed(processed);
+        
+        // Hitung total payout processed untuk creator
+        if (user.userType === 'creator') {
+          const processed = allPayouts
+            .filter(p => p.status === 'PROCESSED')
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+          setTotalPayoutProcessed(processed);
+        }
       } catch (e) {
         console.error('Error fetching payouts:', e);
-        setPayoutError('Gagal memuat riwayat pencairan');
+        if (e.response?.status === 403) {
+          setPayoutError('Akses ditolak - Silakan login ulang');
+        } else {
+          setPayoutError('Gagal memuat riwayat pencairan');
+        }
       } finally {
         setPayoutLoading(false);
       }
@@ -101,15 +114,22 @@ export default function PayoutPage() {
       toast.success('Permintaan pencairan berhasil!');
       
       // Refresh payouts after request
-      const payoutRes = await axios.get('/api/admin/payouts', {
+      const endpoint = user.userType === 'admin' 
+        ? '/api/admin/payouts' 
+        : '/api/creator/payouts';
+        
+      const payoutRes = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const allPayouts = payoutRes.data.data || [];
       setPayouts(allPayouts);
-      const processed = allPayouts
-        .filter(p => p.username === user?.username && p.status === 'processed')
-        .reduce((sum, p) => sum + (p.amount || 0), 0);
-      setTotalPayoutProcessed(processed);
+      
+      if (user.userType === 'creator') {
+        const processed = allPayouts
+          .filter(p => p.status === 'PROCESSED')
+          .reduce((sum, p) => sum + (p.amount || 0), 0);
+        setTotalPayoutProcessed(processed);
+      }
     } catch (e) {
       toast.error(e?.response?.data?.error || 'Gagal request pencairan');
     } finally {
@@ -164,7 +184,7 @@ export default function PayoutPage() {
             </div>
             <button
               className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#d6c6b9] transition-all disabled:opacity-50"
-              disabled={requestingPayout || (((stats?.paidAmount || 0) - totalPayoutProcessed) < 50000) || payouts.some(p => p.status === 'pending' && p.username === user?.username)}
+              disabled={requestingPayout || (((stats?.paidAmount || 0) - totalPayoutProcessed) < 50000) || payouts.some(p => p.status === 'PENDING')}
               onClick={handleRequestPayout}
             >
               {requestingPayout ? 'Memproses...' : 'Ajukan Pencairan'}
@@ -185,20 +205,21 @@ export default function PayoutPage() {
               <tbody>
                 {payoutLoading ? (
                   <tr><td colSpan={5} className="text-center py-6 text-[#b8a492]">Memuat...</td></tr>
-                ) : payouts.filter(p => p.username === user?.username).length === 0 ? (
+                ) : payouts.length === 0 ? (
                   <tr><td colSpan={5} className="text-center py-6 text-[#b8a492]">Belum ada riwayat pencairan</td></tr>
                 ) : (
-                  payouts.filter(p => p.username === user?.username).map(p => (
+                  payouts.map(p => (
                     <tr key={p._id}>
-                      <td className="px-4 py-2 text-sm text-white">{new Date(p.requestedAt).toLocaleString()}</td>
+                      <td className="px-4 py-2 text-sm text-white">{new Date(p.requestedAt).toLocaleString('id-ID')}</td>
                       <td className="px-4 py-2 text-sm text-white">{formatRupiah(p.amount)}</td>
                       <td className="px-4 py-2 text-sm font-bold">
-                        {p.status === 'pending' && <span className="bg-yellow-900/30 text-yellow-200 border border-yellow-400/40 rounded px-2 py-1">Pending</span>}
-                        {p.status === 'processed' && <span className="bg-green-900/30 text-green-300 border-green-400/40 rounded px-2 py-1">Selesai</span>}
-                        {p.status === 'failed' && <span className="bg-red-900/30 text-red-300 border-red-400/40 rounded px-2 py-1">Gagal</span>}
+                        {p.status === 'PENDING' && <span className="bg-yellow-900/30 text-yellow-200 border border-yellow-400/40 rounded px-2 py-1">Pending</span>}
+                        {p.status === 'APPROVED' && <span className="bg-blue-900/30 text-blue-300 border border-blue-400/40 rounded px-2 py-1">Disetujui</span>}
+                        {p.status === 'PROCESSED' && <span className="bg-green-900/30 text-green-300 border border-green-400/40 rounded px-2 py-1">Selesai</span>}
+                        {p.status === 'REJECTED' && <span className="bg-red-900/30 text-red-300 border border-red-400/40 rounded px-2 py-1">Ditolak</span>}
                       </td>
-                      <td className="px-4 py-2 text-sm text-white">{p.processedAt ? new Date(p.processedAt).toLocaleString() : '-'}</td>
-                      <td className="px-4 py-2 text-sm text-white">{p.notes || '-'}</td>
+                      <td className="px-4 py-2 text-sm text-white">{p.processedAt ? new Date(p.processedAt).toLocaleString('id-ID') : '-'}</td>
+                      <td className="px-4 py-2 text-sm text-white">{p.adminNote || '-'}</td>
                     </tr>
                   ))
                 )}
