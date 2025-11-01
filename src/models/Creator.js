@@ -35,18 +35,21 @@ const CreatorSchema = new mongoose.Schema({
     maxlength: 500,
     default: ''
   },
-  profileImage: {
-    type: String,
-    default: ''
+  
+  // Profile image (reference to ProfileImage collection)
+  profileImageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProfileImage',
+    default: null
   },
   
   // Social media links
   socialLinks: {
-    twitch: { type: String, default: '' },
-    youtube: { type: String, default: '' },
-    instagram: { type: String, default: '' },
-    tiktok: { type: String, default: '' },
-    twitter: { type: String, default: '' }
+    twitch: { type: String, default: '', trim: true },
+    youtube: { type: String, default: '', trim: true },
+    instagram: { type: String, default: '', trim: true },
+    tiktok: { type: String, default: '', trim: true },
+    twitter: { type: String, default: '', trim: true }
   },
   
   // Payout/bank settings
@@ -98,6 +101,19 @@ CreatorSchema.virtual('donationUrl').get(function() {
 // Virtual for overlay URL
 CreatorSchema.virtual('overlayUrl').get(function() {
   return `/overlay/${this.username}`;
+});
+
+// Virtual fields for backward compatibility (flat fields → nested payoutSettings)
+CreatorSchema.virtual('payoutBankName').get(function() {
+  return this.payoutSettings?.bankName || '';
+});
+
+CreatorSchema.virtual('payoutAccountNumber').get(function() {
+  return this.payoutSettings?.accountNumber || '';
+});
+
+CreatorSchema.virtual('payoutAccountHolder').get(function() {
+  return this.payoutSettings?.accountName || '';
 });
 
 // Method to check if payout settings are complete

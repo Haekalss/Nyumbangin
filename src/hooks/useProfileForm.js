@@ -10,6 +10,15 @@ export function useProfileForm(initialUser, onSuccess) {
     displayName: initialUser?.displayName || '',
     username: initialUser?.username || '',
     email: initialUser?.email || '',
+    bio: initialUser?.bio || '',
+    profileImageUrl: initialUser?.profileImage || '',
+    socialLinks: {
+      twitch: initialUser?.socialLinks?.twitch || '',
+      youtube: initialUser?.socialLinks?.youtube || '',
+      instagram: initialUser?.socialLinks?.instagram || '',
+      tiktok: initialUser?.socialLinks?.tiktok || '',
+      twitter: initialUser?.socialLinks?.twitter || ''
+    },
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -21,17 +30,33 @@ export function useProfileForm(initialUser, onSuccess) {
   const payoutLocked = !!(initialUser?.payoutAccountNumber && initialUser?.payoutAccountHolder);
 
   // Sync form data whenever a new initialUser is provided (e.g., reopening modal after save)
+  // BUT: Don't override profileImageUrl if it was recently uploaded (has cache buster)
   useEffect(() => {
     if (!initialUser) return;
-    setFormData(prev => ({
-      ...prev,
-      displayName: initialUser.displayName || '',
-      username: initialUser.username || '',
-      email: initialUser.email || '',
-      payoutBankName: initialUser.payoutBankName || '',
-      payoutAccountNumber: initialUser.payoutAccountNumber || '',
-      payoutAccountHolder: initialUser.payoutAccountHolder || ''
-    }));
+    setFormData(prev => {
+      // Check if profileImageUrl has cache buster (was just uploaded)
+      const hasRecentUpload = prev.profileImageUrl && prev.profileImageUrl.includes('?t=');
+      
+      return {
+        ...prev,
+        displayName: initialUser.displayName || '',
+        username: initialUser.username || '',
+        email: initialUser.email || '',
+        bio: initialUser.bio || '',
+        // Only update profileImageUrl if no recent upload
+        profileImageUrl: hasRecentUpload ? prev.profileImageUrl : (initialUser.profileImage || ''),
+        socialLinks: {
+          twitch: initialUser.socialLinks?.twitch || '',
+          youtube: initialUser.socialLinks?.youtube || '',
+          instagram: initialUser.socialLinks?.instagram || '',
+          tiktok: initialUser.socialLinks?.tiktok || '',
+          twitter: initialUser.socialLinks?.twitter || ''
+        },
+        payoutBankName: initialUser.payoutBankName || '',
+        payoutAccountNumber: initialUser.payoutAccountNumber || '',
+        payoutAccountHolder: initialUser.payoutAccountHolder || ''
+      };
+    });
   }, [initialUser?._id, initialUser?.username]);
 
   const validate = () => {
@@ -58,7 +83,15 @@ export function useProfileForm(initialUser, onSuccess) {
     try {
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      let profileUpdate = { displayName: formData.displayName, username: formData.username };
+      
+      let profileUpdate = { 
+        displayName: formData.displayName, 
+        username: formData.username,
+        bio: formData.bio,
+        profileImageUrl: formData.profileImageUrl,
+        socialLinks: formData.socialLinks
+      };
+      
       if (!payoutLocked) {
         profileUpdate = {
           ...profileUpdate,
@@ -67,13 +100,16 @@ export function useProfileForm(initialUser, onSuccess) {
           payoutAccountHolder: formData.payoutAccountHolder || ''
         };
       }
+      
       const response = await axios.put('/api/user/profile', profileUpdate, config);
+      
       if (formData.newPassword && formData.currentPassword) {
         await axios.put('/api/user/password', { currentPassword: formData.currentPassword, newPassword: formData.newPassword }, config);
         toast.success('Profil dan password berhasil diupdate');
       } else {
         toast.success('Profil berhasil diupdate');
       }
+      
       const updatedUser = { ...user, ...response.data.user };
       onSuccess && onSuccess(updatedUser);
       setFormData({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });

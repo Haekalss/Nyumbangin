@@ -33,8 +33,16 @@ export default function Dashboard() {
   const { formData: profileFormData, setFormData: setProfileFormData, submit: submitProfile, loading: profileLoading, payoutLocked } = useProfileForm(profileInitUser, (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
+    setProfileInitUser(updatedUser); // Update profileInitUser dengan data terbaru
     setShowProfile(false);
   });
+
+  // Sync profileInitUser with user when user changes (e.g., after profile update)
+  useEffect(() => {
+    if (user && showProfile) {
+      setProfileInitUser(user);
+    }
+  }, [user, showProfile]);
 
   useEffect(() => {
     checkAuth();
@@ -61,14 +69,14 @@ export default function Dashboard() {
     };
   }, [user, startMonitoring, stopMonitoring]);
 
-  // Auto-refresh dashboard data every 30 seconds (polling replacement for socket.io)
+  // Auto-refresh dashboard data every 5 seconds (polling replacement for socket.io)
   useEffect(() => {
     if (!user?.username) return;
 
     const refreshInterval = setInterval(() => {
       console.log('🔄 Auto-refreshing dashboard data (polling)');
       fetchData();
-    }, 30000); // Refresh every 30 seconds
+    }, 5000); // Refresh every 5 seconds for faster updates
 
     return () => {
       clearInterval(refreshInterval);

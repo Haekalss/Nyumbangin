@@ -1,5 +1,6 @@
 import dbConnect from '../../../src/lib/db';
 import Creator from '../../../src/models/Creator';
+import ProfileImage from '../../../src/models/ProfileImage';
 import { verifyToken } from '../../../src/lib/jwt';
 
 export default async function handler(req, res) {
@@ -22,12 +23,42 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      const creator = await Creator.findById(decoded.id || decoded.userId).select('-password');
+      const creator = await Creator.findById(decoded.id || decoded.userId)
+        .select('-password')
+        .populate('profileImageId'); // Populate profile image
+        
       if (!creator) return res.status(404).json({ message: 'Creator tidak ditemukan' });
-      return res.status(200).json({ success: true, user: creator });
+      
+      // Convert to object to include virtuals
+      const creatorObj = creator.toObject();
+      
+      // Add profileImage URL from API endpoint
+      if (creator.profileImageId) {
+        creatorObj.profileImage = `/api/user/profile-image/${creator._id}`;
+      }
+      
+      console.log('Profile GET - Payout data:', {
+        payoutSettings: creator.payoutSettings,
+        payoutBankName: creatorObj.payoutBankName,
+        payoutAccountNumber: creatorObj.payoutAccountNumber,
+        payoutAccountHolder: creatorObj.payoutAccountHolder,
+        profileImage: creatorObj.profileImage,
+        socialLinks: creatorObj.socialLinks
+      });
+      
+      return res.status(200).json({ success: true, user: creatorObj });
     }
 
-    const { displayName, username, payoutBankName, payoutAccountNumber, payoutAccountHolder, bio } = req.body;
+    const { 
+      displayName, 
+      username, 
+      bio,
+      profileImageUrl,
+      socialLinks,
+      payoutBankName, 
+      payoutAccountNumber, 
+      payoutAccountHolder 
+    } = req.body;
 
     // Validate input
     if (!displayName || !username) {
@@ -37,6 +68,16 @@ export default async function handler(req, res) {
     // Ambil creator dulu agar bisa cek apakah payout sudah terkunci
     const currentCreator = await Creator.findById(decoded.id || decoded.userId);
     if (!currentCreator) return res.status(404).json({ message: 'Creator tidak ditemukan' });
+
+    console.log('Profile UPDATE - Request body:', { 
+      displayName, 
+      username, 
+      bio, 
+      socialLinks,
+      payoutBankName, 
+      payoutAccountNumber, 
+      payoutAccountHolder 
+    });
 
     // Check if username already exists (except current creator)
     const existingCreator = await Creator.findOne({ 
@@ -52,6 +93,20 @@ export default async function handler(req, res) {
     currentCreator.displayName = displayName;
     currentCreator.username = username.toLowerCase();
     if (bio !== undefined) currentCreator.bio = bio;
+    
+    // Update social links if provided
+    if (socialLinks) {
+      currentCreator.socialLinks = {
+        twitch: socialLinks.twitch || '',
+        youtube: socialLinks.youtube || '',
+        instagram: socialLinks.instagram || '',
+        tiktok: socialLinks.tiktok || '',
+        twitter: socialLinks.twitter || ''
+      };
+    }
+    
+    // Note: profileImageUrl is now handled separately via /api/user/upload-image
+    // We don't update it here to avoid conflicts
 
     const payoutAlreadySet = currentCreator.hasCompletePayoutSettings();
 
@@ -83,8 +138,27 @@ export default async function handler(req, res) {
     }
 
     await currentCreator.save();
+    
+    // Populate profile image before returning
+    await currentCreator.populate('profileImageId');
+    
     const sanitized = currentCreator.toObject();
     delete sanitized.password;
+    
+    // Add profileImage URL from API endpoint
+    if (currentCreator.profileImageId) {
+      sanitized.profileImage = `/api/user/profile-image/${currentCreator._id}`;
+    }
+    
+    console.log('Profile UPDATE - Complete data:', {
+      payoutSettings: currentCreator.payoutSettings,
+      payoutBankName: sanitized.payoutBankName,
+      payoutAccountNumber: sanitized.payoutAccountNumber,
+      payoutAccountHolder: sanitized.payoutAccountHolder,
+      profileImage: sanitized.profileImage,
+      socialLinks: sanitized.socialLinks,
+      bio: sanitized.bio
+    });
 
     res.status(200).json({
       success: true,
