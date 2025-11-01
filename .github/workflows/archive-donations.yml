@@ -1,0 +1,44 @@
+name: Auto Archive Donations
+
+on:
+  schedule:
+    # Run every 6 hours at: 00:00, 06:00, 12:00, 18:00 UTC
+    # In WIB (UTC+7): 07:00, 13:00, 19:00, 01:00
+    - cron: '0 0,6,12,18 * * *'
+  
+  workflow_dispatch: # Allow manual trigger from GitHub Actions tab
+
+jobs:
+  archive-donations:
+    runs-on: ubuntu-latest
+    name: Archive Old Donations
+    
+    steps:
+      - name: 📦 Archive donations older than 24 hours
+        run: |
+          echo "🚀 Triggering archive process..."
+          
+          response=$(curl -X POST https://nyumbangin.vercel.app/api/cron/archive-donations \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            -s)
+          
+          http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d: -f2)
+          body=$(echo "$response" | sed '/HTTP_STATUS/d')
+          
+          echo "Response: $body"
+          echo "Status: $http_status"
+          
+          if [ "$http_status" != "200" ]; then
+            echo "❌ Archive failed with status $http_status"
+            exit 1
+          fi
+          
+          echo "✅ Archive completed successfully"
+      
+      - name: 📊 Check archive status
+        if: always()
+        run: |
+          echo "📊 Checking archive status..."
+          curl -s https://nyumbangin.vercel.app/api/archive/status | jq '.' || true

@@ -5,6 +5,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Verify CRON_SECRET exists
+    if (!process.env.CRON_SECRET) {
+      console.error('❌ CRON_SECRET not configured');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server configuration error: CRON_SECRET not set' 
+      });
+    }
+    
     // Get base URL
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                     `https://${req.headers.host}`;
@@ -16,7 +25,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-cron-secret': process.env.CRON_SECRET || ''
+        'x-cron-secret': process.env.CRON_SECRET
       }
     });
     
