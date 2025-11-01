@@ -7,11 +7,22 @@ import DonationHistory from '@/models/DonationHistory';
 export default async function handler(req, res) {
   console.log('=== CRON: ARCHIVE DONATIONS ===');
   
-  // Verify cron secret for security
+  // Only allow POST method
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  // Verify cron secret for security (skip in development)
+  const isDevelopment = process.env.NODE_ENV !== 'production';
   const cronSecret = req.headers['x-cron-secret'];
-  if (cronSecret !== process.env.CRON_SECRET) {
+  
+  if (!isDevelopment && cronSecret !== process.env.CRON_SECRET) {
     console.log('❌ Unauthorized: Invalid cron secret');
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  if (isDevelopment) {
+    console.log('⚠️  Running in DEVELOPMENT mode - security check skipped');
   }
 
   try {
