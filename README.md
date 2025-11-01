@@ -80,23 +80,22 @@ Nyumbangin adalah solusi lengkap untuk creator yang ingin:
 ## 🛠️ Teknologi yang Digunakan
 
 ### **Frontend:**
-- **Next.js 14** - React framework dengan App Router
+- **Next.js 15** - React framework dengan App Router
 - **Tailwind CSS** - Styling yang responsive dan modern
-- **Socket.io Client** - Real-time communication
 - **Axios** - HTTP client untuk API calls
 - **React Hot Toast** - Notifikasi yang elegant
 
 ### **Backend:**
-- **Next.js API Routes** - Serverless API endpoints
+- **Next.js API Routes** - Serverless API endpoints (Vercel compatible)
 - **MongoDB** - Database NoSQL untuk menyimpan data
 - **Mongoose** - ODM untuk MongoDB
 - **JWT** - Authentication dengan session timeout 3 jam
-- **Socket.io** - Real-time WebSocket server
 - **bcryptjs** - Password hashing yang aman
 
 ### **External Services:**
-- **Railway Socket Server** - External WebSocket server untuk reliability
-- **MongoDB Atlas** - Cloud database (opsional)
+- **Midtrans** - Payment gateway untuk QRIS, VA, dll
+- **MongoDB Atlas** - Cloud database
+- **Vercel** - Serverless hosting platform
 
 ## 📱 Cara Penggunaan
 

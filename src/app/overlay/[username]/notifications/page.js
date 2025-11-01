@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
-import io from 'socket.io-client';
 import { formatRupiah } from '@/utils/format';
-import { SOCKET_SERVER_URL } from '@/constants/realtime';
 
 export default function NotificationsOverlay() {
   const params = useParams();
@@ -12,7 +10,11 @@ export default function NotificationsOverlay() {
   
   const [notif, setNotif] = useState(null);
   const [notifProgress, setNotifProgress] = useState(0);
-  const socketRef = useRef(null);
+  const [queue, setQueue] = useState([]);
+  const [isShowing, setIsShowing] = useState(false);
+  
+  const lastCheckRef = useRef(new Date().toISOString());
+  const pollingIntervalRef = useRef(null);
   const audioRef = useRef(null);
 
   // Play notification sound using MP3 file (simplified for OBS compatibility)
@@ -32,54 +34,85 @@ export default function NotificationsOverlay() {
       }
     } catch (error) {
       console.warn('Audio notification failed (this is normal in OBS):', error.message);
-      // Don't try to initialize audio on failure as it won't work in OBS anyway
     }
   };
 
+  // Polling function to check for new donations
+  const checkNewDonations = async () => {
+    if (!username) return;
+    
+    try {
+      const response = await fetch(
+        `/api/overlay/latest-donations?username=${username}&since=${lastCheckRef.current}`
+      );
+      const data = await response.json();
+      
+      if (data.success && data.donations.length > 0) {
+        console.log(`📥 Found ${data.donations.length} new donation(s)`);
+        
+        // Add new donations to queue (reverse to show oldest first)
+        const newDonations = data.donations.reverse().map(donation => ({
+          message: `Donasi baru dari ${donation.name} sebesar ${formatRupiah(donation.amount)}`,
+          detail: donation.showMessage && donation.message ? donation.message : '',
+          time: new Date(donation.createdAt).toLocaleTimeString('id-ID'),
+          timestamp: Date.now(),
+          _id: donation._id
+        }));
+        
+        setQueue(prev => [...prev, ...newDonations]);
+        lastCheckRef.current = data.timestamp;
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  };
+
+  // Start polling on mount
   useEffect(() => {
     if (!username) return;
 
-    // Connect to socket.io server for realtime notification
-    if (!socketRef.current) {
-  const socketUrl = SOCKET_SERVER_URL;
-        
-      socketRef.current = io(socketUrl);
-      
-      socketRef.current.on('connect', () => {
-        console.log('Connected to socket server:', socketUrl);
-      });
-      
-      socketRef.current.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-      });
-      
-      socketRef.current.on('new-donation', (data) => {
-        console.log('🎉 Received new donation notification:', data);
-        
-        // Only show notification if donation is for this username
-        if (data.createdByUsername && data.createdByUsername !== username) {
-          console.log('Donation not for current user, ignoring notification');
-          return;
-        }
-        
-        const notifObj = {
-          message: `Donasi baru dari ${data.name} sebesar ${formatRupiah(data.amount)}`,
-          detail: data.message || '',
-          time: new Date(data.createdAt).toLocaleTimeString('id-ID'),
-          timestamp: Date.now()
-        };
-        
-        console.log('Setting notification:', notifObj);
-        setNotif(notifObj);
-        setNotifProgress(0);
-        
-        // Play notification sound
-        playNotificationSound();
-      });
+    console.log('🔄 Starting polling for donations...');
+    
+    // Initial check
+    checkNewDonations();
+    
+    // Poll every 3 seconds
+    pollingIntervalRef.current = setInterval(checkNewDonations, 3000);
+    
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        console.log('🛑 Stopped polling');
+      }
+    };
+  }, [username]);
 
+  // Show notification from queue
+  useEffect(() => {
+    if (!isShowing && queue.length > 0) {
+      setIsShowing(true);
+      const [current, ...rest] = queue;
+      setQueue(rest);
+      
+      console.log('🎉 Showing notification:', current);
+      setNotif(current);
+      setNotifProgress(0);
+      
+      // Play notification sound
+      playNotificationSound();
+      
+      // After 5 seconds, mark as done
+      setTimeout(() => {
+        setIsShowing(false);
+        setNotif(null);
+      }, 5000);
     }
+  }, [queue, isShowing]);
 
-    // Listen for localStorage events from dashboard (for preview notifications)
+  // Listen for localStorage events from dashboard (for preview notifications)
+  useEffect(() => {
+    if (!username) return;
+
     const handleStorageChange = (e) => {
       if (e.key === 'overlay-notification-trigger') {
         try {
@@ -88,9 +121,16 @@ export default function NotificationsOverlay() {
           
           setNotif(notificationData);
           setNotifProgress(0);
+          setIsShowing(true);
           
           // Play sound effect for preview too
           playNotificationSound();
+          
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            setIsShowing(false);
+            setNotif(null);
+          }, 5000);
         } catch (error) {
           console.error('Error parsing notification data:', error);
         }
@@ -111,8 +151,14 @@ export default function NotificationsOverlay() {
             console.log('Found recent notification trigger:', notificationData);
             setNotif(notificationData);
             setNotifProgress(0);
+            setIsShowing(true);
             
             playNotificationSound();
+            
+            setTimeout(() => {
+              setIsShowing(false);
+              setNotif(null);
+            }, 5000);
           }
         } catch (error) {
           console.error('Error parsing stored notification data:', error);
@@ -125,19 +171,14 @@ export default function NotificationsOverlay() {
     const checkInterval = setInterval(checkForTrigger, 500);
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-      
-      // Cleanup event listeners
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(checkInterval);
     };
   }, [username]);
 
-  // Auto-hide notification with progress bar
+  // Progress bar animation
   useEffect(() => {
-    if (notif) {
+    if (notif && isShowing) {
       setNotifProgress(0);
       const duration = 5000; // 5 seconds
       const interval = 50;
@@ -146,13 +187,12 @@ export default function NotificationsOverlay() {
         elapsed += interval;
         setNotifProgress((elapsed / duration) * 100);
         if (elapsed >= duration) {
-          setNotif(null);
           clearInterval(timer);
         }
       }, interval);
       return () => clearInterval(timer);
     }
-  }, [notif]);
+  }, [notif, isShowing]);
 
   if (!username) {
     return null; // Don't render anything if no username

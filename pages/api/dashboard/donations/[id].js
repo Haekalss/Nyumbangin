@@ -44,21 +44,9 @@ export default async function handler(req, res) {
       donation.status = 'PAID';
       await donation.save();
 
-      // Kirim notifikasi ke socket server Railway setiap donasi diupdate
-      try {
-        await fetch('https://socket-server-production-03be.up.railway.app/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: donation.name,
-            amount: donation.amount,
-            message: donation.message,
-            createdAt: donation.createdAt
-          })
-        });
-      } catch (err) {
-        console.error('Gagal kirim notifikasi ke socket server:', err);
-      }
+      // Notification will be picked up by polling system
+      console.log('✅ Donation updated to PAID:', donation._id);
+      console.log('💡 Overlay will detect this via polling');
 
       res.json({
         success: true,

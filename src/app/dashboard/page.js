@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import io from 'socket.io-client';
 import { useSessionManager } from '@/utils/sessionManager';
 import ProfileModal from '@/components/organisms/ProfileModal';
 import { formatRupiah } from '@/utils/format';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import Header from '@/components/organisms/Header';
-import { SOCKET_SERVER_URL } from '@/constants/realtime';
 import DonationTable from '@/components/organisms/DonationTable';
 import StatsSection from '@/components/organisms/StatsSection';
 import LeaderboardModal from '@/components/organisms/LeaderboardModal';
@@ -37,7 +35,6 @@ export default function Dashboard() {
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setShowProfile(false);
   });
-  const socketRef = useRef(null);
 
   useEffect(() => {
     checkAuth();
@@ -64,40 +61,17 @@ export default function Dashboard() {
     };
   }, [user, startMonitoring, stopMonitoring]);
 
-  // WebSocket connection for auto-refresh when new donations come in
+  // Auto-refresh dashboard data every 30 seconds (polling replacement for socket.io)
   useEffect(() => {
     if (!user?.username) return;
 
-    // Connect to socket.io server for realtime data refresh
-    if (!socketRef.current) {
-  const socketUrl = SOCKET_SERVER_URL;
-  socketRef.current = io(socketUrl);
-      
-      socketRef.current.on('connect', () => {
-        console.log('Dashboard connected to socket server for auto-refresh');
-      });
-      
-      socketRef.current.on('connect_error', (error) => {
-        console.error('Dashboard socket connection error:', error);
-      });
-      
-      socketRef.current.on('new-donation', (data) => {
-        console.log('🔄 New donation received, refreshing dashboard data:', data);
-        
-        // Only refresh if donation is for this user
-        if (data.createdByUsername && data.createdByUsername === user.username) {
-          console.log('Refreshing dashboard data for new donation');
-          // Refresh data automatically when new donation comes in
-          fetchData();
-        }
-      });
-    }
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Auto-refreshing dashboard data (polling)');
+      fetchData();
+    }, 30000); // Refresh every 30 seconds
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      clearInterval(refreshInterval);
     };
   }, [user?.username]);
 

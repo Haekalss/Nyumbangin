@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:socket": "node src/server.js",
     "dev:next": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
@@ -25,9 +24,7 @@
     "qrcode.react": "^4.2.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-hot-toast": "^2.5.2",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

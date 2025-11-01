@@ -1,6 +1,7 @@
 // API to manually check and update donation status via Midtrans Transaction Status API
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
+import Notification from '@/models/Notification';
 import { getSnap } from '@/lib/midtrans';
 
 export default async function handler(req, res) {
@@ -79,31 +80,12 @@ export default async function handler(req, res) {
       
       // Send notification if paid
       if (newStatus === 'PAID') {
-        const notificationData = {
-          name: donation.name,
-          amount: donation.amount,
-          message: donation.message,
-          createdAt: donation.createdAt,
-          createdByUsername: donation.createdByUsername,
-          merchant_ref: donation.merchant_ref
-        };
-        
         try {
-          if (global._io) {
-            global._io.emit('new-donation', notificationData);
-          }
-        } catch (e) {
-          console.error('Socket error:', e);
-        }
-        
-        try {
-          await fetch('https://socket-server-production-03be.up.railway.app/new-donation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(notificationData)
-          });
-        } catch (e) {
-          console.error('Railway socket error:', e);
+          await Notification.createDonationNotification(donation);
+          console.log('✅ Notification created for donation:', donation._id);
+          console.log('💡 Overlay will pick up this donation via polling');
+        } catch (notifErr) {
+          console.error('❌ Failed to create notification:', notifErr);
         }
       }
       

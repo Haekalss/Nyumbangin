@@ -1,19 +1,17 @@
 
 'use client'
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { formatRupiah } from '@/utils/format';
-import { SOCKET_SERVER_URL } from '@/constants/realtime';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import io from 'socket.io-client';
 
 
 export default function DonatePage() {
   const params = useParams();
   const username = params.username;
-  const socketRef = useRef(null);
+  
   // All state and variables must be declared before any useEffect
   const [creator, setCreator] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,38 +19,8 @@ export default function DonatePage() {
   const [formData, setFormData] = useState({ name: '', amount: '', message: '' });
   const [donating, setDonating] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [pendingRef, setPendingRef] = useState(null); // merchant_ref pending (for future use)
   const [agreedToTerms, setAgreedToTerms] = useState(false); // State untuk checkbox persetujuan
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
-
-  // Connect to socket.io for realtime payment status
-  useEffect(() => {
-    if (!pendingRef) return;
-    if (!socketRef.current) {
-  socketRef.current = io(SOCKET_SERVER_URL);
-      socketRef.current.on('connect', () => {
-        // console.log('Donate page connected to socket server');
-      });
-      socketRef.current.on('connect_error', (err) => {
-        // console.error('Socket error:', err);
-      });
-    }
-    const handler = (data) => {
-      if (data?.merchant_ref && data.merchant_ref === pendingRef) {
-        toast.success('Pembayaran berhasil!');
-        setSuccess(true);
-        setFormData({ name: '', amount: '', message: '' });
-        setAgreedToTerms(false); // Reset checkbox
-        setPendingRef(null);
-      }
-    };
-    socketRef.current.on('new-donation', handler);
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.off('new-donation', handler);
-      }
-    };
-  }, [pendingRef]);
 
   useEffect(() => {
     if (username) {

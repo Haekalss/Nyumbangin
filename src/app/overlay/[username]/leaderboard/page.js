@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import { formatRupiah } from '@/utils/format';
-import { SOCKET_SERVER_URL } from '@/constants/realtime';
-import io from 'socket.io-client';
 
 export default function LeaderboardOverlay() {
   const params = useParams();
@@ -132,30 +130,14 @@ export default function LeaderboardOverlay() {
     fetchOverlayConfig();
     fetchLeaderboardData();
     
-    // Connect to socket.io server to refresh leaderboard when new donations come
-  const socketUrl = SOCKET_SERVER_URL;
-    const socket = io(socketUrl);
-    
-    socket.on('connect', () => {
-      console.log('Leaderboard connected to socket server:', socketUrl);
-    });
-    
-    socket.on('new-donation', (data) => {
-      // Only refresh if donation is for this username
-      if (data.createdByUsername && data.createdByUsername === username) {
-        console.log('Refreshing leaderboard for new donation');
-        fetchLeaderboardData();
-      }
-    });
-
-    // Set up interval to refresh leaderboard data periodically
+    // Auto-refresh leaderboard every 10 seconds (polling replacement for socket.io)
     const refreshInterval = setInterval(() => {
+      console.log('🔄 Auto-refreshing leaderboard (polling)');
       fetchLeaderboardData();
       fetchOverlayConfig(); // Also refresh config in case it changes
-    }, 60 * 1000); // Refresh every minute
+    }, 10000); // Refresh every 10 seconds
 
     return () => {
-      socket.disconnect();
       clearInterval(refreshInterval);
     };
   }, [username]);

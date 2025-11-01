@@ -81,41 +81,10 @@ export default async function handler(req, res) {
         try {
           await Notification.createDonationNotification(donation);
           console.log('✅ Notification created for donation:', donation._id);
+          console.log('💡 Overlay will pick up this donation via polling');
         } catch (notifErr) {
           console.error('❌ Failed to create notification:', notifErr);
         }
-      }
-    }
-
-    if (donation && donation.status === 'PAID') {
-      console.log('📤 Sending socket notification...');
-      
-      const notificationData = {
-        name: donation.name,
-        amount: donation.amount,
-        message: donation.message,
-        createdAt: donation.createdAt,
-        createdByUsername: donation.createdByUsername
-      };
-      
-      try {
-        if (global._io) {
-          global._io.emit('new-donation', notificationData);
-          console.log('✅ Local socket notification sent');
-        }
-      } catch (e) {
-        console.error('❌ Local socket failed:', e);
-      }
-      
-      try {
-        await fetch('https://socket-server-production-03be.up.railway.app/new-donation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(notificationData)
-        });
-        console.log('✅ Railway socket notification sent');
-      } catch (e) {
-        console.error('❌ Railway socket failed:', e);
       }
     }
 
