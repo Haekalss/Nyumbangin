@@ -160,10 +160,6 @@ export default function MediaShareOverlay() {
                 <p className="text-white/90 text-base mt-2 italic">"{currentVideo.message}"</p>
               )}
             </div>
-            <div className="text-right">
-              <p className="text-white/70 text-sm">Durasi</p>
-              <p className="text-white text-xl font-bold">{currentVideo.requestedDuration}s</p>
-            </div>
           </div>
         </div>
 

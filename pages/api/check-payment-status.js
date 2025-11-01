@@ -81,56 +81,68 @@ export default async function handler(req, res) {
         console.log('✅ Status updated from', donation.status, 'to', newStatus);
       }
       
+      // Re-fetch donation to ensure we have latest data including mediaShareRequest
+      const freshDonation = await Donation.findOne({ merchant_ref });
+      
+      console.log('🔍 Fresh donation data:', {
+        hasMediaShareRequest: !!freshDonation.mediaShareRequest,
+        enabled: freshDonation.mediaShareRequest?.enabled,
+        processed: freshDonation.mediaShareRequest?.processed,
+        youtubeUrl: freshDonation.mediaShareRequest?.youtubeUrl
+      });
+      
       // Send notification if paid (but skip for media share donations)
       if (newStatus === 'PAID') {
         try {
-          const hasMediaShare = donation.mediaShareRequest && donation.mediaShareRequest.enabled;
+          const hasMediaShare = freshDonation.mediaShareRequest && freshDonation.mediaShareRequest.enabled;
+          
+          console.log('🎯 Decision:', hasMediaShare ? 'SKIP notification (Media Share)' : 'CREATE notification (Regular)');
           
           if (!hasMediaShare) {
-            await Notification.createDonationNotification(donation);
-            console.log('✅ Notification created for donation:', donation._id);
+            await Notification.createDonationNotification(freshDonation);
+            console.log('✅ Notification created for donation:', freshDonation._id);
             console.log('💡 Overlay will pick up this donation via polling');
           } else {
             console.log('⏩ Skipping notification - this is a media share donation');
             console.log('💡 Processing media share...');
             
             // Create media share directly (since webhook might not be called in development)
-            if (!donation.mediaShareRequest.processed) {
-              const videoId = MediaShare.extractVideoId(donation.mediaShareRequest.youtubeUrl);
+            if (!freshDonation.mediaShareRequest.processed) {
+              const videoId = MediaShare.extractVideoId(freshDonation.mediaShareRequest.youtubeUrl);
               
               if (videoId) {
                 const lastInQueue = await MediaShare.findOne({
-                  createdByUsername: donation.createdByUsername,
+                  createdByUsername: freshDonation.createdByUsername,
                   status: { $in: ['PENDING', 'PLAYING'] }
                 }).sort({ queuePosition: -1 });
 
                 const queuePosition = lastInQueue ? lastInQueue.queuePosition + 1 : 1;
 
                 await MediaShare.create({
-                  donationId: donation._id,
-                  createdBy: donation.createdBy,
-                  createdByUsername: donation.createdByUsername,
-                  donorName: donation.name,
-                  donorEmail: donation.email || 'anonymous@nyumbangin.com',
-                  amount: donation.amount,
-                  youtubeUrl: donation.mediaShareRequest.youtubeUrl,
+                  donationId: freshDonation._id,
+                  createdBy: freshDonation.createdBy,
+                  createdByUsername: freshDonation.createdByUsername,
+                  donorName: freshDonation.name,
+                  donorEmail: freshDonation.email || 'anonymous@nyumbangin.com',
+                  amount: freshDonation.amount,
+                  youtubeUrl: freshDonation.mediaShareRequest.youtubeUrl,
                   videoId,
-                  requestedDuration: donation.mediaShareRequest.duration,
-                  message: donation.message || '',
-                  merchant_ref: donation.merchant_ref,
+                  requestedDuration: freshDonation.mediaShareRequest.duration,
+                  message: freshDonation.message || '',
+                  merchant_ref: freshDonation.merchant_ref,
                   queuePosition,
                   isApproved: true
                 });
 
-                donation.mediaShareRequest.processed = true;
-                await donation.save();
+                freshDonation.mediaShareRequest.processed = true;
+                await freshDonation.save();
 
                 console.log('✅ Media share created successfully');
                 
                 // Update leaderboard
-                if (donation.createdBy) {
+                if (freshDonation.createdBy) {
                   try {
-                    await MonthlyLeaderboard.updateCurrentMonth(donation.createdBy);
+                    await MonthlyLeaderboard.updateCurrentMonth(freshDonation.createdBy);
                     console.log('✅ Leaderboard updated');
                   } catch (err) {
                     console.error('❌ Leaderboard update failed:', err);
@@ -138,9 +150,9 @@ export default async function handler(req, res) {
                 }
                 
                 // Update creator stats
-                if (donation.createdBy) {
+                if (freshDonation.createdBy) {
                   try {
-                    const creator = await Creator.findById(donation.createdBy);
+                    const creator = await Creator.findById(freshDonation.createdBy);
                     if (creator) {
                       await creator.updateStats();
                       console.log('✅ Creator stats updated');
@@ -150,7 +162,7 @@ export default async function handler(req, res) {
                   }
                 }
               } else {
-                console.error('❌ Invalid YouTube URL:', donation.mediaShareRequest.youtubeUrl);
+                console.error('❌ Invalid YouTube URL:', freshDonation.mediaShareRequest.youtubeUrl);
               }
             }
           }
