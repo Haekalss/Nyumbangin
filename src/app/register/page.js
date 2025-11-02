@@ -101,8 +101,8 @@ export default function RegisterPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-3">
             <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+              <label htmlFor="username" className="block text-sm font-medium text-[#b8a492] font-mono mb-1">
+                Username <span className="text-red-400">*</span>
               </label>
               <input
                 id="username"
@@ -118,8 +118,8 @@ export default function RegisterPage() {
               <p className="mt-1 text-xs text-[#b8a492]/70">Contoh: johndoe (huruf, angka, _, -)</p>
             </div>
             <div>
-              <label htmlFor="displayName" className="sr-only">
-                Nama Tampilan
+              <label htmlFor="displayName" className="block text-sm font-medium text-[#b8a492] font-mono mb-1">
+                Nama Tampilan <span className="text-red-400">*</span>
               </label>
               <input
                 id="displayName"
@@ -134,8 +134,8 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email
+              <label htmlFor="email" className="block text-sm font-medium text-[#b8a492] font-mono mb-1">
+                Email <span className="text-red-400">*</span>
               </label>
               <input
                 id="email"
@@ -150,8 +150,8 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
+              <label htmlFor="password" className="block text-sm font-medium text-[#b8a492] font-mono mb-1">
+                Password <span className="text-red-400">*</span>
               </label>
               <input
                 id="password"
@@ -166,8 +166,8 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="bio" className="sr-only">
-                Bio (Opsional)
+              <label htmlFor="bio" className="block text-sm font-medium text-[#b8a492] font-mono mb-1">
+                Bio / Deskripsi (Opsional)
               </label>
               <textarea
                 id="bio"

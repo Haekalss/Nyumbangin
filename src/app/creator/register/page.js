@@ -101,7 +101,7 @@ export default function Register() {
           <div className="space-y-3 sm:space-y-4">
             <div>
               <label htmlFor="username" className="block text-xs sm:text-sm font-medium text-[#b8a492] font-mono">
-                Username (Link Donasi)
+                Username (Link Donasi) <span className="text-red-400">*</span>
               </label>
               <input
                 id="username"
@@ -122,7 +122,7 @@ export default function Register() {
 
             <div>
               <label htmlFor="displayName" className="block text-xs sm:text-sm font-medium text-[#b8a492] font-mono">
-                Nama Tampilan
+                Nama Tampilan <span className="text-red-400">*</span>
               </label>
               <input
                 id="displayName"
@@ -138,7 +138,7 @@ export default function Register() {
 
             <div>
               <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-[#b8a492] font-mono">
-                Email
+                Email <span className="text-red-400">*</span>
               </label>
               <input
                 id="email"
@@ -155,7 +155,7 @@ export default function Register() {
 
             <div>
               <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-[#b8a492] font-mono">
-                Password
+                Password <span className="text-red-400">*</span>
               </label>
               <input
                 id="password"
