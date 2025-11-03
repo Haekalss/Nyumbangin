@@ -105,7 +105,7 @@ export default function LeaderboardOverlay() {
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
           <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
             <div className="text-center text-[#b8a492] font-mono font-bold mb-4 text-lg">
-              🏆 Top Donatur Bulan Ini
+              🏆 Sultan Bulan Ini
             </div>
             <div className="space-y-2">
               {leaderboardData.map((donor, idx) => (
