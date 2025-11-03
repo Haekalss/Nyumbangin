@@ -54,3 +54,22 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* React Easy Crop Styles */
+.reactEasyCrop_Container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.reactEasyCrop_Image,
+.reactEasyCrop_Video {
+  will-change: transform;
+}
+
+.reactEasyCrop_CropArea {
+  border: 2px solid #b8a492;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
