@@ -91,18 +91,19 @@ export default function AdminPage() {
   // State for all donations
   const [donations, setDonations] = useState([]);
   const [donationLoading, setDonationLoading] = useState(true);
-
   // Fetch all donations for all creators (admin)
   useEffect(() => {
     async function fetchDonations() {
       setDonationLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get('/api/dashboard/donations?limit=100', {
+        const res = await axios.get('/api/admin/donations?limit=200', {
           headers: { Authorization: `Bearer ${token}` }
         });
+        console.log('Admin donations API response:', res.data);
         setDonations(res.data?.data || []);
       } catch (err) {
+        console.error('Admin donations API error:', err);
         setDonations([]);
       } finally {
         setDonationLoading(false);
@@ -125,12 +126,15 @@ export default function AdminPage() {
     }))
     .sort((a, b) => b.totalDonation - a.totalDonation)
     .slice(0, 5);
-
   useEffect(() => {
     if (!chartRef.current) return;
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
+    
+    // Only create chart if we have data
+    if (topCreators.length === 0) return;
+    
     chartInstanceRef.current = new Chart(chartRef.current, {
       type: 'bar',
       data: {
@@ -138,31 +142,87 @@ export default function AdminPage() {
         datasets: [{
           label: 'Total Donasi (Rp)',
           data: topCreators.map(c => c.totalDonation),
-          backgroundColor: '#b8a492',
+          backgroundColor: [
+            '#b8a492',
+            '#d6c6b9', 
+            '#f5e9da',
+            '#b8a492aa',
+            '#d6c6b9aa'
+          ],
           borderColor: '#2d2d2d',
           borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: { 
+            display: true,
+            labels: {
+              color: '#b8a492',
+              font: { size: 14, weight: 'bold' }
+            }
+          },
           title: {
             display: true,
             text: 'Top 5 Creator Paling Aktif (Total Donasi)',
             color: '#b8a492',
-            font: { size: 18 }
+            font: { size: 20, weight: 'bold' },
+            padding: 20
+          },
+          tooltip: {
+            backgroundColor: '#2d2d2d',
+            titleColor: '#b8a492',
+            bodyColor: '#ffffff',
+            borderColor: '#b8a492',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return `Total Donasi: ${context.parsed.y.toLocaleString('id-ID', { 
+                  style: 'currency', 
+                  currency: 'IDR' 
+                })}`;
+              }
+            }
           }
         },
         scales: {
           x: {
-            ticks: { color: '#b8a492', font: { weight: 'bold' } },
-            grid: { color: '#b8a49222' }
+            ticks: { 
+              color: '#b8a492', 
+              font: { weight: 'bold', size: 12 },
+              maxRotation: 45
+            },
+            grid: { 
+              color: '#b8a49222',
+              drawOnChartArea: false
+            }
           },
           y: {
-            ticks: { color: '#b8a492' },
-            grid: { color: '#b8a49222' }
+            ticks: { 
+              color: '#b8a492',
+              font: { size: 12 },
+              callback: function(value) {
+                return value.toLocaleString('id-ID', { 
+                  style: 'currency', 
+                  currency: 'IDR',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                });
+              }
+            },
+            grid: { 
+              color: '#b8a49222' 
+            },
+            beginAtZero: true
           }
+        },
+        animation: {
+          duration: 1000,
+          easing: 'easeInOutQuart'
         }
       }
     });
@@ -237,7 +297,6 @@ export default function AdminPage() {
       })
       .finally(() => setPayoutLoading(false));
   }, []);
-
   // Fix: always use array for creators before filter
   // creatorsArray already defined above
   const filteredCreators = creatorsArray.filter(c =>
@@ -245,6 +304,30 @@ export default function AdminPage() {
     c.email?.toLowerCase().includes(search.toLowerCase()) ||
     c.displayName?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleDelete = async (creatorId) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus creator ini?')) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/admin/creators/${creatorId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Creator berhasil dihapus!');
+      
+      // Refresh creators data
+      setLoading(true);
+      const res = await axios.get('/api/admin/creators', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCreators(res.data?.creators || []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Delete creator error:', err);
+      toast.error(err.response?.data?.error || 'Gagal menghapus creator!');
+    }
+  };
 
   const handleLogout = () => {
     toast.dismiss(); // Dismiss all active toasts before showing confirmation
@@ -301,66 +384,115 @@ export default function AdminPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] text-[#2d2d2d] font-mono">
   {/* SIDEBAR */}
-  <aside className="w-64 h-screen bg-[#2d2d2d] border-r-4 border-[#b8a492] flex flex-col justify-between py-8 px-6 fixed left-0 top-0 z-40">
+  <aside className="w-72 h-screen bg-[#2d2d2d] border-r-4 border-[#b8a492] flex flex-col justify-between py-6 px-4 fixed left-0 top-0 z-40">
         <div>
-          <div className="mb-2 flex items-center gap-3">
-            <img src="/logo.png" alt="Nyumbangin Logo" className="w-12 h-12" />
-            <span className="text-3xl font-extrabold text-[#b8a492] tracking-wide block">Nyumbangin</span>
+          {/* Logo and Brand */}
+          <div className="mb-6 text-center">
+            <div className="flex justify-center mb-3">
+              <img src="/logo.png" alt="Nyumbangin Logo" className="w-16 h-16" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl font-extrabold text-[#b8a492] tracking-wide leading-tight">
+                Nyumbangin
+              </h1>
+              <span className="bg-[#b8a492] text-[#2d2d2d] px-3 py-1 rounded-full font-bold text-xs mt-2 inline-block">
+                ADMIN PANEL
+              </span>
+            </div>
           </div>
-          <div className="mb-8">
-            <span className="bg-[#b8a492] text-[#2d2d2d] px-2 py-1 rounded font-bold text-xs block w-fit">ADMIN</span>
-          </div>
-          <nav className="flex flex-col gap-4">
+          
+          {/* Navigation Menu */}
+          <nav className="flex flex-col gap-3">
             <button
-              className={`text-left text-lg font-bold px-2 py-2 rounded transition-all ${activeSection === 'dashboard' ? 'bg-[#b8a492] text-[#2d2d2d]' : 'text-[#b8a492] hover:text-[#d6c6b9]'}`}
+              className={`text-left text-base font-bold px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'dashboard' 
+                  ? 'bg-[#b8a492] text-[#2d2d2d] shadow-lg' 
+                  : 'text-[#b8a492] hover:text-[#d6c6b9] hover:bg-[#b8a492]/10'
+              }`}
               onClick={() => setActiveSection('dashboard')}
-            >Dashboard</button>
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+              </svg>
+              Dashboard
+            </button>
             <button
-              className={`text-left text-lg font-bold px-2 py-2 rounded transition-all ${activeSection === 'creator' ? 'bg-[#b8a492] text-[#2d2d2d]' : 'text-[#b8a492] hover:text-[#d6c6b9]'}`}
+              className={`text-left text-base font-bold px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'creator' 
+                  ? 'bg-[#b8a492] text-[#2d2d2d] shadow-lg' 
+                  : 'text-[#b8a492] hover:text-[#d6c6b9] hover:bg-[#b8a492]/10'
+              }`}
               onClick={() => setActiveSection('creator')}
-            >Creator</button>
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM9 16a7 7 0 00-7-7v7h7zM20 9a7 7 0 00-7 7h7V9z"/>
+              </svg>
+              Creator
+            </button>
             <button
-              className={`text-left text-lg font-bold px-2 py-2 rounded transition-all ${activeSection === 'payout' ? 'bg-[#b8a492] text-[#2d2d2d]' : 'text-[#b8a492] hover:text-[#d6c6b9]'}`}
+              className={`text-left text-base font-bold px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'payout' 
+                  ? 'bg-[#b8a492] text-[#2d2d2d] shadow-lg' 
+                  : 'text-[#b8a492] hover:text-[#d6c6b9] hover:bg-[#b8a492]/10'
+              }`}
               onClick={() => setActiveSection('payout')}
-            >Payout</button>
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+              </svg>
+              Payout
+            </button>
           </nav>
         </div>
+        
+        {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold border-2 border-red-700 hover:bg-red-700 font-mono text-base transition-colors mt-8"
+          className="bg-red-600 text-white px-4 py-3 rounded-lg font-bold border-2 border-red-700 hover:bg-red-700 transition-all flex items-center justify-center gap-2 w-full"
         >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
+          </svg>
           Logout
         </button>
-      </aside>
-      {/* MAIN CONTENT */}
+      </aside>      {/* MAIN CONTENT */}
       <main className="flex-grow w-full font-mono">
-  <div className="ml-64 max-w-6xl mx-auto py-8 px-4 h-screen overflow-y-auto">
+  <div className="ml-72 max-w-6xl mx-auto py-8 px-4 h-screen overflow-y-auto">
           {/* DASHBOARD SECTION */}
-          {activeSection === 'dashboard' && (
-            <div className="mb-8">
+          {activeSection === 'dashboard' && (            <div className="mb-8">
               <h2 className="text-3xl font-extrabold text-[#2d2d2d] mb-4">Dashboard Admin</h2>
-              <p className="text-[#2d2d2d] mb-2">Selamat datang di panel admin Nyumbangin. Silakan pilih menu di sidebar untuk mengelola data.</p>
+              <p className="text-[#2d2d2d] mb-2">Selamat datang di panel admin Nyumbangin. Silakan pilih menu di sidebar untuk mengelola data.</p>              {/* Statistics Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
                 <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
                   <span className="text-lg text-[#b8a492] font-bold mb-2">Total Creator</span>
                   <span className="text-3xl font-extrabold text-white">{creatorsArray.length}</span>
                 </div>
                 <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
-                  <span className="text-lg text-[#b8a492] font-bold mb-2">Total Pengajuan Payout</span>
+                  <span className="text-lg text-[#b8a492] font-bold mb-2">Total Payout</span>
                   <span className="text-3xl font-extrabold text-white">{payoutsArray.length}</span>
                 </div>
                 <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
-                  <span className="text-lg text-[#b8a492] font-bold mb-2">Total Payout Selesai</span>
+                  <span className="text-lg text-[#b8a492] font-bold mb-2">Payout Selesai</span>
                   <span className="text-3xl font-extrabold text-white">{payoutsArray.filter(p => p.status === 'PROCESSED').length}</span>
                 </div>
               </div>
+
               {/* Bar Chart for Top Creators */}
               <div className="mt-10 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6">
-                <canvas ref={chartRef} height={120} />
+                {topCreators.length > 0 ? (
+                  <canvas ref={chartRef} style={{ height: '400px' }} />
+                ) : (
+                  <div className="text-center py-12 text-[#b8a492]">
+                    <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                    </svg>
+                    <p className="text-lg font-bold">Belum ada data donasi untuk ditampilkan</p>
+                    <p className="text-sm opacity-75 mt-2">Grafik akan muncul setelah ada donasi dari creator</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -525,8 +657,7 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-        </div>
-        {/* MODAL DETAIL CREATOR */}
+        </div>        {/* MODAL DETAIL CREATOR */}
         {isModalOpen && selectedCreator && (
           <CreatorDetailModal
             creator={selectedCreator}
@@ -537,6 +668,33 @@ export default function AdminPage() {
           />
         )}
       </main>
+      
+      {/* Toast Notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#2d2d2d',
+            color: '#b8a492',
+            border: '2px solid #b8a492',
+            borderRadius: '12px',
+            fontFamily: 'monospace',
+            fontWeight: 'bold'
+          },
+          success: {
+            style: {
+              background: '#22c55e',
+              color: '#ffffff',
+            },
+          },
+          error: {
+            style: {
+              background: '#ef4444',
+              color: '#ffffff',
+            },
+          },
+        }}
+      />
     </div>
   );
 };

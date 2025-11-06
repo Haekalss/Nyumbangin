@@ -14,10 +14,9 @@ export default async function handler(req, res) {
     if (!payload || payload.userType !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
-    // Verify admin exists and has permission
+      // Verify admin exists and has permission
     const admin = await Admin.findById(payload.userId);
-    if (!admin || !admin.hasPermission('manage_creators')) {
+    if (!admin || !admin.hasPermission('MANAGE_CREATORS')) {
       return res.status(403).json({ error: 'Permission denied' });
     }
     
