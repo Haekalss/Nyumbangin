@@ -183,7 +183,7 @@ export default function Home() {
                         <img 
                           src={creator.profileImage} 
                           alt={creator.displayName}
-                          className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-[#2d2d2d] cursor-pointer"
+                          className="w-20 h-20 rounded-full object-cover mb-3 border-2 border-[#2d2d2d] cursor-pointer"
                           onError={(e) => e.target.src = '/default-avatar.png'}
                         />
                       </Link>
@@ -287,17 +287,40 @@ export default function Home() {
       </section>
 
       {/* Keunggulan */}
- {/* Keunggulan */}
-<section className="max-w-5xl mx-auto px-4 py-16">
-  <h3 className="text-3xl font-bold text-center text-[#2d2d2d] mb-12">
+<section className="max-w-6xl mx-auto px-4 py-8">
+  <h3 className="text-3xl font-bold text-center text-[#2d2d2d] mb-8">
     Kenapa Pilih Nyumbangin?
   </h3>
-  <ul className="space-y-4 text-lg text-[#2d2d2d]">
-    <li>🎨 Tampil keren & rapi di semua perangkat</li>
-    <li>🔒 Pembayaran aman via Midtrans</li>
-    <li>⚡ Donasi masuk, notifikasi langsung</li>
-    <li>🌍 Cocok untuk kreator, komunitas, & proyek sosial</li>
-  </ul>
+  <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
+    {/* Maskot - Kiri */}
+    <div className="flex-shrink-0">
+      <img 
+        src="/maskot.png" 
+        alt="Maskot Nyumbangin" 
+        className="w-64 h-64 md:w-72 md:h-72 object-contain animate-bounce-slow"
+      />
+    </div>
+    
+    {/* List Keunggulan - Kanan */}
+    <ul className="space-y-3 text-lg text-[#2d2d2d] flex-1 max-w-xl">
+      <li className="flex items-start gap-3">
+        <span className="text-2xl flex-shrink-0">🎨</span>
+        <span><strong>Tampil keren & rapi</strong> di semua perangkat</span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="text-2xl flex-shrink-0">🔒</span>
+        <span><strong>Pembayaran aman</strong> via Midtrans</span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="text-2xl flex-shrink-0">⚡</span>
+        <span><strong>Notifikasi real-time</strong> saat donasi masuk</span>
+      </li>
+      <li className="flex items-start gap-3">
+        <span className="text-2xl flex-shrink-0">🌍</span>
+        <span><strong>Cocok untuk semua</strong> kreator, komunitas, & proyek sosial</span>
+      </li>
+    </ul>
+  </div>
 </section>
 
 

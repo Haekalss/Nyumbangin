@@ -42,7 +42,7 @@ body {
 }
 
 .carousel-track-seamless {
-  animation: slide-left-seamless 40s linear infinite;
+  animation: slide-left-seamless 80s linear infinite;
   width: fit-content;
   will-change: transform;
 }
@@ -72,4 +72,18 @@ body {
 .reactEasyCrop_CropArea {
   border: 2px solid #b8a492;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+/* Maskot Animation */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
 }
