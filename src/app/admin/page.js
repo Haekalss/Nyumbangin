@@ -2,10 +2,10 @@
 
 import CreatorDetailModal from '../../components/organisms/CreatorDetailModal';
 import StatusBadge from '../../components/atoms/StatusBadge';
+import StatsCard from '../../components/StatsCard';
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Toaster } from "react-hot-toast";
 import { Chart, registerables } from 'chart.js';
 import { useState, useEffect, useRef } from "react";
 
@@ -466,18 +466,18 @@ export default function AdminPage() {
               <h2 className="text-3xl font-extrabold text-[#2d2d2d] mb-4">Dashboard Admin</h2>
               <p className="text-[#2d2d2d] mb-2">Selamat datang di panel admin Nyumbangin. Silakan pilih menu di sidebar untuk mengelola data.</p>              {/* Statistics Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
-                <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
-                  <span className="text-lg text-[#b8a492] font-bold mb-2">Total Creator</span>
-                  <span className="text-3xl font-extrabold text-white">{creatorsArray.length}</span>
-                </div>
-                <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
-                  <span className="text-lg text-[#b8a492] font-bold mb-2">Total Payout</span>
-                  <span className="text-3xl font-extrabold text-white">{payoutsArray.length}</span>
-                </div>
-                <div className="bg-[#2d2d2d] border-2 border-[#b8a492] rounded-xl p-6 flex flex-col items-center">
-                  <span className="text-lg text-[#b8a492] font-bold mb-2">Payout Selesai</span>
-                  <span className="text-3xl font-extrabold text-white">{payoutsArray.filter(p => p.status === 'PROCESSED').length}</span>
-                </div>
+                <StatsCard 
+                  title="Total Creator" 
+                  value={creatorsArray.length} 
+                />
+                <StatsCard 
+                  title="Total Payout" 
+                  value={payoutsArray.length} 
+                />
+                <StatsCard 
+                  title="Payout Selesai" 
+                  value={payoutsArray.filter(p => p.status === 'PROCESSED').length} 
+                />
               </div>
 
               {/* Bar Chart for Top Creators */}
@@ -668,33 +668,6 @@ export default function AdminPage() {
           />
         )}
       </main>
-      
-      {/* Toast Notifications */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: '#2d2d2d',
-            color: '#b8a492',
-            border: '2px solid #b8a492',
-            borderRadius: '12px',
-            fontFamily: 'monospace',
-            fontWeight: 'bold'
-          },
-          success: {
-            style: {
-              background: '#22c55e',
-              color: '#ffffff',
-            },
-          },
-          error: {
-            style: {
-              background: '#ef4444',
-              color: '#ffffff',
-            },
-          },
-        }}
-      />
     </div>
   );
 };

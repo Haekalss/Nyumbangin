@@ -58,11 +58,19 @@ export default async function handler(req, res) {
           $or: [
             { 
               createdByUsername: creator.username,
-              status: 'PAID' 
+              status: 'PAID',
+              $or: [
+                { isPaidOut: false },
+                { isPaidOut: { $exists: false } }
+              ]
             },
             { 
               createdBy: creator._id,
-              status: 'PAID' 
+              status: 'PAID',
+              $or: [
+                { isPaidOut: false },
+                { isPaidOut: { $exists: false } }
+              ]
             }
           ]
         } 

@@ -3,6 +3,8 @@ import Payout from '@/models/payout';
 import Creator from '@/models/Creator';
 import Donation from '@/models/donations';
 
+const PLATFORM_FEE_PERCENTAGE = 5; // 5%
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   
@@ -18,15 +20,31 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Lengkapi data bank terlebih dahulu' });
     }
 
-    // Hitung saldo PAID
+    // Hitung saldo PAID saja yang belum dicairkan (exclude PENDING dan yang sudah isPaidOut)
     const totalPaid = await Donation.aggregate([
-      { $match: { createdByUsername: username, status: 'PAID' } },
+      { 
+        $match: { 
+          createdByUsername: username, 
+          status: 'PAID',
+          $or: [
+            { isPaidOut: false },
+            { isPaidOut: { $exists: false } }
+          ]
+        } 
+      },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
-    const saldo = totalPaid[0]?.total || 0;
+    const grossAmount = totalPaid[0]?.total || 0;
     
-    if (saldo < 50000) {
-      return res.status(400).json({ error: 'Minimal pencairan Rp 50.000' });
+    // Hitung platform fee dan net amount
+    const platformFee = Math.floor(grossAmount * (PLATFORM_FEE_PERCENTAGE / 100));
+    const netAmount = grossAmount - platformFee;
+    
+    // Available balance = netAmount (tidak perlu dikurangi totalProcessed lagi karena sudah filter isPaidOut)
+    const availableBalance = netAmount;
+    
+    if (availableBalance < 50000) {
+      return res.status(400).json({ error: 'Minimal pencairan Rp 50.000 (setelah platform fee)' });
     }
 
     // Cek apakah sudah ada payout pending
@@ -41,7 +59,8 @@ export default async function handler(req, res) {
     const payout = await Payout.create({
       creatorId: creator._id,
       creatorUsername: username,
-      amount: saldo,
+      amount: availableBalance, // Amount setelah platform fee dan dikurangi payout processed
+      platformFee: platformFee, // Simpan platform fee
       status: 'PENDING',
       bankInfo: {
         bankName: creator.payoutSettings.bankName,
@@ -53,7 +72,13 @@ export default async function handler(req, res) {
     return res.status(201).json({ 
       success: true, 
       message: 'Permintaan pencairan berhasil dibuat',
-      data: payout 
+      data: {
+        ...payout.toObject(),
+        grossAmount,
+        platformFee,
+        netAmount,
+        availableBalance
+      }
     });
   } catch (err) {
     console.error('Payout request error:', err);

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useSessionManager } from '@/utils/sessionManager';
 import { formatRupiah } from '@/utils/format';
 
@@ -12,11 +12,27 @@ export default function PayoutPage() {
   const [payoutLoading, setPayoutLoading] = useState(false);
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [payoutError, setPayoutError] = useState('');
-  const [totalPayoutProcessed, setTotalPayoutProcessed] = useState(0);
   const [stats, setStats] = useState(null);
   const router = useRouter();
   const { startMonitoring, stopMonitoring, logout } = useSessionManager();
   const [user, setUser] = useState(null);
+
+  // Platform fee konstanta
+  const PLATFORM_FEE_PERCENTAGE = 5; // 5%
+
+  // Fungsi untuk menghitung saldo siap cair setelah dikurangi platform fee
+  const calculateAvailableBalance = () => {
+    const totalPaid = stats?.paidAmount || 0; // Sudah otomatis exclude yang isPaidOut
+    const platformFee = Math.floor(totalPaid * (PLATFORM_FEE_PERCENTAGE / 100));
+    const afterFee = totalPaid - platformFee;
+    return Math.max(0, afterFee); // Tidak boleh negatif
+  };
+
+  // Fungsi untuk menghitung platform fee
+  const calculatePlatformFee = () => {
+    const totalPaid = stats?.paidAmount || 0;
+    return Math.floor(totalPaid * (PLATFORM_FEE_PERCENTAGE / 100));
+  };
 
   // Check auth and fetch user
   useEffect(() => {
@@ -46,18 +62,32 @@ export default function PayoutPage() {
   // Fetch stats for saldo calculation
   useEffect(() => {
     if (!user) return;
+    
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
+        if (!token) return; // Skip jika tidak ada token
+        
         const res = await axios.get('/api/stats', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(res.data.stats || {});
       } catch (e) {
-        console.error('Error fetching stats:', e);
+        // Jika 401, token invalid/expired - biarkan sessionManager handle
+        if (e.response?.status === 401) {
+          console.log('Token expired, sessionManager will handle logout');
+        } else {
+          console.error('Error fetching stats:', e);
+        }
       }
     };
+    
     fetchStats();
+    
+    // Auto-refresh stats setiap 5 detik untuk update realtime
+    const interval = setInterval(fetchStats, 5000);
+    
+    return () => clearInterval(interval);
   }, [user]);
 
   // Fetch payout history & total processed
@@ -68,6 +98,7 @@ export default function PayoutPage() {
       setPayoutLoading(true);
       try {
         const token = localStorage.getItem('token');
+        if (!token) return; // Skip jika tidak ada token
         
         // Use different endpoint based on user type
         const endpoint = user.userType === 'admin' 
@@ -79,20 +110,17 @@ export default function PayoutPage() {
         });
         const allPayouts = res.data.data || [];
         setPayouts(allPayouts);
-        
-        // Hitung total payout processed untuk creator
-        if (user.userType === 'creator') {
-          const processed = allPayouts
-            .filter(p => p.status === 'PROCESSED')
-            .reduce((sum, p) => sum + (p.amount || 0), 0);
-          setTotalPayoutProcessed(processed);
-        }
       } catch (e) {
-        console.error('Error fetching payouts:', e);
-        if (e.response?.status === 403) {
-          setPayoutError('Akses ditolak - Silakan login ulang');
+        // Jika 401, token invalid/expired - biarkan sessionManager handle
+        if (e.response?.status === 401) {
+          console.log('Token expired, sessionManager will handle logout');
         } else {
-          setPayoutError('Gagal memuat riwayat pencairan');
+          console.error('Error fetching payouts:', e);
+          if (e.response?.status === 403) {
+            setPayoutError('Akses ditolak - Silakan login ulang');
+          } else {
+            setPayoutError('Gagal memuat riwayat pencairan');
+          }
         }
       } finally {
         setPayoutLoading(false);
@@ -100,6 +128,11 @@ export default function PayoutPage() {
     };
     
     fetchPayouts();
+    
+    // Auto-refresh payouts setiap 10 detik
+    const interval = setInterval(fetchPayouts, 10000);
+    
+    return () => clearInterval(interval);
   }, [user]);
 
   // Request payout manual
@@ -123,13 +156,6 @@ export default function PayoutPage() {
       });
       const allPayouts = payoutRes.data.data || [];
       setPayouts(allPayouts);
-      
-      if (user.userType === 'creator') {
-        const processed = allPayouts
-          .filter(p => p.status === 'PROCESSED')
-          .reduce((sum, p) => sum + (p.amount || 0), 0);
-        setTotalPayoutProcessed(processed);
-      }
     } catch (e) {
       toast.error(e?.response?.data?.error || 'Gagal request pencairan');
     } finally {
@@ -147,8 +173,6 @@ export default function PayoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
-      <Toaster position="top-right" />
-      
       {/* Simple Header - tanpa navigation buttons */}
       <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -177,20 +201,27 @@ export default function PayoutPage() {
           <h2 className="text-xl font-bold text-[#b8a492] mb-2">Saldo & Pencairan Dana</h2>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
-              <div className="text-sm text-[#b8a492]">Saldo Terkumpul</div>
+              <div className="text-sm text-[#b8a492]">Total Saldo Terkumpul (PAID)</div>
               <div className="text-2xl font-bold text-white mb-2">{formatRupiah(stats?.paidAmount || 0)}</div>
+              
+              <div className="text-xs text-[#b8a492]/70 mt-1 mb-3">
+                Platform Fee ({PLATFORM_FEE_PERCENTAGE}%): -{formatRupiah(calculatePlatformFee())}
+              </div>
+              
               <div className="text-sm text-[#b8a492] mt-2">Saldo Siap Cair</div>
-              <div className="text-3xl font-extrabold text-white">{formatRupiah((stats?.paidAmount || 0) - totalPayoutProcessed)}</div>
+              <div className="text-3xl font-extrabold text-white">{formatRupiah(calculateAvailableBalance())}</div>
             </div>
             <button
               className="bg-[#b8a492] text-[#2d2d2d] px-6 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#d6c6b9] transition-all disabled:opacity-50"
-              disabled={requestingPayout || (((stats?.paidAmount || 0) - totalPayoutProcessed) < 50000) || payouts.some(p => p.status === 'PENDING')}
+              disabled={requestingPayout || calculateAvailableBalance() < 50000 || payouts.some(p => p.status === 'PENDING')}
               onClick={handleRequestPayout}
             >
               {requestingPayout ? 'Memproses...' : 'Ajukan Pencairan'}
             </button>
           </div>
-          <div className="text-xs text-[#b8a492] mb-2">Jika tidak mengajukan, dana akan otomatis dicairkan setiap minggu.</div>
+          <div className="text-xs text-[#b8a492] mb-2">
+            Minimal pencairan: Rp 50.000 | Jika tidak mengajukan, dana akan otomatis dicairkan setiap minggu.
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-[#b8a492]/20">
               <thead>

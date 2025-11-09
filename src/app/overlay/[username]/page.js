@@ -240,10 +240,6 @@ export default function OverlayIndexPage() {
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        body, .font-mono { font-family: 'IBM Plex Mono', 'Fira Mono', 'Roboto Mono', monospace; }
-      `}</style>
     </div>
   );
 }

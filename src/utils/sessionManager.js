@@ -71,14 +71,21 @@ export class SessionManager {
   }
 
   // Handle logout
-  handleLogout(router, message = 'Sesi Anda telah berakhir.') {
+  handleLogout(router, message = 'Sesi Anda telah berakhir.', isError = true) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
-    toast.error(message, {
-      duration: 5000,
-      position: 'top-center'
-    });
+    if (isError) {
+      toast.error(message, {
+        duration: 5000,
+        position: 'top-center'
+      });
+    } else {
+      toast.success(message, {
+        duration: 3000,
+        position: 'top-center'
+      });
+    }
 
     // Redirect to login after a short delay
     setTimeout(() => {
@@ -86,10 +93,21 @@ export class SessionManager {
     }, 1000);
   }
 
-  // Manual logout
+  // Manual logout (dipanggil saat user klik logout)
   logout(router) {
     this.stopSessionMonitoring();
-    this.handleLogout(router, 'Anda telah logout.');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    toast.success('Berhasil logout!', {
+      duration: 2000,
+      position: 'top-center'
+    });
+
+    // Redirect to login
+    setTimeout(() => {
+      router.push('/login');
+    }, 500);
   }
 }
 

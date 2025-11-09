@@ -66,6 +66,11 @@ const DonationSchema = new mongoose.Schema({
   // Auto-archive flag (donations older than 24h will be moved to DonationHistory)
   isArchived: { type: Boolean, default: false },
   
+  // Payout tracking
+  isPaidOut: { type: Boolean, default: false }, // Sudah dicairkan ke creator
+  paidOutAt: Date, // Tanggal pencairan
+  payoutId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payout' }, // Reference ke payout
+  
   // Display settings for overlay
   isDisplayedInOverlay: { type: Boolean, default: false },
   displayedAt: Date,
@@ -88,8 +93,10 @@ const DonationSchema = new mongoose.Schema({
 // Note: merchant_ref already has unique: true, so automatic index is created
 DonationSchema.index({ createdBy: 1, createdAt: -1 });
 DonationSchema.index({ createdByUsername: 1, status: 1 });
+DonationSchema.index({ createdByUsername: 1, status: 1, isPaidOut: 1 }); // For payout queries
 DonationSchema.index({ status: 1, createdAt: -1 });
 DonationSchema.index({ createdAt: -1 }); // For auto-archive queries
+DonationSchema.index({ isPaidOut: 1, paidOutAt: -1 }); // For tracking paid out donations
 
 // Virtual for formatted amount
 DonationSchema.virtual('formattedAmount').get(function() {

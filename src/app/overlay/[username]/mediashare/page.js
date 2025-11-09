@@ -121,12 +121,7 @@ export default function MediaShareOverlay() {
 
   if (!currentVideo) {
     return (
-      <div className="fixed inset-0 bg-transparent flex items-center justify-center">
-        <div className="text-white text-center p-4 bg-black/50 rounded-lg">
-          <p className="text-lg font-bold">Menunggu Media Share...</p>
-          <p className="text-sm opacity-70">{queue.length} video dalam antrian</p>
-        </div>
-      </div>
+      <div className="fixed inset-0 bg-transparent" />
     );
   }
 

@@ -71,7 +71,7 @@ export default async function handler(req, res) {
 
     const payout = await Payout.create({
       creatorId: creator._id,
-      username,
+      creatorUsername: username,
       amount: saldo,
       status: 'pending',
     });
@@ -109,21 +109,30 @@ export default async function handler(req, res) {
     payout.adminNote = notes;
     await payout.save();
     
-    // Jika approved atau processed, reset donasi dan update stats creator
-    if (status === 'APPROVED' || status === 'PROCESSED') {
-      // Hapus semua donasi PAID untuk creator ini (reset saldo)
-      await Donation.deleteMany({
-        createdByUsername: payout.creatorUsername,
-        status: 'PAID'
-      });
+    // Jika PROCESSED, mark donasi sebagai sudah dicairkan (isPaidOut = true)
+    if (status === 'PROCESSED') {
+      // Mark semua donasi PAID yang belum dicairkan sebagai sudah dicairkan
+      const updateResult = await Donation.updateMany(
+        {
+          createdByUsername: payout.creatorUsername,
+          status: 'PAID',
+          $or: [
+            { isPaidOut: false },
+            { isPaidOut: { $exists: false } }
+          ]
+        },
+        {
+          $set: {
+            isPaidOut: true,
+            paidOutAt: new Date(),
+            payoutId: payout._id
+          }
+        }
+      );
       
-      // Update stats creator
-      const creator = await Creator.findById(payout.creatorId);
-      if (creator) {
-        await creator.updateStats();
-      }
-      
-      console.log(`✅ Payout ${status} - Donasi reset & stats updated for ${payout.creatorUsername}`);
+      console.log(`✅ Payout PROCESSED for ${payout.creatorUsername}:`);
+      console.log(`   - ${updateResult.modifiedCount} donations marked as paid out`);
+      console.log(`   - Payout amount: Rp ${payout.amount.toLocaleString('id-ID')}`);
     }
     
     return res.status(200).json({ success: true, data: payout });

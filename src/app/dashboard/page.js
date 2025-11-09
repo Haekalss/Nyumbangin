@@ -137,7 +137,14 @@ export default function Dashboard() {
       setStats(statsRes.data.stats || {});
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError('Gagal memuat data');
+      
+      // Jika error 401 (Unauthorized), kemungkinan token expired
+      if (error.response?.status === 401) {
+        console.log('Token expired or invalid, akan logout...');
+        // Biarkan sessionManager yang handle logout otomatis
+      } else {
+        setError('Gagal memuat data');
+      }
     } finally {
       setLoading(false);
     }

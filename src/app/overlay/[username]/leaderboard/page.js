@@ -137,10 +137,6 @@ export default function LeaderboardOverlay() {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        body, .font-mono { font-family: 'IBM Plex Mono', 'Fira Mono', 'Roboto Mono', monospace; }
-      `}</style>
     </div>
   );
 }
