@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSessionManager } from '@/utils/sessionManager';
@@ -73,8 +73,7 @@ export default function Dashboard() {
             setUser(tokenRes.data.user);
             toast.success('Login berhasil!');
             
-            // Refresh to load dashboard data
-            checkAuth();
+            // Load dashboard data
             fetchData();
           } catch (error) {
             console.error('OAuth token generation failed:', error);
@@ -89,6 +88,13 @@ export default function Dashboard() {
   }, [session, status]);
 
   useEffect(() => {
+    // Skip checkAuth if OAuth is in progress
+    if (status === 'loading') return;
+    if (status === 'authenticated' && !localStorage.getItem('token')) {
+      // OAuth callback in progress, wait for it
+      return;
+    }
+    
     checkAuth();
     fetchData();
 
@@ -101,6 +107,24 @@ export default function Dashboard() {
       clearInterval(refreshInterval);
     };
   }, []);
+
+  // Prevent back button after logout
+  useEffect(() => {
+    const handlePopState = () => {
+      // Check if token exists when user tries to go back
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // No token = logged out, prevent access
+        router.replace('/login');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [router]);
 
   // Start session monitoring when user is authenticated
   useEffect(() => {
@@ -385,11 +409,19 @@ export default function Dashboard() {
               
               toast.promise(
                 new Promise((resolve) => {
+                  // Clear all auth data
                   localStorage.removeItem('token');
                   localStorage.removeItem('user');
+                  
+                  // Sign out from NextAuth if OAuth user
+                  if (session) {
+                    signOut({ redirect: false });
+                  }
+                  
                   setTimeout(() => {
                     resolve();
-                    router.push('/');
+                    // Use replace to prevent back button
+                    router.replace('/');
                   }, 500);
                 }),
                 {
