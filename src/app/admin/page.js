@@ -9,6 +9,8 @@ import toast from "react-hot-toast";
 import { Chart, registerables } from 'chart.js';
 import { useState, useEffect, useRef } from "react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export default function AdminPage() {
   // Chart.js registration

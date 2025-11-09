@@ -14,6 +14,9 @@ import StatsSection from '@/components/organisms/StatsSection';
 import LeaderboardModal from '@/components/organisms/LeaderboardModal';
 import HistoryModal from '@/components/organisms/HistoryModal';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function Dashboard() {
   const router = useRouter();
   const { startMonitoring, stopMonitoring, logout } = useSessionManager();

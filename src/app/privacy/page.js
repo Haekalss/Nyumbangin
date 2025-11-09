@@ -3,6 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function PrivacyPolicy() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);

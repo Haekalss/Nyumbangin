@@ -8,6 +8,9 @@ import axios from "axios";
 import Link from "next/link";
 import toast from 'react-hot-toast';
 
+// Force dynamic rendering (no prerendering at build time)
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

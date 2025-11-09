@@ -7,6 +7,9 @@ import Link from 'next/link';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function Register() {
   const router = useRouter();
   const [formData, setFormData] = useState({
