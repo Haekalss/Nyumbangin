@@ -432,14 +432,14 @@ export default function Dashboard() {
             <div className="flex-1">
               <h3 className="font-bold text-lg mb-1">⚠️ Username Belum Diisi!</h3>
               <p className="text-sm mb-3">
-                Anda perlu mengisi username terlebih dahulu untuk mengaktifkan link donasi Anda. 
-                Link donasi hanya akan berfungsi setelah username diisi.
+                Anda perlu mengisi username dan rekening setting terlebih dahulu untuk mengaktifkan link donasi Anda. 
+                Link donasi hanya akan berfungsi setelah username dan rekening setting diisi.
               </p>
               <button
                 onClick={openProfile}
                 className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm"
               >
-                Setup Username Sekarang →
+                Setup Sekarang →
               </button>
             </div>
           </div>
