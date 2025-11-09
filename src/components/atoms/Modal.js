@@ -7,8 +7,14 @@ const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = 'max-w-2xl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className={`bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 w-full ${maxWidth} max-h-full overflow-hidden shadow-xl relative`}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
+      <div 
+        className={`bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 w-full ${maxWidth} max-h-full overflow-hidden shadow-xl relative`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {title && (
           <h3 className="text-2xl font-extrabold text-[#b8a492] mb-2 font-mono text-center">{title}</h3>
         )}
