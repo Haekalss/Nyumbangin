@@ -50,21 +50,6 @@ export default function Dashboard() {
   useEffect(() => {
     checkAuth();
     fetchData();
-    
-    // Check if needs username setup (from OAuth login)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('setupUsername') === 'true') {
-      // Show profile modal automatically
-      setTimeout(() => {
-        setShowProfile(true);
-        toast('Silakan setup username Anda untuk mengaktifkan link donasi!', {
-          icon: '👋',
-          duration: 5000
-        });
-      }, 500);
-      // Clean URL
-      window.history.replaceState({}, '', '/dashboard');
-    }
 
     // Set up interval to refresh data every hour to remove old donations
     const refreshInterval = setInterval(() => {
