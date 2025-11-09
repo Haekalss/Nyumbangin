@@ -13,6 +13,11 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+    
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     if (token && userData) {

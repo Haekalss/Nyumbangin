@@ -9,6 +9,8 @@ export default function TermsPage() {
   const [userType, setUserType] = useState(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     

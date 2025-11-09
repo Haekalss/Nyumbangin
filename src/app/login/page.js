@@ -21,6 +21,8 @@ export default function LoginPage() {
   // Handle OAuth callback
   useEffect(() => {
     const handleOAuthCallback = async () => {
+      if (typeof window === 'undefined') return; // Skip SSR
+      
       if (status === 'authenticated' && session?.user) {
         const existingToken = localStorage.getItem('token');
         
@@ -57,6 +59,8 @@ export default function LoginPage() {
 
   // Check if already logged in
   useEffect(() => {
+    if (typeof window === 'undefined') return; // Skip SSR
+    
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
