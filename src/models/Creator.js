@@ -3,8 +3,9 @@ import mongoose from 'mongoose';
 const CreatorSchema = new mongoose.Schema({
   username: { 
     type: String, 
-    required: true, 
+    required: false, // Optional - will be set by user after OAuth
     unique: true,
+    sparse: true, // Allows multiple null values
     lowercase: true,
     trim: true,
     minlength: 3,
@@ -21,7 +22,7 @@ const CreatorSchema = new mongoose.Schema({
   },
   password: { 
     type: String, 
-    required: true,
+    required: false, // Optional for OAuth users
     minlength: 6
   },
   displayName: { 
@@ -34,6 +35,22 @@ const CreatorSchema = new mongoose.Schema({
     type: String, 
     maxlength: 500,
     default: ''
+  },
+  
+  // OAuth fields
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true // Allows null values to be non-unique
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
   },
   
   // Profile image (reference to ProfileImage collection)

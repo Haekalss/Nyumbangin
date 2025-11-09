@@ -61,8 +61,19 @@ export default async function handler(req, res) {
     } = req.body;
 
     // Validate input
-    if (!displayName || !username) {
-      return res.status(400).json({ message: 'Nama tampilan dan username harus diisi' });
+    if (!displayName) {
+      return res.status(400).json({ message: 'Nama tampilan harus diisi' });
+    }
+
+    // Username validation - optional but must be unique if provided
+    if (username && username.trim() !== '') {
+      // Validate format
+      if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        return res.status(400).json({ message: 'Username hanya boleh berisi huruf, angka, underscore, dan dash' });
+      }
+      if (username.length < 3 || username.length > 30) {
+        return res.status(400).json({ message: 'Username harus 3-30 karakter' });
+      }
     }
 
     // Ambil creator dulu agar bisa cek apakah payout sudah terkunci
@@ -79,19 +90,36 @@ export default async function handler(req, res) {
       payoutAccountHolder 
     });
 
-    // Check if username already exists (except current creator)
-    const existingCreator = await Creator.findOne({ 
-      username: username,
-      _id: { $ne: decoded.id || decoded.userId }
-    });
+    // Check if payout is already locked
+    const payoutAlreadySet = currentCreator.hasCompletePayoutSettings();
 
-    if (existingCreator) {
-      return res.status(400).json({ message: 'Username sudah digunakan' });
+    // If payout locked, username cannot be changed
+    if (payoutAlreadySet && username && username.toLowerCase() !== currentCreator.username) {
+      return res.status(400).json({ 
+        message: 'Username tidak dapat diubah setelah data payout diisi. Hubungi support jika perlu perubahan.' 
+      });
+    }
+
+    // Check if username already exists (except current creator)
+    if (username && username.toLowerCase() !== currentCreator.username) {
+      const existingCreator = await Creator.findOne({ 
+        username: username.toLowerCase(),
+        _id: { $ne: decoded.id || decoded.userId }
+      });
+
+      if (existingCreator) {
+        return res.status(400).json({ message: 'Username sudah digunakan' });
+      }
     }
 
     // Update basic fields
     currentCreator.displayName = displayName;
-    currentCreator.username = username.toLowerCase();
+    
+    // Update username only if provided and not empty
+    if (username && username.trim() !== '') {
+      currentCreator.username = username.toLowerCase();
+    }
+    
     if (bio !== undefined) currentCreator.bio = bio;
     
     // Update social links if provided
@@ -108,9 +136,8 @@ export default async function handler(req, res) {
     // Note: profileImageUrl is now handled separately via /api/user/upload-image
     // We don't update it here to avoid conflicts
 
-    const payoutAlreadySet = currentCreator.hasCompletePayoutSettings();
-
-  if (payoutAlreadySet) {
+    // Payout settings update logic
+    if (payoutAlreadySet) {
       // Jika creator mencoba mengubah payout fields setelah terkunci
       const tryingToChange = (
         (payoutBankName && payoutBankName !== currentCreator.payoutSettings.bankName) ||

@@ -97,8 +97,25 @@ const ProfileModal = ({
             </div>
             <div>
               <Text variant="small" weight="bold" className="mb-1 block">Username</Text>
-              <Input value={profileFormData.username} disabled placeholder="Username untuk link donasi" />
-              <Text variant="xs" color="secondary" className="mt-1">Link donasi: /donate/{profileFormData.username || 'username'}</Text>
+              <Input 
+                value={profileFormData.username || ''} 
+                onChange={payoutLocked ? undefined : (e) => onFormDataChange({ ...profileFormData, username: e.target.value })}
+                disabled={payoutLocked} 
+                placeholder="Username untuk link donasi" 
+              />
+              {!profileFormData.username || profileFormData.username === '' ? (
+                <Text variant="xs" className="mt-1 text-yellow-400">
+                  ⚠️ Username belum diisi! Silakan isi username untuk mengaktifkan link donasi Anda.
+                </Text>
+              ) : payoutLocked ? (
+                <Text variant="xs" color="secondary" className="mt-1">
+                  🔒 Username terkunci setelah data payout diisi. Link donasi: /donate/{profileFormData.username}
+                </Text>
+              ) : (
+                <Text variant="xs" color="secondary" className="mt-1">
+                  Username dapat diubah sampai Anda mengisi data payout. Link donasi: /donate/{profileFormData.username}
+                </Text>
+              )}
             </div>
             <div>
               <Text variant="small" weight="bold" className="mb-1 block">Email</Text>

@@ -47,6 +47,21 @@ export default function Dashboard() {
   useEffect(() => {
     checkAuth();
     fetchData();
+    
+    // Check if needs username setup (from OAuth login)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('setupUsername') === 'true') {
+      // Show profile modal automatically
+      setTimeout(() => {
+        setShowProfile(true);
+        toast('Silakan setup username Anda untuk mengaktifkan link donasi!', {
+          icon: '👋',
+          duration: 5000
+        });
+      }, 500);
+      // Clean URL
+      window.history.replaceState({}, '', '/dashboard');
+    }
 
     // Set up interval to refresh data every hour to remove old donations
     const refreshInterval = setInterval(() => {
@@ -71,7 +86,8 @@ export default function Dashboard() {
 
   // Auto-refresh dashboard data every 5 seconds (polling replacement for socket.io)
   useEffect(() => {
-    if (!user?.username) return;
+    // Hanya refresh kalau user sudah login (punya ID)
+    if (!user?.id && !user?._id) return;
 
     const refreshInterval = setInterval(() => {
       console.log('🔄 Auto-refreshing dashboard data (polling)');
@@ -81,7 +97,7 @@ export default function Dashboard() {
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [user?.username]);
+  }, [user?.id, user?._id]);
 
   const checkAuth = () => {
     const token = localStorage.getItem('token');
@@ -108,12 +124,23 @@ export default function Dashboard() {
       }
     } catch (e) {
       console.warn('Gagal mengambil profil terbaru:', e?.response?.data || e.message);
+      // Gunakan fallbackUser jika API gagal
+      if (fallbackUser) {
+        setUser(fallbackUser);
+      }
     }
   };
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Safety check - jika tidak ada token, jangan fetch
+      if (!token) {
+        console.log('No token found, skipping fetchData');
+        return;
+      }
+      
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       };
@@ -140,7 +167,7 @@ export default function Dashboard() {
       
       // Jika error 401 (Unauthorized), kemungkinan token expired
       if (error.response?.status === 401) {
-        console.log('Token expired or invalid, akan logout...');
+        console.log('Token expired or invalid, sessionManager will handle logout');
         // Biarkan sessionManager yang handle logout otomatis
       } else {
         setError('Gagal memuat data');
@@ -324,6 +351,9 @@ export default function Dashboard() {
           <button
             onClick={() => {
               toast.dismiss(t.id);
+              // Stop monitoring SEBELUM logout untuk prevent false "sesi berakhir" toast
+              stopMonitoring();
+              
               toast.promise(
                 new Promise((resolve) => {
                   localStorage.removeItem('token');
@@ -403,6 +433,30 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
       {/* Header */}
       <Header user={user} openProfile={openProfile} />
+
+      {/* Username Setup Warning Banner */}
+      {(!user?.username || user?.username === '') && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 rounded-lg shadow-md flex items-start">
+            <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="font-bold text-lg mb-1">⚠️ Username Belum Diisi!</h3>
+              <p className="text-sm mb-3">
+                Anda perlu mengisi username terlebih dahulu untuk mengaktifkan link donasi Anda. 
+                Link donasi hanya akan berfungsi setelah username diisi.
+              </p>
+              <button
+                onClick={openProfile}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm"
+              >
+                Setup Username Sekarang →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* History Modal */}
       {showHistory && (

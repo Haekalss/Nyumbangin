@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
+import SessionWrapper from '@/components/SessionWrapper';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,42 +31,44 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#2d2d2d',
-              color: '#b8a492',
-              border: '2px solid #b8a492',
-              fontFamily: 'monospace',
-              fontSize: '14px'
-            },
-            success: {
+        <SessionWrapper>
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
               style: {
                 background: '#2d2d2d',
                 color: '#b8a492',
                 border: '2px solid #b8a492',
+                fontFamily: 'monospace',
+                fontSize: '14px'
               },
-              iconTheme: {
-                primary: '#b8a492',
-                secondary: '#2d2d2d',
+              success: {
+                style: {
+                  background: '#2d2d2d',
+                  color: '#b8a492',
+                  border: '2px solid #b8a492',
+                },
+                iconTheme: {
+                  primary: '#b8a492',
+                  secondary: '#2d2d2d',
+                },
               },
-            },
-            error: {
-              style: {
-                background: '#2d2d2d',
-                color: '#ff6b6b',
-                border: '2px solid #ff6b6b',
+              error: {
+                style: {
+                  background: '#2d2d2d',
+                  color: '#ff6b6b',
+                  border: '2px solid #ff6b6b',
+                },
+                iconTheme: {
+                  primary: '#ff6b6b',
+                  secondary: '#2d2d2d',
+                },
               },
-              iconTheme: {
-                primary: '#ff6b6b',
-                secondary: '#2d2d2d',
-              },
-            },
-          }}
-        />
+            }}
+          />
+        </SessionWrapper>
       </body>
     </html>
   );
