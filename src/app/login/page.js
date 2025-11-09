@@ -2,14 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import axios from "axios";
 import Link from "next/link";
 import toast from 'react-hot-toast';
-
-// Force dynamic rendering (no prerendering at build time)
-export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,7 +15,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
   // Handle OAuth callback
