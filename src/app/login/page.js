@@ -14,69 +14,26 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [hasRedirected, setHasRedirected] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      if (typeof window === 'undefined' || hasRedirected) return; // Skip SSR and prevent double redirect
-      
-      if (status === 'authenticated' && session?.user) {
-        const existingToken = localStorage.getItem('token');
-        
-        if (!existingToken) {
-          try {
-            // OAuth login - get custom JWT from API
-            const tokenRes = await axios.post('/api/auth/oauth-token', {
-              userId: session.user.id,
-              email: session.user.email
-            });
-            
-            localStorage.setItem('token', tokenRes.data.token);
-            localStorage.setItem('user', JSON.stringify(tokenRes.data.user));
-            
-            setHasRedirected(true);
-            // Check if needs username setup (username kosong atau null)
-            if (!session.user.username || session.user.username === '') {
-              toast.success('Login berhasil! Silakan isi username Anda di halaman profile.');
-              router.replace('/dashboard'); // Remove setupUsername query param
-            } else {
-              router.replace('/dashboard');
-            }
-          } catch (error) {
-            console.error('OAuth token generation failed:', error);
-            toast.error('Gagal membuat sesi. Silakan coba lagi.');
-          }
-        } else if (!hasRedirected) {
-          setHasRedirected(true);
-          router.replace('/dashboard');
-        }
-      }
-    };
-
-    handleOAuthCallback();
-  }, [session, status, router, hasRedirected]);
-
   // Check if already logged in
   useEffect(() => {
-    if (typeof window === 'undefined' || hasRedirected || status === 'loading') return; // Skip SSR and OAuth flow
+    if (typeof window === 'undefined') return;
     
+    // Check localStorage for existing session
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
-        setHasRedirected(true);
         if (user.userType === 'admin' || user.role === 'admin') {
           router.replace('/admin');
         } else {
           router.replace('/dashboard');
         }
       } catch (e) {
-        // Invalid data, clear it
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setChecking(false);
@@ -84,7 +41,7 @@ export default function LoginPage() {
     } else {
       setChecking(false);
     }
-  }, [router, hasRedirected, status]);
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

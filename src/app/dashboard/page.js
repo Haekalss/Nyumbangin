@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSessionManager } from '@/utils/sessionManager';
@@ -19,6 +20,7 @@ export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { startMonitoring, stopMonitoring, logout } = useSessionManager();
   const [user, setUser] = useState(null);
   const [donations, setDonations] = useState([]);
@@ -46,6 +48,45 @@ export default function Dashboard() {
       setProfileInitUser(user);
     }
   }, [user, showProfile]);
+
+  // Handle OAuth callback - Generate JWT if needed
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      if (typeof window === 'undefined') return;
+      
+      // Check if OAuth authenticated but no localStorage token
+      if (status === 'authenticated' && session?.user) {
+        const existingToken = localStorage.getItem('token');
+        
+        if (!existingToken) {
+          try {
+            // Generate custom JWT for OAuth user
+            const tokenRes = await axios.post('/api/auth/oauth-token', {
+              userId: session.user.id,
+              email: session.user.email
+            });
+            
+            localStorage.setItem('token', tokenRes.data.token);
+            localStorage.setItem('user', JSON.stringify(tokenRes.data.user));
+            
+            // Set user and continue to dashboard
+            setUser(tokenRes.data.user);
+            toast.success('Login berhasil!');
+            
+            // Refresh to load dashboard data
+            checkAuth();
+            fetchData();
+          } catch (error) {
+            console.error('OAuth token generation failed:', error);
+            toast.error('Gagal membuat sesi. Silakan login kembali.');
+            router.push('/login');
+          }
+        }
+      }
+    };
+
+    handleOAuthCallback();
+  }, [session, status]);
 
   useEffect(() => {
     checkAuth();
