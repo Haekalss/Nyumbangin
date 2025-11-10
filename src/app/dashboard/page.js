@@ -402,34 +402,32 @@ export default function Dashboard() {
         <span className="font-medium">Yakin ingin keluar?</span>
         <div className="flex space-x-2">
           <button
-            onClick={() => {
+            onClick={async () => {
               toast.dismiss(t.id);
+              
+              // Set manual logout flag FIRST
+              const sessionManager = await import('@/utils/sessionManager').then(m => m.sessionManager);
+              sessionManager.isManualLogout = true;
+              
               // Stop monitoring SEBELUM logout untuk prevent false "sesi berakhir" toast
               stopMonitoring();
               
-              toast.promise(
-                new Promise((resolve) => {
-                  // Clear all auth data
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('user');
-                  
-                  // Sign out from NextAuth if OAuth user
-                  if (session) {
-                    signOut({ redirect: false });
-                  }
-                  
-                  setTimeout(() => {
-                    resolve();
-                    // Use replace to prevent back button
-                    router.replace('/');
-                  }, 500);
-                }),
-                {
-                  loading: 'Keluar dari akun...',
-                  success: 'Berhasil logout!',
-                  error: 'Gagal logout'
-                }
-              );
+              // Clear all auth data
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              
+              // Sign out from NextAuth if OAuth user
+              if (session) {
+                await signOut({ redirect: false });
+              }
+              
+              toast.success('Berhasil logout!', { duration: 2000 });
+              
+              // Use replace to prevent back button
+              setTimeout(() => {
+                router.replace('/');
+                sessionManager.isManualLogout = false; // Reset flag
+              }, 500);
             }}
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
           >

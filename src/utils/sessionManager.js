@@ -5,6 +5,7 @@ export class SessionManager {
   constructor() {
     this.checkInterval = null;
     this.warningShown = false;
+    this.isManualLogout = false; // Flag untuk detect manual logout
   }
 
   // Start monitoring session
@@ -25,10 +26,16 @@ export class SessionManager {
       this.checkInterval = null;
     }
     this.warningShown = false;
+    this.isManualLogout = false; // Reset flag
   }
 
   // Check if token is expired or about to expire
   checkTokenExpiry(router) {
+    // Skip check if manual logout in progress
+    if (this.isManualLogout) {
+      return;
+    }
+
     const token = localStorage.getItem('token');
     
     if (!token) {
@@ -95,7 +102,12 @@ export class SessionManager {
 
   // Manual logout (dipanggil saat user klik logout)
   logout(router) {
+    // Set flag SEBELUM stop monitoring
+    this.isManualLogout = true;
+    
+    // Stop monitoring untuk prevent false "sesi berakhir" notification
     this.stopSessionMonitoring();
+    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
@@ -107,6 +119,8 @@ export class SessionManager {
     // Redirect to login
     setTimeout(() => {
       router.push('/login');
+      // Reset flag setelah redirect
+      this.isManualLogout = false;
     }, 500);
   }
 }
