@@ -39,6 +39,8 @@ export class SessionManager {
     const token = localStorage.getItem('token');
     
     if (!token) {
+      // Skip logout notification if manual logout happened
+      if (this.isManualLogout) return;
       this.handleLogout(router);
       return;
     }
@@ -79,6 +81,11 @@ export class SessionManager {
 
   // Handle logout
   handleLogout(router, message = 'Sesi Anda telah berakhir.', isError = true) {
+    // Skip if manual logout in progress
+    if (this.isManualLogout) {
+      return;
+    }
+    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     

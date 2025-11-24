@@ -405,11 +405,11 @@ export default function Dashboard() {
             onClick={async () => {
               toast.dismiss(t.id);
               
-              // Set manual logout flag FIRST
-              const sessionManager = await import('@/utils/sessionManager').then(m => m.sessionManager);
+              // Set manual logout flag FIRST to prevent "sesi berakhir" toast
+              const { sessionManager } = await import('@/utils/sessionManager');
               sessionManager.isManualLogout = true;
               
-              // Stop monitoring SEBELUM logout untuk prevent false "sesi berakhir" toast
+              // Stop monitoring SEBELUM logout
               stopMonitoring();
               
               // Clear all auth data
@@ -426,7 +426,7 @@ export default function Dashboard() {
               // Use replace to prevent back button
               setTimeout(() => {
                 router.replace('/');
-                sessionManager.isManualLogout = false; // Reset flag
+                sessionManager.isManualLogout = false; // Reset flag after redirect
               }, 500);
             }}
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
