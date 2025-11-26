@@ -8,8 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "archive": "node scripts/archive-old-donations.js",
-    "test:notif": "node scripts/test-notifications.js"
+    "archive": "node dev-tools/archive-old-donations.js",
+    "test:notif": "node dev-tools/test-notifications.js"
   },
   "dependencies": {
     "axios": "^1.11.0",
