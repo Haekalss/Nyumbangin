@@ -1,5 +1,5 @@
 // API endpoint untuk fix admin permissions
-// Hanya bisa diakses oleh SUPER_ADMIN
+// Hanya bisa diakses oleh admin
 import dbConnect from '@/lib/db';
 import Admin from '@/models/Admin';
 import { verifyToken } from '@/lib/jwt';
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   try {
     await dbConnect();
 
-    // Verify SUPER_ADMIN token
+    // Verify admin token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Token tidak ditemukan' });
@@ -24,10 +24,10 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Token tidak valid' });
     }
 
-    // Verify super admin
+    // Verify admin
     const requestingAdmin = await Admin.findById(decoded.userId);
-    if (!requestingAdmin || requestingAdmin.role !== 'SUPER_ADMIN') {
-      return res.status(403).json({ error: 'Hanya SUPER_ADMIN yang bisa menjalankan ini' });
+    if (!requestingAdmin) {
+      return res.status(403).json({ error: 'Admin tidak ditemukan' });
     }
 
     console.log('🔧 Fixing admin permissions...');
@@ -39,8 +39,8 @@ export default async function handler(req, res) {
     const updates = [];
 
     for (const admin of admins) {
-      // Get correct permissions for role
-      const correctPermissions = Admin.getDefaultPermissions(admin.role);
+      // Get default permissions
+      const correctPermissions = Admin.getDefaultPermissions();
       
       // Update permissions
       admin.permissions = correctPermissions;
@@ -48,11 +48,10 @@ export default async function handler(req, res) {
       
       updates.push({
         username: admin.username,
-        role: admin.role,
         permissions: correctPermissions
       });
       
-      console.log(`✅ Updated: ${admin.username} (${admin.role})`);
+      console.log(`✅ Updated: ${admin.username}`);
     }
 
     console.log('🎉 All admin permissions updated!');

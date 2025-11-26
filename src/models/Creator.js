@@ -87,7 +87,6 @@ const CreatorSchema = new mongoose.Schema({
   
   // Account status
   isActive: { type: Boolean, default: true },
-  isVerified: { type: Boolean, default: false },
   
   // Stats (akan dihitung dari collections lain)
   stats: {
