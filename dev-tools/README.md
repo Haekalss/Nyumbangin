@@ -17,6 +17,25 @@ Folder ini berisi script manual untuk maintenance, debugging, dan development. S
 - `fix-processed-payouts.js` - Perbaiki status payout processed
 - `debug-payout.js` - Debug masalah payout
 
+### Creator Stats & Leaderboard Tools
+- `check-creator-stats.js` - Cek stats creator (tanpa update)
+  ```bash
+  node dev-tools/check-creator-stats.js <username>
+  ```
+- `update-creator-stats.js` - Update stats creator secara manual
+  ```bash
+  node dev-tools/update-creator-stats.js <username>
+  ```
+- `check-creator-leaderboard.js` - Cek leaderboard bulanan creator
+  ```bash
+  node dev-tools/check-creator-leaderboard.js <username> [year] [month]
+  # Example: node dev-tools/check-creator-leaderboard.js johndoe 2025 12
+  ```
+- `update-creator-leaderboard.js` - Update leaderboard bulanan creator
+  ```bash
+  node dev-tools/update-creator-leaderboard.js <username> [year] [month]
+  ```
+
 ### Testing & Development
 - `test-mediashare-api.js` - Test API mediashare
 - `test-webhook-manually.js` - Simulasi webhook Midtrans manual

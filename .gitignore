@@ -51,6 +51,17 @@ next-env.d.ts
 *.swp
 *.swo
 
-# Dev tools output
+# Testing files
+__tests__/
+
+# Dev tools
+dev-tools/
+
+# GitHub workflows
+.github/
+
+# Dev tools output (if any)
 dev-tools/output/
 dev-tools/temp/
+
+
