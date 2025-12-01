@@ -4,6 +4,7 @@ import { formatRupiah } from '@/utils/format';
 
 const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
   if (!donations || donations.length === 0) {
+    return null;
   }
 
   return (

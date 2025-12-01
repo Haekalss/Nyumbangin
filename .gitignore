@@ -12,10 +12,14 @@
 
 # testing
 /coverage
+*.lcov
 
 # next.js
 /.next/
 /out/
+
+# SWC
+.swc/
 
 # production
 /build
@@ -23,6 +27,7 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -39,3 +44,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dev tools output
+dev-tools/output/
+dev-tools/temp/
