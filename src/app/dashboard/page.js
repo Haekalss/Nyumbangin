@@ -92,31 +92,46 @@ export default function Dashboard() {
   }, [session, status]);
 
   useEffect(() => {
-    // Skip checkAuth if OAuth is in progress
+    // Skip initialization if still loading session
     if (status === 'loading') return;
+
+    // Skip if OAuth authenticated but token not yet generated
     if (status === 'authenticated' && !localStorage.getItem('token')) {
       // OAuth callback in progress, wait for it
       return;
     }
-    
-    checkAuth();
-    fetchData();
 
-    // Polling untuk check donasi baru setiap 30 detik
-    const donationPolling = setInterval(() => {
-      fetchData(true); // Pass true untuk show notification jika ada donasi baru
-    }, 30 * 1000); // Poll every 30 seconds
+    let isActive = true; // Prevent state updates after unmount
 
-    // Set up interval to refresh data every hour to remove old donations
-    const refreshInterval = setInterval(() => {
-      fetchData();
-    }, 60 * 60 * 1000); // Refresh every hour
+    const initialize = async () => {
+      await checkAuth();
+      if (isActive) {
+        await fetchData();
+      }
+    };
+
+    initialize();
+
+    // Polling untuk check donasi baru setiap 30 detik (hanya jika tab active)
+    let donationPolling;
+
+    const startPolling = () => {
+      donationPolling = setInterval(() => {
+        if (isActive && document.visibilityState === 'visible') {
+          fetchData(true);
+        }
+      }, 30 * 1000);
+    };
+
+    // Start polling setelah initial load
+    const pollingTimeout = setTimeout(startPolling, 1000);
 
     return () => {
-      clearInterval(donationPolling);
-      clearInterval(refreshInterval);
+      isActive = false;
+      clearTimeout(pollingTimeout);
+      if (donationPolling) clearInterval(donationPolling);
     };
-  }, []);
+  }, [status]);
 
   // Prevent back button after logout
   useEffect(() => {
@@ -147,21 +162,6 @@ export default function Dashboard() {
     };
   }, [user, startMonitoring, stopMonitoring]);
 
-  // Auto-refresh dashboard data every 5 seconds (polling replacement for socket.io)
-  useEffect(() => {
-    // Hanya refresh kalau user sudah login (punya ID)
-    if (!user?.id && !user?._id) return;
-
-    const refreshInterval = setInterval(() => {
-      console.log('🔄 Auto-refreshing dashboard data (polling)');
-      fetchData();
-    }, 5000); // Refresh every 5 seconds for faster updates
-
-    return () => {
-      clearInterval(refreshInterval);
-    };
-  }, [user?.id, user?._id]);
-
   const checkAuth = () => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -173,47 +173,24 @@ export default function Dashboard() {
 
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
-    // Fetch fresh profile to include payout fields (in case older localStorage missing them)
-    fetchFreshProfile(token, parsedUser);
-  };
-
-  const fetchFreshProfile = async (token, fallbackUser) => {
-    try {
-      const res = await axios.get('/api/user/profile', { headers: { Authorization: `Bearer ${token}` } });
-      if (res.data?.user) {
-        const merged = { ...fallbackUser, ...res.data.user };
-        setUser(merged);
-        localStorage.setItem('user', JSON.stringify(merged));
-      }
-    } catch (e) {
-      console.warn('Gagal mengambil profil terbaru:', e?.response?.data || e.message);
-      // Gunakan fallbackUser jika API gagal
-      if (fallbackUser) {
-        setUser(fallbackUser);
-      }
-    }
   };
 
   const fetchData = async (showNewDonationNotif = false) => {
     try {
       const token = localStorage.getItem('token');
-      
-      // Safety check - jika tidak ada token, jangan fetch
       if (!token) {
-        console.log('No token found, skipping fetchData');
+        setLoading(false);
         return;
       }
       
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
+      const config = { headers: { Authorization: `Bearer ${token}` } };
 
       const [donationsRes, statsRes] = await Promise.all([
         axios.get('/api/dashboard/donations?limit=20', config),
         axios.get('/api/stats', config)
       ]);
 
-      // Filter donations to show only TODAY's donations (last 24 hours) for the main table
+      // Filter donations untuk hari ini (24 jam terakhir)
       const now = new Date();
       const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
       
@@ -222,10 +199,10 @@ export default function Dashboard() {
         return donationDate >= twentyFourHoursAgo;
       });
 
-      // Check for new donations (compare with previous state)
+      // Notifikasi donasi baru
       if (showNewDonationNotif && donations.length > 0 && todayDonations.length > donations.length) {
-        const newDonationsCount = todayDonations.length - donations.length;
-        toast.success(`${newDonationsCount} donasi baru masuk! 🎉`, {
+        const newCount = todayDonations.length - donations.length;
+        toast.success(`${newCount} donasi baru masuk! 🎉`, {
           duration: 4000,
           icon: '💰'
         });
@@ -236,10 +213,8 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching data:', error);
       
-      // Jika error 401 (Unauthorized), kemungkinan token expired
       if (error.response?.status === 401) {
-        console.log('Token expired or invalid, sessionManager will handle logout');
-        // Biarkan sessionManager yang handle logout otomatis
+        console.log('Token expired');
       } else {
         setError('Gagal memuat data');
       }
