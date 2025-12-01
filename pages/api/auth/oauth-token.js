@@ -1,50 +1,85 @@
-import { signToken } from '@/lib/jwt';
 import dbConnect from '@/lib/db';
 import Creator from '@/models/Creator';
+import Admin from '@/models/Admin';
+import { signToken } from '@/lib/jwt';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  await dbConnect();
+  const { userId, email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
 
   try {
-    const { userId, email } = req.body;
+    await dbConnect();
 
-    if (!userId || !email) {
-      return res.status(400).json({ error: 'User ID and email required' });
+    let user = null;
+    let userType = null;
+
+    // Check if it's a creator first
+    user = await Creator.findOne({ email });
+    if (user) {
+      userType = 'creator';
+    } else {
+      // Check if it's an admin
+      user = await Admin.findOne({ email });
+      if (user) {
+        userType = 'admin';
+      }
     }
 
-    // Get user from database
-    const creator = await Creator.findById(userId);
-    
-    if (!creator) {
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Verify email matches
-    if (creator.email !== email) {
-      return res.status(400).json({ error: 'Email mismatch' });
+    // Update login tracking
+    user.lastLogin = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save();
+
+    // Generate JWT with user type
+    const token = signToken(user, userType);
+
+    // Prepare response based on user type
+    let responseUser = {};
+
+    if (userType === 'creator') {
+      responseUser = {
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+        bio: user.bio,
+        userType: 'creator',
+        role: 'user',
+        payoutSettings: user.payoutSettings,
+        donationSettings: user.donationSettings,
+        isPayoutReady: user.hasCompletePayoutSettings(),
+        stats: user.stats
+      };
+    } else if (userType === 'admin') {
+      responseUser = {
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        userType: 'admin',
+        role: 'admin',
+        adminRole: user.role,
+        permissions: user.permissions,
+        stats: user.stats
+      };
     }
 
-    // Generate token
-    const token = signToken(creator, 'creator');
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       token,
-      user: {
-        id: creator._id,
-        email: creator.email,
-        username: creator.username,
-        displayName: creator.displayName,
-        authProvider: creator.authProvider,
-        userType: 'creator'
-      }
+      user: responseUser
     });
-  } catch (error) {
-    console.error('Error generating OAuth token:', error);
-    return res.status(500).json({ error: 'Server error' });
+  } catch (err) {
+    console.error('OAuth token generation error:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
 }

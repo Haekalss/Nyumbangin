@@ -83,6 +83,15 @@ export class SessionManager {
   handleLogout(router, message = 'Sesi Anda telah berakhir.', isError = true) {
     // Skip if manual logout in progress
     if (this.isManualLogout) {
+      console.log('Manual logout detected, skipping auto-logout notification');
+      this.isManualLogout = false; // Reset flag
+      return;
+    }
+    
+    // Skip if already logged out (no token in storage)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      console.log('No token found, user already logged out');
       return;
     }
     

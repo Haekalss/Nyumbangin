@@ -34,12 +34,16 @@ export default function Dashboard() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
+  const [profileScrollTo, setProfileScrollTo] = useState(null); // 'payout' | 'basic' | null
   const [profileInitUser, setProfileInitUser] = useState(null);
   const { formData: profileFormData, setFormData: setProfileFormData, submit: submitProfile, loading: profileLoading, payoutLocked } = useProfileForm(profileInitUser, (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setProfileInitUser(updatedUser); // Update profileInitUser dengan data terbaru
     setShowProfile(false);
+    
+    // Refresh dashboard data setelah update profile/payout
+    fetchData();
   });
 
   // Sync profileInitUser with user when user changes (e.g., after profile update)
@@ -98,12 +102,18 @@ export default function Dashboard() {
     checkAuth();
     fetchData();
 
+    // Polling untuk check donasi baru setiap 30 detik
+    const donationPolling = setInterval(() => {
+      fetchData(true); // Pass true untuk show notification jika ada donasi baru
+    }, 30 * 1000); // Poll every 30 seconds
+
     // Set up interval to refresh data every hour to remove old donations
     const refreshInterval = setInterval(() => {
       fetchData();
     }, 60 * 60 * 1000); // Refresh every hour
 
     return () => {
+      clearInterval(donationPolling);
       clearInterval(refreshInterval);
     };
   }, []);
@@ -184,7 +194,7 @@ export default function Dashboard() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (showNewDonationNotif = false) => {
     try {
       const token = localStorage.getItem('token');
       
@@ -204,7 +214,6 @@ export default function Dashboard() {
       ]);
 
       // Filter donations to show only TODAY's donations (last 24 hours) for the main table
-      // This is for the "Donasi Terbaru" table only, NOT for history or leaderboard
       const now = new Date();
       const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
       
@@ -212,6 +221,15 @@ export default function Dashboard() {
         const donationDate = new Date(donation.createdAt);
         return donationDate >= twentyFourHoursAgo;
       });
+
+      // Check for new donations (compare with previous state)
+      if (showNewDonationNotif && donations.length > 0 && todayDonations.length > donations.length) {
+        const newDonationsCount = todayDonations.length - donations.length;
+        toast.success(`${newDonationsCount} donasi baru masuk! 🎉`, {
+          duration: 4000,
+          icon: '💰'
+        });
+      }
 
       setDonations(todayDonations);
       setStats(statsRes.data.stats || {});
@@ -405,29 +423,35 @@ export default function Dashboard() {
             onClick={async () => {
               toast.dismiss(t.id);
               
-              // Set manual logout flag FIRST to prevent "sesi berakhir" toast
-              const { sessionManager } = await import('@/utils/sessionManager');
-              sessionManager.isManualLogout = true;
+              try {
+                // Stop monitoring FIRST to prevent interference
+                stopMonitoring();
+                
+                // Set manual logout flag to prevent auto-logout messages
+                const { sessionManager } = await import('@/utils/sessionManager');
+                sessionManager.isManualLogout = true;
+                
+                // Clear localStorage
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                
+                // Sign out from NextAuth if OAuth user (without redirect)
+                if (session) {
+                  await signOut({ redirect: false, callbackUrl: '/login' });
+                }
+                
+                // Show success message
+                toast.success('Berhasil logout!', { duration: 2000 });
               
-              // Stop monitoring SEBELUM logout
-              stopMonitoring();
-              
-              // Clear all auth data
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              
-              // Sign out from NextAuth if OAuth user
-              if (session) {
-                await signOut({ redirect: false });
+                // Use replace to prevent back button
+                setTimeout(() => {
+                  router.replace('/');
+                  sessionManager.isManualLogout = false; // Reset flag after redirect
+                }, 500);
+              } catch (error) {
+                console.error('Logout error:', error);
+                toast.error('Gagal logout.');
               }
-              
-              toast.success('Berhasil logout!', { duration: 2000 });
-              
-              // Use replace to prevent back button
-              setTimeout(() => {
-                router.replace('/');
-                sessionManager.isManualLogout = false; // Reset flag after redirect
-              }, 500);
             }}
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
           >
@@ -451,8 +475,9 @@ export default function Dashboard() {
     submitProfile(user);
   };
 
-  const openProfile = () => {
+  const openProfile = (scrollTo = null) => {
     setProfileInitUser(user);
+    setProfileScrollTo(scrollTo);
     setShowProfile(true);
   };
 
@@ -507,10 +532,34 @@ export default function Dashboard() {
                 Link donasi hanya akan berfungsi setelah username dan rekening setting diisi.
               </p>
               <button
-                onClick={openProfile}
+                onClick={() => openProfile('basic')}
                 className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm"
               >
                 Setup Sekarang →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payout Setup Warning Banner */}
+      {user?.username && !user?.isPayoutReady && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="bg-orange-100 border-l-4 border-orange-500 text-orange-900 p-4 rounded-lg shadow-md flex items-start">
+            <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="font-bold text-lg mb-1">💰 Rekening Payout Belum Diisi!</h3>
+              <p className="text-sm mb-3">
+                Lengkapi informasi rekening (Bank/Channel, Nomor Rekening, dan Nama Pemilik) agar Anda bisa menerima pembayaran dari donasi. 
+                Tanpa rekening yang lengkap, Anda tidak bisa melakukan withdrawal.
+              </p>
+              <button
+                onClick={() => openProfile('payout')}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm"
+              >
+                Lengkapi Rekening →
               </button>
             </div>
           </div>
@@ -537,13 +586,17 @@ export default function Dashboard() {
 
       <ProfileModal 
         showProfile={showProfile}
-        onClose={() => setShowProfile(false)}
+        onClose={() => {
+          setShowProfile(false);
+          setProfileScrollTo(null); // Reset scroll target
+        }}
         profileFormData={profileFormData}
         onFormDataChange={setProfileFormData}
         onSubmit={handleProfileSubmit}
         loading={profileLoading}
         payoutLocked={payoutLocked}
         onLogout={handleLogout}
+        scrollToSection={profileScrollTo}
       />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

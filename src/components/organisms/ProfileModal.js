@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Modal from '../atoms/Modal';
 import SectionBox from '../molecules/SectionBox';
 import Input from '../atoms/Input';
@@ -16,10 +16,44 @@ const ProfileModal = ({
   onSubmit,
   loading,
   payoutLocked = false,
-  onLogout
+  onLogout,
+  scrollToSection = null // 'payout' | 'basic' | 'social' | 'password'
 }) => {
   const [showCropModal, setShowCropModal] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState(null);
+  
+  // Refs for sections
+  const payoutSectionRef = useRef(null);
+  const basicSectionRef = useRef(null);
+  const socialSectionRef = useRef(null);
+  const passwordSectionRef = useRef(null);
+
+  // Auto scroll to section when modal opens
+  useEffect(() => {
+    if (showProfile && scrollToSection) {
+      setTimeout(() => {
+        let targetRef = null;
+        switch(scrollToSection) {
+          case 'payout':
+            targetRef = payoutSectionRef;
+            break;
+          case 'basic':
+            targetRef = basicSectionRef;
+            break;
+          case 'social':
+            targetRef = socialSectionRef;
+            break;
+          case 'password':
+            targetRef = passwordSectionRef;
+            break;
+        }
+        
+        if (targetRef?.current) {
+          targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100); // Small delay to ensure modal is rendered
+    }
+  }, [showProfile, scrollToSection]);
 
   return (
     <>
@@ -85,7 +119,7 @@ const ProfileModal = ({
             </Text>
           </div>
 
-        <SectionBox title="Informasi Dasar">
+        <SectionBox title="Informasi Dasar" ref={basicSectionRef}>
           <div className="space-y-3">
             <div>
               <Text variant="small" weight="bold" className="mb-1 block">Nama Tampilan</Text>
@@ -139,7 +173,7 @@ const ProfileModal = ({
           </div>
         </SectionBox>
 
-        <SectionBox title="Social Media Links" description="Link akun social media kamu">
+        <SectionBox title="Social Media Links" description="Link akun social media kamu" ref={socialSectionRef}>
           <div className="space-y-3">
             <div>
               <Text variant="small" weight="bold" className="mb-1 flex items-center gap-2">
@@ -209,7 +243,7 @@ const ProfileModal = ({
           </div>
         </SectionBox>
 
-        <SectionBox title="Ubah Password" description="Kosongkan jika tidak ingin mengubah password">
+        <SectionBox title="Ubah Password" description="Kosongkan jika tidak ingin mengubah password" ref={passwordSectionRef}>
           <div className="space-y-3">
             <div>
               <Text variant="small" weight="bold" className="mb-1 block">Password Saat Ini</Text>
@@ -241,7 +275,7 @@ const ProfileModal = ({
           </div>
         </SectionBox>
 
-        <SectionBox title="Pengaturan Rekening Penarikan" description="Data ini digunakan saat pencairan dana.">
+        <SectionBox title="Pengaturan Rekening Penarikan" description="Data ini digunakan saat pencairan dana." ref={payoutSectionRef}>
           {payoutLocked ? (
             <div className="mb-3 text-xs font-mono bg-green-900/30 text-green-300 border border-green-400/40 rounded p-3">
               <div className="flex items-center gap-2">

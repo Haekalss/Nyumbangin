@@ -3,7 +3,9 @@ import Creator from '@/models/Creator';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   const { email, password, username, displayName, bio } = req.body;
 
@@ -11,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email, password, username, dan display name wajib diisi' });
   }
 
-  // Validate username format (alphanumeric, underscore, dash only)
+  // Validate username format
   const usernameRegex = /^[a-zA-Z0-9_-]+$/;
   if (!usernameRegex.test(username)) {
     return res.status(400).json({ 
@@ -26,18 +28,20 @@ export default async function handler(req, res) {
   try {
     await dbConnect();
     
-    // Check if email or username already exists in Creator collection
+    // Check if email or username already exists
     const existing = await Creator.findOne({
       $or: [{ email }, { username: username.toLowerCase() }]
     });
     
     if (existing) {
       return res.status(400).json({ 
-        error: existing.email === email ? 'Email sudah terdaftar' : 'Username sudah digunakan'
+        error: existing.email === email 
+          ? 'Email sudah terdaftar' 
+          : 'Username sudah digunakan'
       });
     }
 
-    // Hash password before creating user
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const creator = await Creator.create({ 
@@ -58,7 +62,7 @@ export default async function handler(req, res) {
         displayName: creator.displayName,
         bio: creator.bio,
         userType: 'creator',
-        role: 'user', // For backwards compatibility
+        role: 'user',
         payoutSettings: creator.payoutSettings,
         donationSettings: creator.donationSettings,
         isPayoutReady: creator.hasCompletePayoutSettings(),
