@@ -10,6 +10,7 @@ import AdminSidebar from "@/components/organisms/AdminSidebar";
 import AdminDashboard from "@/components/organisms/AdminDashboard";
 import PayoutSection from "@/components/organisms/PayoutSection";
 import CreatorSection from "@/components/organisms/CreatorSection";
+import FeedbackSection from "@/components/organisms/FeedbackSection";
 import PayoutNotesModal from "@/components/organisms/PayoutNotesModal";
 import CreatorDetailModal from '../../components/organisms/CreatorDetailModal';
 
@@ -65,7 +66,6 @@ export default function AdminPage() {
       toast.error(err.response?.data?.error || 'Gagal memproses payout!');
     }
   };
-
   const handleDelete = async (creatorId) => {
     if (!confirm('Apakah Anda yakin ingin menghapus creator ini?')) return;
     
@@ -80,6 +80,37 @@ export default function AdminPage() {
     } catch (err) {
       console.error('Delete creator error:', err);
       toast.error(err.response?.data?.error || 'Gagal menghapus creator!');
+    }
+  };
+
+  const handleFeedbackStatusChange = async (id, status, adminNotes) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put('/api/admin/feedback', 
+        { id, status, adminNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Status feedback berhasil diupdate!');
+      refetch.feedbacks();
+    } catch (err) {
+      console.error('Update feedback error:', err);
+      toast.error(err.response?.data?.error || 'Gagal mengupdate feedback!');
+    }
+  };
+
+  const handleFeedbackDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/admin/feedback?id=${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Feedback berhasil dihapus!');
+      refetch.feedbacks();
+    } catch (err) {
+      console.error('Delete feedback error:', err);
+      toast.error(err.response?.data?.error || 'Gagal menghapus feedback!');
     }
   };
 
@@ -164,8 +195,7 @@ export default function AdminPage() {
               onOpenNotesModal={openNotesModal}
             />
           )}
-          
-          {activeSection === 'creator' && (
+            {activeSection === 'creator' && (
             <CreatorSection 
               creators={data.creators}
               search={search}
@@ -176,6 +206,18 @@ export default function AdminPage() {
                 selectedCreator: creator 
               }))}
               onDelete={handleDelete}
+            />
+          )}
+
+          {activeSection === 'feedback' && (
+            <FeedbackSection
+              feedbacks={data.feedbacks}
+              loading={loading.feedbacks}
+              error={errors.feedbacks}
+              counts={data.feedbackCounts}
+              onStatusChange={handleFeedbackStatusChange}
+              onDelete={handleFeedbackDelete}
+              onRefresh={refetch.feedbacks}
             />
           )}
         </div>

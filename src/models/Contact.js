@@ -21,11 +21,14 @@ const ContactSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
-  },
-  status: {
+  },  status: {
     type: String,
     enum: ['unread', 'read', 'replied'],
     default: 'unread'
+  },
+  adminNotes: {
+    type: String,
+    trim: true
   },
   ipAddress: String,
   userAgent: String

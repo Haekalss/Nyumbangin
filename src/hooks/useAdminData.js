@@ -1,23 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-export function useAdminData() {
-  const [data, setData] = useState({
+export function useAdminData() {  const [data, setData] = useState({
     creators: [],
     payouts: [],
-    donations: []
+    donations: [],
+    feedbacks: [],
+    feedbackCounts: {}
   });
   
   const [loading, setLoading] = useState({
     creators: true,
     payouts: true,
-    donations: true
+    donations: true,
+    feedbacks: true
   });
   
   const [errors, setErrors] = useState({
     creators: null,
     payouts: null,
-    donations: null
+    donations: null,
+    feedbacks: null
   });
 
   const getAuthHeaders = () => ({
@@ -53,7 +56,6 @@ export function useAdminData() {
       setLoading(prev => ({ ...prev, payouts: false }));
     }
   }, []);
-
   const fetchDonations = useCallback(async () => {
     setLoading(prev => ({ ...prev, donations: true }));
     try {
@@ -69,11 +71,31 @@ export function useAdminData() {
     }
   }, []);
 
+  const fetchFeedbacks = useCallback(async () => {
+    setLoading(prev => ({ ...prev, feedbacks: true }));
+    try {
+      const res = await axios.get('/api/admin/feedback', getAuthHeaders());
+      setData(prev => ({ 
+        ...prev, 
+        feedbacks: res.data?.data || [],
+        feedbackCounts: res.data?.counts || {}
+      }));
+      setErrors(prev => ({ ...prev, feedbacks: null }));
+    } catch (err) {
+      console.error('Feedbacks API error:', err);
+      setData(prev => ({ ...prev, feedbacks: [], feedbackCounts: {} }));
+      setErrors(prev => ({ ...prev, feedbacks: err.response?.data?.error }));
+    } finally {
+      setLoading(prev => ({ ...prev, feedbacks: false }));
+    }
+  }, []);
+
   useEffect(() => {
     fetchCreators();
     fetchPayouts();
     fetchDonations();
-  }, [fetchCreators, fetchPayouts, fetchDonations]);
+    fetchFeedbacks();
+  }, [fetchCreators, fetchPayouts, fetchDonations, fetchFeedbacks]);
 
   return {
     data,
@@ -82,7 +104,8 @@ export function useAdminData() {
     refetch: {
       creators: fetchCreators,
       payouts: fetchPayouts,
-      donations: fetchDonations
+      donations: fetchDonations,
+      feedbacks: fetchFeedbacks
     }
   };
 }

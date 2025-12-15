@@ -44,8 +44,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, onLogout
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM9 16a7 7 0 00-7-7v7h7zM20 9a7 7 0 00-7 7h7V9z"/>
             </svg>
             Creator
-          </button>
-          <button
+          </button>          <button
             className={`text-left text-base font-bold px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
               activeSection === 'payout' 
                 ? 'bg-[#b8a492] text-[#2d2d2d] shadow-lg' 
@@ -57,6 +56,20 @@ export default function AdminSidebar({ activeSection, setActiveSection, onLogout
               <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
             </svg>
             Payout
+          </button>
+          <button
+            className={`text-left text-base font-bold px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+              activeSection === 'feedback' 
+                ? 'bg-[#b8a492] text-[#2d2d2d] shadow-lg' 
+                : 'text-[#b8a492] hover:text-[#d6c6b9] hover:bg-[#b8a492]/10'
+            }`}
+            onClick={() => setActiveSection('feedback')}
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+              <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+            </svg>
+            Feedback
           </button>
         </nav>
       </div>
