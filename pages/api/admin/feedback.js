@@ -61,13 +61,10 @@ export default async function handler(req, res) {
             count: { $sum: 1 }
           }
         }
-      ]);
-
-      const statusCounts = {
+      ]);      const statusCounts = {
         all: total,
         unread: 0,
-        read: 0,
-        replied: 0
+        read: 0
       };
 
       counts.forEach(({ _id, count }) => {
@@ -89,13 +86,11 @@ export default async function handler(req, res) {
 
     // PUT - Update status feedback
     if (req.method === 'PUT') {
-      const { id, status, adminNotes } = req.body;
-
-      if (!id || !status) {
+      const { id, status, adminNotes } = req.body;      if (!id || !status) {
         return res.status(400).json({ error: 'ID dan status wajib diisi' });
       }
 
-      const validStatuses = ['unread', 'read', 'replied'];
+      const validStatuses = ['unread', 'read'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: 'Status tidak valid' });
       }

@@ -16,14 +16,14 @@ const ContactSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
-  },
-  message: {
+  },  message: {
     type: String,
     required: true,
     trim: true
-  },  status: {
+  },
+  status: {
     type: String,
-    enum: ['unread', 'read', 'replied'],
+    enum: ['unread', 'read'],
     default: 'unread'
   },
   adminNotes: {

@@ -78,14 +78,13 @@ export default function FeedbackDetailModal({
               </label>
               <p className="text-[#2d2d2d] font-bold">{feedback.name}</p>
             </div>
-            <div>
-              <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-1">
+            <div>              <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-1">
                 Email
               </label>
               <p className="text-[#2d2d2d] font-bold">
                 <a 
                   href={`mailto:${feedback.email}`}
-                  className="text-blue-600 hover:underline"
+                  className="text-[#b8a492] hover:underline hover:text-[#d6c6b9]"
                 >
                   {feedback.email}
                 </a>
@@ -99,58 +98,42 @@ export default function FeedbackDetailModal({
               Subjek
             </label>
             <p className="text-[#2d2d2d] font-bold text-lg">{feedback.subject}</p>
-          </div>
-
-          {/* Message */}
+          </div>          {/* Message */}
           <div>
             <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-1">
               Pesan
             </label>
-            <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4">
+            <div className="bg-[#f5e9da] border-2 border-[#b8a492] rounded-lg p-4">
               <p className="text-[#2d2d2d] whitespace-pre-wrap">{feedback.message}</p>
             </div>
-          </div>
-
-          {/* Status */}
+          </div>          {/* Status */}
           <div>
             <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-2">
               Status
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => handleStatusChange('unread')}
-                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all border-2 ${
                   feedback.status === 'unread'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-yellow-100'
+                    ? 'bg-[#d4a574] text-[#2d2d2d] border-[#d4a574]'
+                    : 'bg-transparent text-[#2d2d2d] border-[#b8a492] hover:bg-[#f5e9da]'
                 }`}
               >
                 🔔 Belum Dibaca
               </button>
               <button
                 onClick={() => handleStatusChange('read')}
-                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all border-2 ${
                   feedback.status === 'read'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-blue-100'
+                    ? 'bg-[#b8a492] text-[#2d2d2d] border-[#b8a492]'
+                    : 'bg-transparent text-[#2d2d2d] border-[#b8a492] hover:bg-[#d6c6b9]'
                 }`}
               >
                 👁️ Sudah Dibaca
               </button>
-              <button
-                onClick={() => handleStatusChange('replied')}
-                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                  feedback.status === 'replied'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-green-100'
-                }`}
-              >
-                ✅ Sudah Dibalas
-              </button>
             </div>
-          </div>
-
-          {/* Admin Notes */}
+          </div>{/* Admin Notes */}
           <div>
             <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-2">
               Catatan Admin (Internal)
@@ -160,21 +143,21 @@ export default function FeedbackDetailModal({
               onChange={(e) => setAdminNotes(e.target.value)}
               rows="4"
               placeholder="Tulis catatan internal untuk feedback ini..."
-              className="w-full px-4 py-3 border-2 border-[#b8a492] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b8a492] resize-none"
+              className="w-full px-4 py-3 bg-[#f5e9da] border-2 border-[#b8a492] rounded-lg text-[#2d2d2d] placeholder-[#2d2d2d]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] resize-none"
             />
             <button
               onClick={handleSaveNotes}
               disabled={isSaving}
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 disabled:opacity-50 transition-all"
+              className="mt-2 px-4 py-2 bg-[#b8a492] text-[#2d2d2d] rounded-lg font-bold hover:bg-[#d6c6b9] disabled:opacity-50 transition-all border-2 border-[#2d2d2d]"
             >
               {isSaving ? '💾 Menyimpan...' : '💾 Simpan Catatan'}
             </button>
           </div>
 
           {/* Technical Info */}
-          <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4">
-            <p className="text-xs font-bold text-gray-600 mb-2">ℹ️ Informasi Teknis</p>
-            <div className="text-xs text-gray-600 space-y-1">
+          <div className="bg-[#f5e9da] border-2 border-[#b8a492] rounded-lg p-4">
+            <p className="text-xs font-bold text-[#2d2d2d] mb-2">ℹ️ Informasi Teknis</p>
+            <div className="text-xs text-[#2d2d2d]/70 space-y-1">
               <p><strong>IP Address:</strong> {feedback.ipAddress || 'N/A'}</p>
               <p><strong>User Agent:</strong> {feedback.userAgent || 'N/A'}</p>
               <p><strong>ID:</strong> {feedback._id}</p>
@@ -183,23 +166,22 @@ export default function FeedbackDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t-2 border-gray-200 p-6 flex justify-between">
+        <div className="border-t-2 border-[#b8a492] p-6 flex justify-between flex-wrap gap-3">
           <button
             onClick={handleDelete}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all"
+            className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all border-2 border-red-700"
           >
             🗑️ Hapus Feedback
           </button>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-gray-500 text-white rounded-lg font-bold hover:bg-gray-600 transition-all"
+              className="px-6 py-2 bg-[#2d2d2d] text-[#b8a492] rounded-lg font-bold hover:bg-[#3d3d3d] transition-all border-2 border-[#b8a492]"
             >
               Tutup
-            </button>
-            <a
+            </button>            <a
               href={`mailto:${feedback.email}?subject=Re: ${feedback.subject}`}
-              className="px-6 py-2 bg-[#b8a492] text-[#2d2d2d] rounded-lg font-bold hover:bg-[#d6c6b9] transition-all"
+              className="px-6 py-2 bg-[#b8a492] text-[#2d2d2d] rounded-lg font-bold hover:bg-[#d6c6b9] transition-all border-2 border-[#2d2d2d]"
             >
               📧 Balas via Email
             </a>
