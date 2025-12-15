@@ -22,7 +22,7 @@ const ContactSchema = new mongoose.Schema({
     trim: true
   },
   status: {
-    type: String,
+    type: String,  
     enum: ['unread', 'read'],
     default: 'unread'
   },
