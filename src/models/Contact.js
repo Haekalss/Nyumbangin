@@ -19,6 +19,9 @@ const ContactSchema = new mongoose.Schema({
   },  message: {
     type: String,
     required: true,
+    trim: true  },
+  imageUrl: {
+    type: String,
     trim: true
   },
   status: {

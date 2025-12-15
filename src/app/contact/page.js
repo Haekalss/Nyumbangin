@@ -6,13 +6,14 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 export default function ContactPage() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
+  const router = useRouter();  const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userType, setUserType] = useState(null); // 'creator' or 'admin'
@@ -46,6 +47,37 @@ export default function ContactPage() {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('File harus berupa gambar');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Ukuran gambar maksimal 5MB');
+        return;
+      }
+
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   // Handle back navigation based on user status
   const handleBack = () => {
     if (!isLoggedIn) {
@@ -59,13 +91,19 @@ export default function ContactPage() {
       router.push('/dashboard');
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/contact', formData);
+      const submitData = { ...formData };
+      
+      // Add image if selected
+      if (imagePreview) {
+        submitData.image = imagePreview;
+      }
+
+      const response = await axios.post('/api/contact', submitData);
       
       if (response.data.success) {
         toast.success('Pesan berhasil dikirim!');
@@ -76,6 +114,8 @@ export default function ContactPage() {
           subject: '',
           message: ''
         });
+        setSelectedImage(null);
+        setImagePreview(null);
       }
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Gagal mengirim pesan. Silakan coba lagi.';
@@ -172,9 +212,7 @@ export default function ContactPage() {
                 className="w-full px-3 py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono"
                 placeholder="Contoh: Pertanyaan tentang payout"
               />
-            </div>
-
-            {/* Message */}
+            </div>            {/* Message */}
             <div>
               <label htmlFor="message" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
                 Pesan <span className="text-red-400">*</span>
@@ -189,6 +227,53 @@ export default function ContactPage() {
                 className="w-full px-3 py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono resize-none"
                 placeholder="Tulis pesan Anda dengan detail..."
               />
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label htmlFor="image" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
+                Lampiran Gambar (Opsional)
+              </label>
+              <p className="text-xs text-[#b8a492]/60 mb-2">
+                Upload screenshot atau gambar pendukung (Max 5MB)
+              </p>
+              
+              {!imagePreview ? (
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="image"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="image"
+                    className="flex items-center justify-center w-full px-4 py-8 bg-[#2d2d2d] border-2 border-dashed border-[#b8a492] rounded-lg cursor-pointer hover:bg-[#3d3d3d] transition-all"
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">📷</div>
+                      <p className="text-[#b8a492] font-bold">Klik untuk upload gambar</p>
+                      <p className="text-xs text-[#b8a492]/60 mt-1">PNG, JPG, GIF hingga 5MB</p>
+                    </div>
+                  </label>
+                </div>
+              ) : (
+                <div className="relative border-2 border-[#b8a492] rounded-lg p-4 bg-[#2d2d2d]">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="max-h-64 mx-auto rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-red-700 transition-all text-sm"
+                  >
+                    🗑️ Hapus
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}

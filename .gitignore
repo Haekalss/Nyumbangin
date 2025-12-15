@@ -49,6 +49,9 @@ next-env.d.ts
 .vscode/
 .idea/
 *.swp
+
+# Uploads
+/public/uploads/
 *.swo
 
 # Testing files

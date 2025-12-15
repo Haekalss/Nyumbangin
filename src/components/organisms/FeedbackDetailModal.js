@@ -106,7 +106,33 @@ export default function FeedbackDetailModal({
             <div className="bg-[#f5e9da] border-2 border-[#b8a492] rounded-lg p-4">
               <p className="text-[#2d2d2d] whitespace-pre-wrap">{feedback.message}</p>
             </div>
-          </div>          {/* Status */}
+          </div>
+
+          {/* Attached Image */}
+          {feedback.imageUrl && (
+            <div>
+              <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-2">
+                📷 Lampiran Gambar
+              </label>
+              <div className="bg-[#f5e9da] border-2 border-[#b8a492] rounded-lg p-4">
+                <img 
+                  src={feedback.imageUrl} 
+                  alt="Feedback attachment" 
+                  className="max-w-full max-h-96 mx-auto rounded-lg"
+                />
+                <a 
+                  href={feedback.imageUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block text-center mt-2 text-[#b8a492] hover:text-[#d6c6b9] font-bold text-sm hover:underline"
+                >
+                  🔗 Buka gambar di tab baru
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Status */}
           <div>
             <label className="text-sm font-bold text-[#2d2d2d]/60 block mb-2">
               Status
@@ -163,9 +189,7 @@ export default function FeedbackDetailModal({
               <p><strong>ID:</strong> {feedback._id}</p>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
+        </div>        {/* Footer */}
         <div className="border-t-2 border-[#b8a492] p-6 flex justify-between flex-wrap gap-3">
           <button
             onClick={handleDelete}
@@ -173,19 +197,12 @@ export default function FeedbackDetailModal({
           >
             🗑️ Hapus Feedback
           </button>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-[#2d2d2d] text-[#b8a492] rounded-lg font-bold hover:bg-[#3d3d3d] transition-all border-2 border-[#b8a492]"
-            >
-              Tutup
-            </button>            <a
-              href={`mailto:${feedback.email}?subject=Re: ${feedback.subject}`}
-              className="px-6 py-2 bg-[#b8a492] text-[#2d2d2d] rounded-lg font-bold hover:bg-[#d6c6b9] transition-all border-2 border-[#2d2d2d]"
-            >
-              📧 Balas via Email
-            </a>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-[#2d2d2d] text-[#b8a492] rounded-lg font-bold hover:bg-[#3d3d3d] transition-all border-2 border-[#b8a492]"
+          >
+            Tutup
+          </button>
         </div>
       </div>
     </div>

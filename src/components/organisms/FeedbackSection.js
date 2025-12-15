@@ -169,13 +169,19 @@ export default function FeedbackSection({
                   </span>
                 </div>
               </div>
-              
-              <div className="mb-2">
-                <p className={`font-bold ${
-                  feedback.status === 'unread' ? 'text-[#2d2d2d]' : 'text-[#b8a492]'
-                }`}>
-                  📋 {feedback.subject}
-                </p>
+                <div className="mb-2">
+                <div className="flex items-center gap-2">
+                  <p className={`font-bold ${
+                    feedback.status === 'unread' ? 'text-[#2d2d2d]' : 'text-[#b8a492]'
+                  }`}>
+                    📋 {feedback.subject}
+                  </p>
+                  {feedback.imageUrl && (
+                    <span className="text-xs bg-[#b8a492]/20 px-2 py-0.5 rounded-full font-bold">
+                      📷 Ada Gambar
+                    </span>
+                  )}
+                </div>
               </div>
               
               <p className={`text-sm line-clamp-2 ${
