@@ -174,8 +174,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Google Sign In */}
-          <div>
+          {/* Google Sign In - Recommended */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <span className="text-xl">💡</span>
+              <p className="text-xs text-[#b8a492]/80 font-mono">
+                <span className="font-bold text-[#b8a492]">Disarankan:</span> Gunakan Google untuk login lebih cepat dan aman
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => {
