@@ -1,7 +1,9 @@
 import dbConnect from '@/lib/db';
 import Creator from '@/models/Creator';
 import Donation from '@/models/donations';
+import FilteredWords from '@/models/FilteredWords';
 import { getSnap } from '@/lib/midtrans';
+import { filterMessage } from '@/utils/messageFilter';
 
 // Generate unique merchant reference
 function generateMerchantRef() {
@@ -134,13 +136,18 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Minimal donasi Rp 1.000' });
       }
 
+  // Filter message untuk kata-kata kasar
+  const filteredWordsDoc = await FilteredWords.findOne({ creatorId: creator._id });
+  const filteredWords = filteredWordsDoc?.words || [];
+  const filteredMessage = filterMessage(message, filteredWords);
+
   const merchantRef = generateMerchantRef();
 
   // Flow Midtrans real (selalu PENDING dulu, menunggu webhook)
       const donationData = {
         name,
         amount: parseInt(amount),
-        message,
+        message: filteredMessage, // Simpan message yang sudah difilter
         merchant_ref: merchantRef,
         createdBy: creator._id,
         createdByUsername: creator.username,

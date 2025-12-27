@@ -14,6 +14,7 @@ import DonationTable from '@/components/organisms/DonationTable';
 import StatsSection from '@/components/organisms/StatsSection';
 import LeaderboardModal from '@/components/organisms/LeaderboardModal';
 import HistoryModal from '@/components/organisms/HistoryModal';
+import { filterMessage } from '@/utils/messageFilter';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -490,26 +491,40 @@ export default function Dashboard() {
   };
 
   // Show notification preview when clicking on donation row
-  const showNotificationPreview = (donation) => {
-    // Send notification data to overlay via localStorage
-    const notificationData = {
-  message: `Donasi baru dari ${donation.name} sebesar ${formatRupiah(donation.amount)}`,
-      detail: donation.message || '',
-      time: new Date(donation.createdAt).toLocaleTimeString('id-ID'),
-      timestamp: Date.now()
-    };
-    
-    // Store in localStorage for overlay to pick up
-    localStorage.setItem('overlay-notification-trigger', JSON.stringify(notificationData));
-    
-    // Trigger storage event for overlay pages
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'overlay-notification-trigger',
-      newValue: JSON.stringify(notificationData)
-    }));
-    
-    // Show toast for confirmation
-    toast.success('Preview notifikasi dikirim ke halaman overlay');
+  const showNotificationPreview = async (donation) => {
+    try {
+      // Fetch filtered words terlebih dahulu
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.get('/api/creator/filtered-words', config);
+      
+      // Apply filter ke message
+      const filteredWords = data.filteredWords || [];
+      const filteredMessageText = filterMessage(donation.message || '', filteredWords);
+      
+      // Send notification data to overlay via localStorage
+      const notificationData = {
+        message: `Donasi baru dari ${donation.name} sebesar ${formatRupiah(donation.amount)}`,
+        detail: filteredMessageText,
+        time: new Date(donation.createdAt).toLocaleTimeString('id-ID'),
+        timestamp: Date.now()
+      };
+      
+      // Store in localStorage for overlay to pick up
+      localStorage.setItem('overlay-notification-trigger', JSON.stringify(notificationData));
+      
+      // Trigger storage event for overlay pages
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'overlay-notification-trigger',
+        newValue: JSON.stringify(notificationData)
+      }));
+      
+      // Show toast for confirmation
+      toast.success('Preview notifikasi dikirim ke halaman overlay');
+    } catch (error) {
+      console.error('Error preview notification:', error);
+      toast.error('Gagal menampilkan preview');
+    }
   };
 
   if (loading) {

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     const donations = await Donation.find(query)
       .sort({ createdAt: -1 })
       .limit(10)
-      .select('name amount message createdAt showMessage')
+      .select('name amount message createdAt')
       .lean();
 
     return res.json({ 

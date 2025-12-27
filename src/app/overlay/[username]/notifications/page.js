@@ -16,6 +16,8 @@ export default function NotificationsOverlay() {
   const lastCheckRef = useRef(new Date().toISOString());
   const pollingIntervalRef = useRef(null);
   const audioRef = useRef(null);
+  const progressTimerRef = useRef(null);
+  const hideTimeoutRef = useRef(null);
 
   // Play notification sound using MP3 file (simplified for OBS compatibility)
   const playNotificationSound = async () => {
@@ -53,7 +55,7 @@ export default function NotificationsOverlay() {
         // Add new donations to queue (reverse to show oldest first)
         const newDonations = data.donations.reverse().map(donation => ({
           message: `Donasi baru dari ${donation.name} sebesar ${formatRupiah(donation.amount)}`,
-          detail: donation.showMessage && donation.message ? donation.message : '',
+          detail: donation.message || '',
           time: new Date(donation.createdAt).toLocaleTimeString('id-ID'),
           timestamp: Date.now(),
           _id: donation._id
@@ -95,16 +97,40 @@ export default function NotificationsOverlay() {
       setQueue(rest);
       
       console.log('🎉 Showing notification:', current);
+      
+      // Clear any existing timers
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+      }
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      
       setNotif(current);
       setNotifProgress(0);
       
       // Play notification sound
       playNotificationSound();
       
-      // After 5 seconds, mark as done
+      // Start progress bar animation after a small delay to ensure 0% is rendered
       setTimeout(() => {
+        const duration = 5000;
+        const interval = 50;
+        let elapsed = 0;
+        progressTimerRef.current = setInterval(() => {
+          elapsed += interval;
+          setNotifProgress((elapsed / duration) * 100);
+          if (elapsed >= duration) {
+            clearInterval(progressTimerRef.current);
+          }
+        }, interval);
+      }, 50);
+      
+      // After 5 seconds, mark as done
+      hideTimeoutRef.current = setTimeout(() => {
         setIsShowing(false);
         setNotif(null);
+        setNotifProgress(0);
       }, 5000);
     }
   }, [queue, isShowing]);
@@ -113,24 +139,53 @@ export default function NotificationsOverlay() {
   useEffect(() => {
     if (!username) return;
 
+    const showPreviewNotification = (notificationData) => {
+      // Gunakan logika yang sama dengan queue notification
+      // Clear any existing timers
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+      }
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+
+      console.log('Preview notification triggered:', notificationData);
+      
+      // Set states dengan cara yang sama seperti queue notification
+      setNotif(notificationData);
+      setNotifProgress(0);
+      setIsShowing(true);
+      
+      // Play sound effect for preview too
+      playNotificationSound();
+      
+      // Start progress bar animation after a small delay to ensure 0% is rendered
+      setTimeout(() => {
+        const duration = 5000;
+        const interval = 50;
+        let elapsed = 0;
+        progressTimerRef.current = setInterval(() => {
+          elapsed += interval;
+          setNotifProgress((elapsed / duration) * 100);
+          if (elapsed >= duration) {
+            clearInterval(progressTimerRef.current);
+          }
+        }, interval);
+      }, 50);
+      
+      // Auto-hide after 5 seconds
+      hideTimeoutRef.current = setTimeout(() => {
+        setIsShowing(false);
+        setNotif(null);
+        setNotifProgress(0);
+      }, 5000);
+    };
+
     const handleStorageChange = (e) => {
       if (e.key === 'overlay-notification-trigger') {
         try {
           const notificationData = JSON.parse(e.newValue);
-          console.log('Preview notification triggered from dashboard:', notificationData);
-          
-          setNotif(notificationData);
-          setNotifProgress(0);
-          setIsShowing(true);
-          
-          // Play sound effect for preview too
-          playNotificationSound();
-          
-          // Auto-hide after 5 seconds
-          setTimeout(() => {
-            setIsShowing(false);
-            setNotif(null);
-          }, 5000);
+          showPreviewNotification(notificationData);
         } catch (error) {
           console.error('Error parsing notification data:', error);
         }
@@ -149,16 +204,7 @@ export default function NotificationsOverlay() {
           // Only show if it's recent (within last 2 seconds)
           if (Date.now() - notificationData.timestamp < 2000) {
             console.log('Found recent notification trigger:', notificationData);
-            setNotif(notificationData);
-            setNotifProgress(0);
-            setIsShowing(true);
-            
-            playNotificationSound();
-            
-            setTimeout(() => {
-              setIsShowing(false);
-              setNotif(null);
-            }, 5000);
+            showPreviewNotification(notificationData);
           }
         } catch (error) {
           console.error('Error parsing stored notification data:', error);
@@ -173,26 +219,14 @@ export default function NotificationsOverlay() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(checkInterval);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+      }
     };
   }, [username]);
-
-  // Progress bar animation
-  useEffect(() => {
-    if (notif && isShowing) {
-      setNotifProgress(0);
-      const duration = 5000; // 5 seconds
-      const interval = 50;
-      let elapsed = 0;
-      const timer = setInterval(() => {
-        elapsed += interval;
-        setNotifProgress((elapsed / duration) * 100);
-        if (elapsed >= duration) {
-          clearInterval(timer);
-        }
-      }, interval);
-      return () => clearInterval(timer);
-    }
-  }, [notif, isShowing]);
 
   if (!username) {
     return null; // Don't render anything if no username
@@ -221,7 +255,7 @@ export default function NotificationsOverlay() {
             {notif.detail && <div className="text-base font-mono text-center">Pesan: {notif.detail}</div>}
             <div className="text-sm opacity-80 font-mono text-center">{notif.time}</div>
             <div className="w-full h-2 bg-[#2d2d2d]/30 rounded mt-3 overflow-hidden">
-              <div className="h-2 bg-[#2d2d2d] transition-all duration-50" style={{ width: `${notifProgress}%` }}></div>
+              <div className="h-2 bg-[#2d2d2d]" style={{ width: `${notifProgress}%` }}></div>
             </div>
           </div>
         </div>

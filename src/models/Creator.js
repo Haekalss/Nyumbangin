@@ -82,7 +82,8 @@ const CreatorSchema = new mongoose.Schema({
     minAmount: { type: Number, default: 5000 }, // Rp 5k
     maxAmount: { type: Number, default: 10000000 }, // Rp 10jt
     isEnabled: { type: Boolean, default: true },
-    customMessage: { type: String, default: 'Terima kasih atas dukungannya!' }
+    customMessage: { type: String, default: 'Terima kasih atas dukungannya!' },
+    filteredWords: { type: [String], default: [] } // Kata-kata yang akan difilter
   },
   
   // Account status

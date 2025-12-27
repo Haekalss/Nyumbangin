@@ -21,9 +21,9 @@ const Header = ({ user, openProfile }) => {
               variant="secondary"
               size="medium"
               onClick={() => router.push(`/overlay/${user?.username}`)}
-              title="Buka Overlay"
+              title="Pengaturan Overlay & Filter"
             >
-              🎥 Live Widget
+              ⚙️ Settings
             </Button>
             <Button
               variant="secondary"
