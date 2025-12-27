@@ -33,6 +33,7 @@ export default async function handler(req, res) {
 
     // Get stats for this specific creator only
     // Support both old and new data structure
+    // Total donations count includes PENDING and PAID
     const totalDonations = await Donation.countDocuments({ 
       $or: [
         { createdByUsername: creator.username },
@@ -40,12 +41,13 @@ export default async function handler(req, res) {
       ]
     });
     
+    // Total amount only from PAID donations
     const totalAmount = await Donation.aggregate([
       { 
         $match: { 
           $or: [
-            { createdByUsername: creator.username },
-            { createdBy: creator._id }
+            { createdByUsername: creator.username, status: 'PAID' },
+            { createdBy: creator._id, status: 'PAID' }
           ]
         } 
       },
@@ -80,8 +82,8 @@ export default async function handler(req, res) {
 
     const uniqueDonors = await Donation.distinct("name", { 
       $or: [
-        { createdByUsername: creator.username },
-        { createdBy: creator._id }
+        { createdByUsername: creator.username, status: 'PAID' },
+        { createdBy: creator._id, status: 'PAID' }
       ]
     });
 

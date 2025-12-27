@@ -291,8 +291,11 @@ export default function Dashboard() {
       const response = await axios.get('/api/dashboard/donations?limit=1000', config);
       const allDonations = response.data.data || [];
       
+      // Filter only PAID donations for history modal
+      const paidDonations = allDonations.filter(d => d.status === 'PAID');
+      
       // Group donations by date
-      const grouped = allDonations.reduce((acc, donation) => {
+      const grouped = paidDonations.reduce((acc, donation) => {
         const date = new Date(donation.createdAt).toLocaleDateString('id-ID');
         if (!acc[date]) {
           acc[date] = {

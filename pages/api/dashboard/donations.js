@@ -40,6 +40,7 @@ export default async function handler(req, res) {
 
     // Only fetch donations for the authenticated creator
     // Support both old and new data structure
+    // Show all donations (PENDING, PAID, etc) in the table
     const donations = await Donation.find({ 
       $or: [
         { createdByUsername: creator.username },
