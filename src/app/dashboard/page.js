@@ -36,6 +36,8 @@ export default function Dashboard() {
   const [showProfile, setShowProfile] = useState(false);
   const [profileScrollTo, setProfileScrollTo] = useState(null); // 'payout' | 'basic' | null
   const [profileInitUser, setProfileInitUser] = useState(null);
+  const [donationEnabled, setDonationEnabled] = useState(true);
+  const [togglingDonation, setTogglingDonation] = useState(false);
   const { formData: profileFormData, setFormData: setProfileFormData, submit: submitProfile, loading: profileLoading, payoutLocked } = useProfileForm(profileInitUser, (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -185,10 +187,16 @@ export default function Dashboard() {
       
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const [donationsRes, statsRes] = await Promise.all([
+      const [donationsRes, statsRes, profileRes] = await Promise.all([
         axios.get('/api/dashboard/donations?limit=20', config),
-        axios.get('/api/stats', config)
+        axios.get('/api/stats', config),
+        axios.get('/api/user/profile', config)
       ]);
+
+      // Set donation enabled status dari profile
+      if (profileRes.data.creator?.donationSettings?.isEnabled !== undefined) {
+        setDonationEnabled(profileRes.data.creator.donationSettings.isEnabled);
+      }
 
       // Filter donations untuk hari ini (24 jam terakhir)
       const now = new Date();
@@ -459,6 +467,28 @@ export default function Dashboard() {
     setShowProfile(true);
   };
 
+  const toggleDonationStatus = async () => {
+    try {
+      setTogglingDonation(true);
+      const token = localStorage.getItem('token');
+      const newStatus = !donationEnabled;
+      
+      await axios.put(
+        '/api/creator/toggle-donation',
+        { isEnabled: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setDonationEnabled(newStatus);
+      toast.success(newStatus ? 'Donasi diaktifkan ✅' : 'Donasi dinonaktifkan 🔒');
+    } catch (error) {
+      console.error('Error toggling donation:', error);
+      toast.error('Gagal mengubah status donasi');
+    } finally {
+      setTogglingDonation(false);
+    }
+  };
+
   // Show notification preview when clicking on donation row
   const showNotificationPreview = (donation) => {
     // Send notification data to overlay via localStorage
@@ -591,8 +621,42 @@ export default function Dashboard() {
         {/* Donations Table */}
         <div className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl overflow-hidden">
           <div className="px-4 py-5 sm:px-6 border-b border-[#00fff7]/20">
-            <h3 className="text-2xl leading-6 font-extrabold text-[#b8a492] tracking-wide font-mono">Donasi Hari Ini</h3>
-            <p className="mt-1 max-w-2xl text-sm text-[#b8a492] font-mono">Donasi dalam 24 jam terakhir (otomatis reset setiap hari)</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-2xl leading-6 font-extrabold text-[#b8a492] tracking-wide font-mono">Donasi Hari Ini</h3>
+                <p className="mt-1 max-w-2xl text-sm text-[#b8a492] font-mono">Donasi dalam 24 jam terakhir (otomatis reset setiap hari)</p>
+              </div>
+              {user?.username && (
+                <div className="flex items-center gap-3 bg-[#1a1a1a] px-3 py-2 rounded-lg border border-[#b8a492]/30">
+                  <div className="text-right">
+                    <div className="text-xs text-[#b8a492]/60 font-mono">Status Donasi</div>
+                    <div className={`text-sm font-bold font-mono ${donationEnabled ? 'text-green-400' : 'text-gray-400'}`}>
+                      {donationEnabled ? 'Aktif' : 'Nonaktif'}
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleDonationStatus}
+                    disabled={togglingDonation}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#b8a492] focus:ring-offset-1 disabled:opacity-50 ${
+                      donationEnabled ? 'bg-green-600' : 'bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                        donationEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                    <span className="sr-only">Toggle donation status</span>
+                  </button>
+                </div>
+              )}
+            </div>
+            {!donationEnabled && (
+              <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs text-[#b8a492]/70 flex items-start gap-1 font-mono">
+                <span>⚠️</span>
+                <span>Donasi dinonaktifkan - Pengunjung akan melihat pesan bahwa donasi tidak tersedia</span>
+              </div>
+            )}
           </div>
           {error && (
             <div className="bg-[#b8a492]/20 border-l-4 border-[#b8a492] p-4 mb-4">

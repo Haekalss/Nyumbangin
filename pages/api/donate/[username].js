@@ -30,6 +30,20 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
       }
 
+      // Cek apakah donasi dinonaktifkan oleh creator
+      if (!creator.donationSettings?.isEnabled) {
+        return res.status(200).json({ 
+          success: false,
+          error: 'Donasi sedang tidak aktif',
+          disabled: true,
+          creator: {
+            username: creator.username,
+            displayName: creator.displayName,
+            description: creator.bio
+          }
+        });
+      }
+
       // Get donations for this creator
       // If 'all=true' parameter is passed, return all donations (for leaderboard calculation)
       // Otherwise, return only recent 10 donations (for public display)
@@ -100,6 +114,14 @@ export default async function handler(req, res) {
       const payoutReady = creator.hasCompletePayoutSettings();
       if (!payoutReady) {
         return res.status(403).json({ error: 'Creator belum mengaktifkan donasi' });
+      }
+
+      // Cek apakah donasi dinonaktifkan oleh creator
+      if (!creator.donationSettings?.isEnabled) {
+        return res.status(403).json({ 
+          error: 'Donasi sedang tidak aktif',
+          disabled: true 
+        });
       }
 
   const { name, amount, message = '', mediaShare } = req.body;

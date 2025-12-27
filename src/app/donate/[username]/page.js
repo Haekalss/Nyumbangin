@@ -42,13 +42,21 @@ export default function DonatePage() {
     try {
       const response = await axios.get(`/api/donate/${username}`);
       const data = response.data;
-      setCreator(data.creator);
+      
+      // Check if donation is disabled (status 200 but disabled flag)
+      if (data.disabled) {
+        setCreator(data.creator);
+        setError(data.error);
+      } else {
+        setCreator(data.creator);
+      }
     } catch (error) {
       console.error('Error fetching creator data:', error);
-      if (error.response?.status === 403) {
-        setError('Creator belum mengaktifkan donasi');
-      } else if (error.response?.status === 404) {
+      
+      if (error.response?.status === 404) {
         setError('Creator tidak ditemukan');
+      } else if (error.response?.status === 403) {
+        setError('Creator belum mengaktifkan donasi');
       } else {
         setError('Gagal memuat data creator');
       }
@@ -284,10 +292,17 @@ export default function DonatePage() {
       }      
     } catch (error) {
       let errorMessage = error.response?.data?.error || 'Terjadi kesalahan';
-      if (error.response?.status === 403) {
+      
+      // Check if donation is disabled
+      if (error.response?.data?.disabled) {
+        setError(error.response.data.error);
+      } else if (error.response?.status === 403) {
         errorMessage = 'Donasi belum aktif untuk creator ini';
+        setError(errorMessage);
+      } else {
+        setError(errorMessage);
       }
-      setError(errorMessage);
+      
       toast.error(errorMessage);
     } finally {
       setDonating(false);
@@ -323,6 +338,26 @@ export default function DonatePage() {
           <div className="bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492] shadow-lg p-6 text-center">
             <h2 className="text-2xl font-extrabold text-[#b8a492] mb-4">Donasi Belum Aktif</h2>
             <p className="text-[#b8a492]/80 mb-6">Creator ini belum mengisi informasi rekening / e-wallet untuk menerima donasi.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Jika creator menonaktifkan donasi
+  if (creator && error === 'Donasi sedang tidak aktif') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4">
+        <div className="max-w-md w-full mx-auto py-8">
+          <div className="bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492] shadow-lg p-6 text-center">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-extrabold text-[#b8a492] mb-4">Donasi Sedang Tidak Aktif</h2>
+            <p className="text-[#b8a492]/80 mb-2">
+              <strong>{creator.displayName}</strong> sedang menonaktifkan fitur donasi untuk sementara waktu.
+            </p>
+            <p className="text-[#b8a492]/60 text-sm">
+              Silakan coba lagi nanti. Terima kasih atas pengertiannya! 🙏
+            </p>
           </div>
         </div>
       </div>
