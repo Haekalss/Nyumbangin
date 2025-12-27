@@ -28,6 +28,7 @@ export default function DonatePage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [completedDonationId, setCompletedDonationId] = useState(null);
   const [todayShares, setTodayShares] = useState(0);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
   useEffect(() => {
@@ -71,6 +72,16 @@ export default function DonatePage() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleAnonymousToggle = (e) => {
+    const checked = e.target.checked;
+    setIsAnonymous(checked);
+    if (checked) {
+      setFormData({ ...formData, name: 'Anonim' });
+    } else {
+      setFormData({ ...formData, name: '' });
+    }
   };
 
   const handleAmountSelect = (amount) => {
@@ -365,9 +376,22 @@ export default function DonatePage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base"
+                disabled={isAnonymous}
+                className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Masukkan nama Anda"
               />
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="anonymous"
+                  checked={isAnonymous}
+                  onChange={handleAnonymousToggle}
+                  className="w-4 h-4 accent-[#b8a492] cursor-pointer"
+                />
+                <label htmlFor="anonymous" className="text-xs text-[#b8a492] font-mono cursor-pointer">
+                  Donasi sebagai Anonim
+                </label>
+              </div>
             </div>
 
             <div>
