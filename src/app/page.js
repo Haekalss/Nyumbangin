@@ -25,7 +25,10 @@ export default function Home() {
     const userData = localStorage.getItem('user');
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        // If already logged in, redirect to dashboard
+        router.push('/dashboard');
+        return;
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -35,7 +38,7 @@ export default function Home() {
     
     // Fetch creators list
     fetchCreators();
-  }, []);
+  }, [router]);
 
   const fetchCreators = async () => {
     try {

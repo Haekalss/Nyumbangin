@@ -37,13 +37,17 @@ export default async function handler(req, res) {
         creatorObj.profileImage = `/api/user/profile-image/${creator._id}`;
       }
       
+      // Add isPayoutReady status
+      creatorObj.isPayoutReady = creator.hasCompletePayoutSettings();
+      
       console.log('Profile GET - Payout data:', {
         payoutSettings: creator.payoutSettings,
         payoutBankName: creatorObj.payoutBankName,
         payoutAccountNumber: creatorObj.payoutAccountNumber,
         payoutAccountHolder: creatorObj.payoutAccountHolder,
         profileImage: creatorObj.profileImage,
-        socialLinks: creatorObj.socialLinks
+        socialLinks: creatorObj.socialLinks,
+        isPayoutReady: creatorObj.isPayoutReady
       });
       
       return res.status(200).json({ success: true, user: creatorObj });
@@ -177,6 +181,9 @@ export default async function handler(req, res) {
       sanitized.profileImage = `/api/user/profile-image/${currentCreator._id}`;
     }
     
+    // Add isPayoutReady status
+    sanitized.isPayoutReady = currentCreator.hasCompletePayoutSettings();
+    
     console.log('Profile UPDATE - Complete data:', {
       payoutSettings: currentCreator.payoutSettings,
       payoutBankName: sanitized.payoutBankName,
@@ -184,7 +191,8 @@ export default async function handler(req, res) {
       payoutAccountHolder: sanitized.payoutAccountHolder,
       profileImage: sanitized.profileImage,
       socialLinks: sanitized.socialLinks,
-      bio: sanitized.bio
+      bio: sanitized.bio,
+      isPayoutReady: sanitized.isPayoutReady
     });
 
     res.status(200).json({
