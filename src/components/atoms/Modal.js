@@ -21,9 +21,9 @@ const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = 'max-w-2xl
         <button
           onClick={onClose}
           aria-label="Tutup modal"
-          className="absolute top-3 right-3 px-3 py-1 rounded border-2 border-[#b8a492] bg-[#b8a492] text-[#2d2d2d] font-bold font-mono hover:bg-[#d6c6b9] transition-all"
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded border-2 border-[#b8a492] bg-[#b8a492] text-[#2d2d2d] font-bold text-xl hover:bg-[#d6c6b9] transition-all"
         >
-          Tutup
+          ×
         </button>
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 mt-4">
           {children}

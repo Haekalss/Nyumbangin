@@ -6,6 +6,7 @@ import { formatRupiah } from '@/utils/format';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import ShareModal from '@/components/organisms/ShareModal';
 
 
 export default function DonatePage() {
@@ -24,11 +25,15 @@ export default function DonatePage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [mediaDuration, setMediaDuration] = useState(30);
   const [pendingRef, setPendingRef] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [completedDonationId, setCompletedDonationId] = useState(null);
+  const [todayShares, setTodayShares] = useState(0);
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
   useEffect(() => {
     if (username) {
       fetchCreatorData();
+      fetchShareStats();
     }
   }, [username]);
 
@@ -48,6 +53,16 @@ export default function DonatePage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchShareStats = async () => {
+    try {
+      const response = await axios.get(`/api/donate/share-stats/${username}`);
+      setTodayShares(response.data.today.totalShares);
+    } catch (error) {
+      console.error('Error fetching share stats:', error);
+      // Silently fail, tidak perlu show error
     }
   };
 
@@ -203,8 +218,11 @@ export default function DonatePage() {
               } catch (err) {
                 console.error('Failed to check payment status:', err);
               }
+              fetchShareStats(); // Refresh share count
               
               setSuccess(true);
+              setCompletedDonationId(donationId);
+              setShowShareModal(true);
               setFormData({ name: '', amount: '', message: '' });
               setAgreedToTerms(false);
               setEnableMediaShare(false);
@@ -232,6 +250,8 @@ export default function DonatePage() {
                 if (statusCheck.data.status === 'PAID') {
                   toast.success('Pembayaran berhasil!');
                   setSuccess(true);
+                  setCompletedDonationId(donationId);
+                  setShowShareModal(true);
                   setFormData({ name: '', amount: '', message: '' });
                   setAgreedToTerms(false);
                   setPendingRef(null);
@@ -300,6 +320,19 @@ export default function DonatePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4 sm:px-6 lg:px-8">
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => {
+            setShowShareModal(false);
+            fetchShareStats(); // Refresh share count when modal closed
+          }}
+          creatorUsername={creator?.username}
+          donationId={completedDonationId}
+        />
+      )}
+
       <div className="max-w-md w-full mx-auto py-6 sm:py-8">
         <div className="bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492] shadow-lg p-4 sm:p-6">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#b8a492] mb-4 sm:mb-6 font-mono text-center">
@@ -310,6 +343,16 @@ export default function DonatePage() {
               <div className="text-xs sm:text-sm text-[#b8a492] font-mono">{error}</div>
             </div>
           )}
+
+          {/* Share Stats - Simple Text */}
+          {todayShares > 0 && (
+            <div className="bg-[#b8a492]/10 border border-[#b8a492]/30 rounded-lg p-3 mb-4 sm:mb-6 text-center">
+              <p className="text-xs sm:text-sm text-[#b8a492] font-mono">
+                🔗 <span className="font-bold">{todayShares} orang</span> sudah membagikan link ini hari ini
+              </p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
