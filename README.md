@@ -197,6 +197,21 @@ Nyumbangin adalah solusi lengkap untuk creator yang ingin:
 - **Input Validation** untuk mencegah injection attacks
 - **Auto-logout** untuk keamanan session
 
+## ⚙️ Automated Tasks & Cron Jobs
+
+Platform ini menggunakan GitHub Actions untuk menjalankan tugas otomatis:
+
+### **Auto Archive Donations** (Setiap 6 jam)
+- Otomatis mengarsipkan donasi yang sudah lebih dari 24 jam
+- Memindahkan donasi ke collection `donation_history`
+- Update leaderboard setelah proses archive
+- Berjalan pada: 00:00, 06:00, 12:00, 18:00 UTC (07:00, 13:00, 19:00, 01:00 WIB)
+
+### **Update Leaderboard** (Setiap hari tengah malam WIB)
+- Refresh leaderboard bulanan untuk semua creator
+- Berjalan pada: 17:00 UTC (00:00 WIB)
+
+📚 **Troubleshooting**: Jika workflow gagal, baca [ARCHIVE_TROUBLESHOOTING.md](./ARCHIVE_TROUBLESHOOTING.md)
 
 ## 📄 Lisensi
 

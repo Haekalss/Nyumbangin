@@ -5,12 +5,38 @@ import Donation from '@/models/donations';
 import DonationHistory from '@/models/DonationHistory';
 import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
 
+// Vercel Serverless Function Config
+export const config = {
+  maxDuration: 60, // Maximum execution time in seconds
+  api: {
+    bodyParser: true,
+    responseLimit: false,
+  },
+};
+
 export default async function handler(req, res) {
   console.log('=== CRON: ARCHIVE DONATIONS ===');
+  console.log('📝 Method:', req.method);
+  console.log('📝 Headers:', JSON.stringify(req.headers, null, 2));
+  
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-cron-secret');
+  
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   
   // Only allow POST method
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    console.log('❌ Method not allowed:', req.method);
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      received: req.method,
+      allowed: ['POST']
+    });
   }
   
   // Verify cron secret for security (skip in development)
