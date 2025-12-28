@@ -125,24 +125,23 @@ export default function Home() {
       <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-extrabold text-[#b8a492] tracking-wide">Nyumbangin</h1>
-            <nav className="flex items-center gap-4">
-            <Link href="/creator/register" className="bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
-              Daftar Creator
+            <Link href="/" className="text-3xl font-extrabold text-[#b8a492] tracking-wide hover:text-[#d6c6b9] transition-colors cursor-pointer">
+              Nyumbangin
             </Link>
+            <nav className="flex items-center gap-3">
             {user ? (
               <>
                 {(user.userType === 'admin' || user.role === 'admin') && (
-                  <Link href="/dashboard" className="bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
+                  <Link href="/dashboard" className="bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-all">
                     Dashboard
                   </Link>
                 )}
-                <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold border-2 border-red-700 hover:bg-red-700">
+                <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold border-2 border-red-700 hover:bg-red-700 transition-all">
                   Logout
                 </button>
               </>
             ) : (
-              <Link href="/login" className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]">
+              <Link href="/login" className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all">
                 Login
               </Link>
             )}
@@ -152,7 +151,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-5xl mx-auto text-center py-16 px-4">
+      <section className="max-w-5xl mx-auto text-center py-16 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-8">
           <img src="/logo.png" alt="Nyumbangin Logo" className="w-32 h-32 animate-bounce" />
         </div>
@@ -172,7 +171,7 @@ export default function Home() {
 
       {/* Creator Carousel */}
       <section id="creator-section" className="bg-[#2d2d2d] border-t-4 border-[#b8a492] py-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 text-[#b8a492]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-[#b8a492]">
           <h3 className="text-2xl font-bold text-center mb-6">Siapa Saja yang Sudah Bergabung?</h3>
           
           {creators.length > 0 ? (
@@ -298,39 +297,117 @@ export default function Home() {
       </section>
 
       {/* Keunggulan */}
-<section className="max-w-6xl mx-auto px-4 py-8">
-  <h3 className="text-3xl font-bold text-center text-[#2d2d2d] mb-8">
+<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t-4 border-[#b8a492]">
+  <h3 className="text-3xl font-extrabold text-center text-[#2d2d2d] mb-3">
     Kenapa Pilih Nyumbangin?
   </h3>
-  <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
-    {/* Maskot - Kiri */}
-    <div className="flex-shrink-0">
-      <img 
-        src="/maskot.png" 
-        alt="Maskot Nyumbangin" 
-        className="w-64 h-64 md:w-72 md:h-72 object-contain animate-bounce-slow"
-      />
+  <p className="text-center text-[#2d2d2d] text-base mb-8 max-w-2xl mx-auto">
+    Platform donasi terpercaya dengan fitur lengkap untuk mendukung kreator favorit Anda
+  </p>
+  
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="feature-card bg-gradient-to-br from-[#b8a492] to-[#d6c6b9] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
+      <div className="text-5xl mb-4 group-hover:animate-bounce">🎨</div>
+      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Desain Modern</h4>
+      <p className="text-[#2d2d2d]">Tampilan responsif dan keren di semua perangkat, dari mobile hingga desktop</p>
     </div>
     
-    {/* List Keunggulan - Kanan */}
-    <ul className="space-y-3 text-lg text-[#2d2d2d] flex-1 max-w-xl">
-      <li className="flex items-start gap-3">
-        <span className="text-2xl flex-shrink-0">🎨</span>
-        <span><strong>Tampil keren & rapi</strong> di semua perangkat</span>
-      </li>
-      <li className="flex items-start gap-3">
-        <span className="text-2xl flex-shrink-0">🔒</span>
-        <span><strong>Pembayaran aman</strong> via Midtrans</span>
-      </li>
-      <li className="flex items-start gap-3">
-        <span className="text-2xl flex-shrink-0">⚡</span>
-        <span><strong>Notifikasi real-time</strong> saat donasi masuk</span>
-      </li>
-      <li className="flex items-start gap-3">
-        <span className="text-2xl flex-shrink-0">🌍</span>
-        <span><strong>Cocok untuk semua</strong> kreator, komunitas, & proyek sosial</span>
-      </li>
-    </ul>
+    <div className="feature-card bg-gradient-to-br from-[#d6c6b9] to-[#b8a492] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
+      <div className="text-5xl mb-4 group-hover:animate-bounce">🔒</div>
+      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Aman & Terpercaya</h4>
+      <p className="text-[#2d2d2d]">Pembayaran terenkripsi melalui Midtrans dengan keamanan tingkat bank</p>
+    </div>
+    
+    <div className="feature-card bg-gradient-to-br from-[#b8a492] to-[#d6c6b9] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
+      <div className="text-5xl mb-4 group-hover:animate-bounce">⚡</div>
+      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Real-Time</h4>
+      <p className="text-[#2d2d2d]">Notifikasi instan saat donasi masuk, langsung tampil di overlay stream</p>
+    </div>
+    
+    <div className="feature-card bg-gradient-to-br from-[#d6c6b9] to-[#b8a492] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
+      <div className="text-5xl mb-4 group-hover:animate-bounce">💰</div>
+      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Mudah Dicairkan</h4>
+      <p className="text-[#2d2d2d]">Proses payout cepat dan transparan, dana langsung ke rekening Anda</p>
+    </div>
+  </div>
+</section>
+
+      {/* How It Works */}
+<section className="bg-[#2d2d2d] py-12 border-t-4 border-[#b8a492]">
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h3 className="text-3xl font-extrabold text-center text-[#b8a492] mb-3">
+      Cara Kerjanya Mudah!
+    </h3>
+    <p className="text-center text-[#b8a492] text-base mb-8">
+      Hanya 3 langkah untuk mulai menerima donasi
+    </p>
+    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="text-center step-card">
+        <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
+          1
+        </div>
+        <h4 className="text-xl font-bold text-[#b8a492] mb-3">Daftar Gratis</h4>
+        <p className="text-[#d6c6b9] text-base">
+          Buat akun creator dan atur profil Anda dengan mudah dalam hitungan menit
+        </p>
+      </div>
+      
+      <div className="text-center step-card">
+        <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
+          2
+        </div>
+        <h4 className="text-xl font-bold text-[#b8a492] mb-3">Bagikan Link</h4>
+        <p className="text-[#d6c6b9] text-base">
+          Share halaman donasi Anda di social media, bio, atau stream overlay
+        </p>
+      </div>
+      
+      <div className="text-center step-card">
+        <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
+          3
+        </div>
+        <h4 className="text-xl font-bold text-[#b8a492] mb-3">Terima Donasi</h4>
+        <p className="text-[#d6c6b9] text-base">
+          Fans bisa donasi dengan mudah, Anda langsung dapat notifikasi dan dana masuk
+        </p>
+      </div>
+    </div>
+    
+    <div className="text-center mt-12">
+      <p className="text-[#d6c6b9] text-lg mb-4">Punya pertanyaan? Cek panduan lengkap kami</p>
+      <Link href="/faq" className="inline-block bg-transparent text-[#b8a492] px-8 py-3 rounded-xl font-bold text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all duration-300">
+        Lihat FAQ & Bantuan
+      </Link>
+    </div>
+  </div>
+</section>
+
+      {/* CTA Section with Mascot */}
+<section className="py-12 border-t-4 border-[#b8a492]">
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div className="bg-gradient-to-r from-[#2d2d2d] to-[#4a4a4a] rounded-2xl border-4 border-[#b8a492] p-8 md:p-12">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="flex-1 text-center md:text-left">
+        <h3 className="text-3xl font-extrabold text-[#b8a492] mb-3">
+          Siap Mulai Perjalanan Anda?
+        </h3>
+        <p className="text-[#d6c6b9] text-base mb-5">
+          Daftar sekarang dan mulai terima donasi dari supporters Anda dengan mudah dan aman.
+        </p>
+        <Link href="/creator/register" className="inline-block bg-[#b8a492] text-[#2d2d2d] px-10 py-4 rounded-xl font-extrabold text-xl border-2 border-[#d6c6b9] hover:bg-[#d6c6b9] hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
+          🚀 Mulai Sekarang - Gratis!
+        </Link>
+      </div>
+      <div className="flex-shrink-0">
+        <img 
+          src="/maskot.png" 
+          alt="Maskot Nyumbangin" 
+          className="w-48 h-48 md:w-64 md:h-64 object-contain animate-bounce-slow"
+        />
+      </div>
+    </div>
+  </div>
   </div>
 </section>
 
