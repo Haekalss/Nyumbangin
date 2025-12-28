@@ -15,6 +15,8 @@ import StatsSection from '@/components/organisms/StatsSection';
 import LeaderboardModal from '@/components/organisms/LeaderboardModal';
 import HistoryModal from '@/components/organisms/HistoryModal';
 import { filterMessage } from '@/utils/messageFilter';
+import MobileBlocker from '@/components/MobileBlocker';
+import { getStartOfDayIndonesia, getTodayDonations } from '@/utils/dateUtils';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -199,14 +201,9 @@ export default function Dashboard() {
         setDonationEnabled(profileRes.data.creator.donationSettings.isEnabled);
       }
 
-      // Filter donations untuk hari ini (24 jam terakhir)
-      const now = new Date();
-      const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-      
-      const todayDonations = (donationsRes.data.data || []).filter(donation => {
-        const donationDate = new Date(donation.createdAt);
-        return donationDate >= twentyFourHoursAgo;
-      });
+      // Filter donations untuk hari ini (sejak midnight 00:00 WIB)
+      const allDonations = donationsRes.data.data || [];
+      const todayDonations = getTodayDonations(allDonations);
 
       // Notifikasi donasi baru
       if (showNewDonationNotif && donations.length > 0 && todayDonations.length > donations.length) {
@@ -537,6 +534,7 @@ export default function Dashboard() {
 
 
   return (
+    <MobileBlocker>
     <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
       {/* Header */}
       <Header user={user} openProfile={openProfile} />
@@ -708,5 +706,6 @@ export default function Dashboard() {
         body, .font-mono { font-family: 'IBM Plex Mono', 'Fira Mono', 'Roboto Mono', monospace; }
       `}</style>
     </div>
+    </MobileBlocker>
   );
 }

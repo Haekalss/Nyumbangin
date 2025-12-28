@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/db';
 import DonationShare from '@/models/DonationShare';
 import Creator from '@/models/Creator';
+import { formatDateIndonesia, getStartOfDayIndonesia } from '@/utils/dateUtils';
 
 export default async function handler(req, res) {
   const { username } = req.query;
@@ -21,10 +22,8 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Creator tidak ditemukan' });
     }
 
-    // Get current date in YYYY-MM-DD format (Indonesia timezone)
-    const now = new Date();
-    const indonesiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-    const todayDate = indonesiaTime.toISOString().split('T')[0];
+    // Get current date in YYYY-MM-DD format (Indonesia timezone WIB UTC+7)
+    const todayDate = formatDateIndonesia();
 
     // Get today's share count
     const todayShares = await DonationShare.countDocuments({
@@ -51,8 +50,8 @@ export default async function handler(req, res) {
       }
     ]);
 
-    // Get last 7 days statistics
-    const sevenDaysAgo = new Date(indonesiaTime);
+    // Get last 7 days statistics (from start of day 7 days ago)
+    const sevenDaysAgo = new Date(getStartOfDayIndonesia());
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
     const last7Days = await DonationShare.aggregate([

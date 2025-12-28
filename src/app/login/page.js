@@ -7,6 +7,7 @@ import { signIn, useSession } from "next-auth/react";
 import axios from "axios";
 import Link from "next/link";
 import toast from 'react-hot-toast';
+import MobileBlocker from '@/components/MobileBlocker';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -96,6 +97,7 @@ export default function LoginPage() {
   }
 
   return (
+    <MobileBlocker>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-[#2d2d2d] p-6 sm:p-8 rounded-xl border-4 border-[#b8a492]">
         <div>
@@ -211,5 +213,6 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+    </MobileBlocker>
   );
 }

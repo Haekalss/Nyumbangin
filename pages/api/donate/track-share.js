@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import DonationShare from '@/models/DonationShare';
+import { formatDateIndonesia } from '@/utils/dateUtils';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -21,10 +22,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Platform tidak valid' });
     }
 
-    // Get current date in YYYY-MM-DD format (Indonesia timezone)
-    const now = new Date();
-    const indonesiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-    const date = indonesiaTime.toISOString().split('T')[0];
+    // Get current date in YYYY-MM-DD format (Indonesia timezone WIB UTC+7)
+    const date = formatDateIndonesia();
 
     // Create share record
     const shareData = {

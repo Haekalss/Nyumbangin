@@ -15,6 +15,23 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(false);
   const router = useRouter();
 
+  // Check if device is mobile
+  const isMobile = () => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768;
+  };
+
+  const handleLoginClick = () => {
+    if (isMobile()) {
+      toast.error('Dashboard hanya bisa diakses melalui desktop. Silakan buka website ini di komputer/laptop.', {
+        duration: 5000,
+        icon: '🖥️',
+      });
+      return;
+    }
+    router.push('/login');
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') {
       setLoading(false);
@@ -141,9 +158,9 @@ export default function Home() {
                 </button>
               </>
             ) : (
-              <Link href="/login" className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all">
+              <button onClick={handleLoginClick} className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all">
                 Login
-              </Link>
+              </button>
             )}
           </nav>
           </div>
@@ -151,26 +168,26 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-5xl mx-auto text-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-center mb-8">
-          <img src="/logo.png" alt="Nyumbangin Logo" className="w-32 h-32 animate-bounce" />
+      <section className="max-w-5xl mx-auto text-center py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-center mb-6 md:mb-8">
+          <img src="/logo.png" alt="Nyumbangin Logo" className="w-24 h-24 md:w-32 md:h-32 animate-bounce" />
         </div>
-        <h2 className="text-5xl font-extrabold text-[#2d2d2d]">Buat Halaman Donasi Pribadi Anda</h2>
-        <p className="mt-4 text-lg text-[#2d2d2d] max-w-2xl mx-auto">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#2d2d2d]">Buat Halaman Donasi Pribadi Anda</h2>
+        <p className="mt-3 md:mt-4 text-base md:text-lg text-[#2d2d2d] max-w-2xl mx-auto">
           Nyumbangin adalah platform donasi digital yang memudahkan kreator menerima dukungan dari fans dan followers dengan aman, cepat, dan transparan.
         </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/creator/register" className="bg-[#b8a492] text-[#2d2d2d] px-8 py-4 rounded-xl font-extrabold text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
+        <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+          <Link href="/creator/register" className="bg-[#b8a492] text-[#2d2d2d] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
             Mulai Sebagai Creator
           </Link>
-          <button onClick={scrollToCreators} className="bg-[#2d2d2d] text-[#b8a492] px-8 py-4 rounded-xl font-extrabold text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]">
+          <button onClick={scrollToCreators} className="bg-[#2d2d2d] text-[#b8a492] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]">
             Lihat Creator
           </button>
         </div>
       </section>
 
       {/* Creator Carousel */}
-      <section id="creator-section" className="bg-[#2d2d2d] border-t-4 border-[#b8a492] py-8 overflow-hidden">
+      <section id="creator-section" className="bg-[#2d2d2d] border-t-4 border-[#b8a492] py-6 md:py-8 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-[#b8a492]">
           <h3 className="text-2xl font-bold text-center mb-6">Siapa Saja yang Sudah Bergabung?</h3>
           
@@ -297,15 +314,15 @@ export default function Home() {
       </section>
 
       {/* Keunggulan */}
-<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t-4 border-[#b8a492]">
-  <h3 className="text-3xl font-extrabold text-center text-[#2d2d2d] mb-3">
+<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12 border-t-4 border-[#b8a492]">
+  <h3 className="text-2xl md:text-3xl font-extrabold text-center text-[#2d2d2d] mb-3">
     Kenapa Pilih Nyumbangin?
   </h3>
   <p className="text-center text-[#2d2d2d] text-base mb-8 max-w-2xl mx-auto">
     Platform donasi terpercaya dengan fitur lengkap untuk mendukung kreator favorit Anda
   </p>
   
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
     <div className="feature-card bg-gradient-to-br from-[#b8a492] to-[#d6c6b9] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
       <div className="text-5xl mb-4 group-hover:animate-bounce">🎨</div>
       <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Desain Modern</h4>
@@ -333,16 +350,16 @@ export default function Home() {
 </section>
 
       {/* How It Works */}
-<section className="bg-[#2d2d2d] py-12 border-t-4 border-[#b8a492]">
+<section className="bg-[#2d2d2d] py-10 md:py-12 border-t-4 border-[#b8a492]">
   <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h3 className="text-3xl font-extrabold text-center text-[#b8a492] mb-3">
+    <h3 className="text-2xl md:text-3xl font-extrabold text-center text-[#b8a492] mb-3">
       Cara Kerjanya Mudah!
     </h3>
     <p className="text-center text-[#b8a492] text-base mb-8">
       Hanya 3 langkah untuk mulai menerima donasi
     </p>
     
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
       <div className="text-center step-card">
         <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
           1
@@ -384,18 +401,18 @@ export default function Home() {
 </section>
 
       {/* CTA Section with Mascot */}
-<section className="py-12 border-t-4 border-[#b8a492]">
+<section className="py-10 md:py-12 border-t-4 border-[#b8a492]">
   <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-  <div className="bg-gradient-to-r from-[#2d2d2d] to-[#4a4a4a] rounded-2xl border-4 border-[#b8a492] p-8 md:p-12">
-    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+  <div className="bg-gradient-to-r from-[#2d2d2d] to-[#4a4a4a] rounded-2xl border-4 border-[#b8a492] p-6 md:p-8 lg:p-12">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
       <div className="flex-1 text-center md:text-left">
-        <h3 className="text-3xl font-extrabold text-[#b8a492] mb-3">
+        <h3 className="text-2xl md:text-3xl font-extrabold text-[#b8a492] mb-3">
           Siap Mulai Perjalanan Anda?
         </h3>
-        <p className="text-[#d6c6b9] text-base mb-5">
+        <p className="text-[#d6c6b9] text-sm md:text-base mb-5">
           Daftar sekarang dan mulai terima donasi dari supporters Anda dengan mudah dan aman.
         </p>
-        <Link href="/creator/register" className="inline-block bg-[#b8a492] text-[#2d2d2d] px-10 py-4 rounded-xl font-extrabold text-xl border-2 border-[#d6c6b9] hover:bg-[#d6c6b9] hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
+        <Link href="/creator/register" className="inline-block bg-[#b8a492] text-[#2d2d2d] px-8 py-3 md:px-10 md:py-4 rounded-xl font-extrabold text-lg md:text-xl border-2 border-[#d6c6b9] hover:bg-[#d6c6b9] hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
           🚀 Mulai Sekarang - Gratis!
         </Link>
       </div>
@@ -403,7 +420,7 @@ export default function Home() {
         <img 
           src="/maskot.png" 
           alt="Maskot Nyumbangin" 
-          className="w-48 h-48 md:w-64 md:h-64 object-contain animate-bounce-slow"
+          className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain animate-bounce-slow"
         />
       </div>
     </div>
