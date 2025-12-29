@@ -20,7 +20,7 @@ jobs:
           echo "🔍 Using URL: https://nyumbangin.web.id/api/cron/archive-donations"
           
           # Make the request with better error handling
-          response=$(curl -X POST https://nyumbangin.web.id/api/cron/archive-donations \
+          response=$(curl -L -X POST https://nyumbangin.web.id/api/cron/archive-donations \
             -H "Content-Type: application/json" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             -w "\nHTTP_STATUS:%{http_code}" \
