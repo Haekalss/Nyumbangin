@@ -17,10 +17,10 @@ jobs:
       - name: 📦 Archive donations older than 24 hours
         run: |
           echo "🚀 Triggering archive process..."
-          echo "🔍 Using URL: https://nyumbangin.vercel.app/api/cron/archive-donations"
+          echo "🔍 Using URL: https://nyumbangin.web.id/api/cron/archive-donations"
           
           # Make the request with better error handling
-          response=$(curl -X POST https://nyumbangin.vercel.app/api/cron/archive-donations \
+          response=$(curl -X POST https://nyumbangin.web.id/api/cron/archive-donations \
             -H "Content-Type: application/json" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             -w "\nHTTP_STATUS:%{http_code}" \
@@ -52,4 +52,4 @@ jobs:
         if: always()
         run: |
           echo "📊 Checking archive status..."
-          curl -s https://nyumbangin.vercel.app/api/archive/status | jq '.' || true
+          curl -s https://nyumbangin.web.id/api/archive/status | jq '.' || true
