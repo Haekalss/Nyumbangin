@@ -1,212 +1,152 @@
-# Nyumbangin - Platform Donasi untuk Content Creator & Live Streamer
+# Nyumbangin
 
-**Nyumbangin** adalah platform donasi digital yang dirancang khusus untuk content creator, streamer, dan influencer Indonesia. Platform ini memungkinkan creator untuk menerima donasi dari audience dengan fitur notifikasi real-time yang dapat diintegrasikan langsung ke dalam live streaming atau konten mereka.
+Platform donasi digital untuk content creator dan live streamer Indonesia.
 
-## 🚀 Quick Start Development
+---
 
+## 🎯 What (Apa itu Nyumbangin?)
 
+**Nyumbangin** adalah platform donasi yang memungkinkan content creator menerima dukungan finansial dari audience mereka. Platform ini dilengkapi dengan notifikasi real-time yang bisa ditampilkan langsung di live streaming.
 
-**Development dengan webhook support:**
-```bash
-# Terminal 1: Run server
-npm run dev
+### Fitur Utama:
+- 💰 **Link Donasi Personal** - Setiap creator punya link unik untuk menerima donasi
+- 🎮 **Overlay Streaming** - Notifikasi donasi dan leaderboard yang bisa ditampilkan di OBS
+- 📊 **Dashboard Creator** - Kelola donasi, lihat statistik, dan track performa
+- 🔔 **Real-time Notification** - Donasi langsung muncul di stream dengan efek suara
+- 🏆 **Leaderboard Donatur** - Top donatur bulanan untuk meningkatkan engagement
 
-# Terminal 2: Run ngrok untuk webhook
-ngrok http 3000
+---
 
-# Set webhook URL di Midtrans dashboard
-# https://your-ngrok-url.ngrok.io/api/webhook/midtrans
+## 💡 Why (Kenapa Pakai Nyumbangin?)
 
+### Untuk Creator:
+- ✅ **Mudah Digunakan** - Setup cepat, langsung bisa terima donasi
+- ✅ **Profesional** - Tampilan overlay yang menarik untuk streaming
+- ✅ **Engagement Tinggi** - Leaderboard memotivasi audience untuk support lebih
+- ✅ **Aman** - Sistem payment gateway terintegrasi dengan Midtrans
+- ✅ **Gratis** - Tidak ada biaya bulanan untuk menggunakan platform
 
-## 🎯 Apa itu Nyumbangin?
+### Untuk Donatur:
+- ✅ **Praktis** - Donasi via QRIS, Virtual Account, atau metode payment lainnya
+- ✅ **Minimal Rp 1.000** - Bisa support creator dengan nominal kecil
+- ✅ **Pesan Personal** - Bisa kirim pesan yang ditampilkan di stream
+- ✅ **Transparansi** - Nama dan jumlah donasi langsung terlihat
 
-Nyumbangin adalah solusi lengkap untuk creator yang ingin:
-- **Menerima donasi** dari audience dengan mudah
-- **Menampilkan notifikasi donasi** secara real-time di live stream (OBS, TikTok Live Studio, dll)
-- **Mengelola donasi** melalui dashboard yang user-friendly
-- **Melihat leaderboard donatur** untuk engagement yang lebih baik
-- **Memiliki link donasi personal** yang mudah dibagikan
+---
 
-## 🚀 Fitur Utama
+## 👥 Who (Untuk Siapa?)
 
-### 💰 **Sistem Donasi Multi-Creator**
-- Setiap creator memiliki **username unik** dan **link donasi personal** (`/donate/username`)
-- Donasi langsung masuk tanpa perlu approval manual
-- Minimal donasi Rp 1.000 dengan sistem yang aman
-- Statistik donasi terpisah per creator
+### Content Creator & Streamer:
+- 🎮 **Gamers** - Streamer game di YouTube, Twitch, TikTok Live
+- 🎤 **Podcaster** - Content creator audio/video
+- 🎨 **Artist** - Digital artist, ilustrator yang live drawing
+- 📚 **Educator** - Pengajar online, tutor
+- 🎭 **Entertainer** - Comedian, performer, MC
 
-### 🎮 **Overlay untuk Live Streaming**
-- **Notifikasi Donasi Real-time**: Tampilkan nama donatur, jumlah, dan pesan secara otomatis
-- **Leaderboard Donatur**: Tampilkan top donatur bulan ini dengan ranking
-- **Kompatibel dengan OBS**: Browser source yang siap pakai untuk streaming
-- **Efek Suara**: Notifikasi audio otomatis saat ada donasi masuk
-- **Konfigurasi Fleksibel**: Atur ukuran, posisi, dan tampilan overlay
+### Audience/Donatur:
+- Siapa saja yang ingin mendukung creator favorit mereka
+- Penggemar setia yang ingin masuk leaderboard
+- Komunitas yang ingin apresiasi konten berkualitas
 
-### 📊 **Dashboard Creator**
-- **Manajemen Donasi**: Lihat, kelola, dan hapus donasi
-- **Statistik Real-time**: Total donasi, jumlah donatur, dan analytics
-- **Riwayat Harian**: Filter donasi berdasarkan tanggal
-- **Leaderboard Bulanan**: Lihat donatur terbaik yang reset setiap bulan
-- **Session Timeout**: Keamanan dengan auto-logout setelah 3 jam
+---
 
-### 🔔 **Notifikasi Real-time**
-- **WebSocket Integration**: Notifikasi instan saat ada donasi baru
-- **Sound Effects**: Efek suara kustomisasi untuk setiap donasi
-- **Animasi Smooth**: Transisi yang menarik untuk overlay
-- **Auto-hide**: Notifikasi hilang otomatis setelah beberapa detik
+## ⏰ When (Kapan Digunakan?)
 
-## 🎨 Halaman & Fitur
+### Saat Live Streaming:
+- Tampilkan notifikasi donasi real-time di layar
+- Motivasi audience dengan leaderboard donatur
+- Berterima kasih langsung saat ada donasi masuk
 
-### **Untuk Creator:**
-- **`/creator/register`** - Registrasi creator baru dengan username unik
-- **`/login`** - Login ke dashboard creator
-- **`/dashboard`** - Panel kontrol lengkap untuk mengelola donasi
-- **`/overlay/{username}/notifications`** - Halaman overlay notifikasi untuk OBS
-- **`/overlay/{username}/leaderboard`** - Halaman overlay leaderboard untuk OBS
+### Setiap Hari:
+- Share link donasi di bio social media
+- Post donasi goal di Instagram Story
+- Promosikan support link di video YouTube
 
-### **Untuk Donatur (Public):**
-- **`/donate/{username}`** - Halaman donasi creator dengan profil dan form donasi
-- **`/`** - Homepage platform dengan informasi umum
+### Event Khusus:
+- Fundraising untuk project baru
+- Charity stream untuk sosial
+- Anniversary atau milestone celebration
 
-## 🛠️ Teknologi yang Digunakan
+---
 
-### **Frontend:**
-- **Next.js 15** - React framework dengan App Router
-- **Tailwind CSS** - Styling yang responsive dan modern
-- **Axios** - HTTP client untuk API calls
-- **React Hot Toast** - Notifikasi yang elegant
+## 🌐 Where (Dimana Bisa Diakses?)
 
-### **Backend:**
-- **Next.js API Routes** - Serverless API endpoints (Vercel compatible)
-- **MongoDB** - Database NoSQL untuk menyimpan data
-- **Mongoose** - ODM untuk MongoDB
-- **JWT** - Authentication dengan session timeout 3 jam
-- **bcryptjs** - Password hashing yang aman
+### Website:
+**https://nyumbangin.web.id**
 
-### **External Services:**
-- **Midtrans** - Payment gateway untuk QRIS, VA, dll
-- **MongoDB Atlas** - Cloud database
-- **Vercel** - Serverless hosting platform
+### Halaman Penting:
+- **Homepage**: `https://nyumbangin.web.id`
+- **Registrasi**: `https://nyumbangin.web.id/creator/register`
+- **Login**: `https://nyumbangin.web.id/login`
+- **Link Donasi**: `https://nyumbangin.web.id/donate/[username]`
 
-## 📱 Cara Penggunaan
+### Kompatibilitas:
+- ✅ Desktop (untuk dashboard dan setup overlay)
+- ✅ Mobile (untuk halaman donasi)
+- ✅ OBS Studio (untuk streaming overlay)
+- ✅ TikTok Live Studio
+- ✅ Streamlabs OBS
 
-### **Untuk Creator:**
+---
 
-1. **Daftar sebagai Creator**
-   ```
-   1. Kunjungi /creator/register
-   2. Isi email, password, username unik, dan display name
-   3. Username akan menjadi link donasi: /donate/username
-   ```
+## 🚀 How (Bagaimana Cara Menggunakannya?)
 
-2. **Setup Live Streaming**
-   ```
-   1. Login ke dashboard
-   2. Copy link overlay notifikasi dan leaderboard
-   3. Tambahkan sebagai Browser Source di OBS
-   4. Atur posisi dan ukuran sesuai kebutuhan
-   ```
+### Untuk Creator:
 
-3. **Kelola Donasi**
-   ```
-   1. Monitor donasi real-time di dashboard
-   2. Lihat statistik dan leaderboard donatur
-   3. Kelola riwayat donasi harian/bulanan
-   ```
+#### 1️⃣ **Registrasi**
+1. Kunjungi `https://nyumbangin.web.id/creator/register`
+2. Pilih username unik (akan jadi link donasi kamu)
+3. Isi data diri dan buat password
+4. Verifikasi dan akun siap digunakan
 
-### **Untuk Donatur:**
+#### 2️⃣ **Setup Dashboard**
+1. Login di `https://nyumbangin.web.id/login`
+2. Lihat statistik donasi, total pemasukan, jumlah donatur
+3. Kelola donasi yang masuk
+4. Download QR code untuk share di media sosial
 
-1. **Berdonasi ke Creator**
-   ```
-   1. Kunjungi /donate/{username-creator}
-   2. Isi nama, jumlah donasi (min. Rp 1.000), dan pesan
-   3. Klik "Kirim Donasi"
-   4. Donasi langsung masuk dan muncul di overlay creator
-   ```
+#### 3️⃣ **Pasang Overlay di OBS**
+1. Buka OBS Studio
+2. Tambah **Browser Source**
+3. Copy paste URL overlay dari dashboard:
+   - Notifikasi: `/overlay/[username]/notifications`
+   - Leaderboard: `/overlay/[username]/leaderboard`
+4. Atur posisi dan ukuran sesuai layout stream
 
-## 🔧 Instalasi & Setup
+#### 4️⃣ **Promosikan Link Donasi**
+1. Share link donasi: `https://nyumbangin.web.id/donate/[username]`
+2. Pasang di bio Instagram, TikTok, YouTube
+3. Promosikan saat live streaming
+4. Post QR code di Instagram Story
 
-### **Prerequisites:**
-- Node.js 18+ 
-- MongoDB (local atau cloud)
-- Git
+### Untuk Donatur:
 
+#### 1️⃣ **Buka Link Donasi**
+- Klik link dari bio creator atau dari chat stream
+- Format: `https://nyumbangin.web.id/donate/[username-creator]`
 
-## 📊 Database Schema
+#### 2️⃣ **Isi Form Donasi**
+- Masukkan nama (akan ditampilkan di stream)
+- Pilih nominal atau input jumlah custom (min. Rp 1.000)
+- Tulis pesan untuk creator (opsional)
 
-### **User (Creator) Model:**
-```javascript
-{
-  email: String (unique, required),
-  password: String (hashed, required),
-  username: String (unique, required), // untuk link donasi
-  displayName: String (required),      // nama tampilan
-  description: String,                 // bio creator
-  role: String (default: 'admin'),
-  createdAt: Date,
-  updatedAt: Date
-}
-```
+#### 3️⃣ **Pilih Metode Pembayaran**
+- QRIS (scan dengan e-wallet apapun)
+- Virtual Account (Bank Transfer)
+- E-wallet langsung
+- Kartu Kredit/Debit
 
-### **Donation Model:**
-```javascript
-{
-  name: String (required),           // nama donatur
-  amount: Number (required),         // jumlah donasi
-  message: String,                   // pesan donatur
-  status: String (default: 'PAID'), // status donasi
-  merchant_ref: String (unique),     // referensi unik
-  createdBy: ObjectId (ref: 'Creator'), // creator penerima
-  createdByUsername: String,         // username creator
-  createdAt: Date,
-  updatedAt: Date
-}
-```
+#### 4️⃣ **Selesaikan Pembayaran**
+- Ikuti instruksi pembayaran
+- Setelah sukses, donasi langsung muncul di stream creator
+- Nama kamu masuk leaderboard (jika donasi cukup besar)
 
-## 🎯 Use Cases
+---
 
-### **Content Creator YouTube/TikTok:**
-- Tampilkan notifikasi donasi di video live streaming
-- Leaderboard donatur untuk meningkatkan engagement
-- Link donasi di bio untuk monetisasi konten
+## 📞 Contact & Support
 
-### **Live Streamer Gaming:**
-- Notifikasi donasi real-time saat streaming game
-- Sound effect kustomisasi untuk setiap donasi
-- Dashboard untuk tracking performa donasi
-
-### **Influencer & KOL:**
-- Platform donasi personal yang profesional
-- Analytics donasi untuk laporan sponsor
-- Engagement tools dengan leaderboard donatur
-
-## 🔒 Keamanan & Privasi
-
-- **JWT Authentication** dengan session timeout 3 jam
-- **Password Hashing** menggunakan bcryptjs
-- **Data Isolation** per creator (multi-tenant)
-- **Input Validation** untuk mencegah injection attacks
-- **Auto-logout** untuk keamanan session
-
-## ⚙️ Automated Tasks & Cron Jobs
-
-Platform ini menggunakan GitHub Actions untuk menjalankan tugas otomatis:
-
-### **Auto Archive Donations** (Setiap 6 jam)
-- Otomatis mengarsipkan donasi yang sudah lebih dari 24 jam
-- Memindahkan donasi ke collection `donation_history`
-- Update leaderboard setelah proses archive
-- Berjalan pada: 00:00, 06:00, 12:00, 18:00 UTC (07:00, 13:00, 19:00, 01:00 WIB)
-
-### **Update Leaderboard** (Setiap hari tengah malam WIB)
-- Refresh leaderboard bulanan untuk semua creator
-- Berjalan pada: 17:00 UTC (00:00 WIB)
-
-📚 **Troubleshooting**: Jika workflow gagal, baca [ARCHIVE_TROUBLESHOOTING.md](./ARCHIVE_TROUBLESHOOTING.md)
-
-## 📄 Lisensi
-
-Distributed under the MIT License. See `LICENSE` for more information.
+**Email**: support@nyumbangin.web.id  
+**Instagram**: @nyumbangin  
 
 ---
 
