@@ -4,9 +4,7 @@
 
 ## 🚀 Quick Start Development
 
-**Mau langsung testing donation tanpa ribet?** 
 
-👉 Baca [QUICKSTART.md](./QUICKSTART.md) - Setup ngrok untuk webhook yang work!
 
 **Development dengan webhook support:**
 ```bash
@@ -18,14 +16,7 @@ ngrok http 3000
 
 # Set webhook URL di Midtrans dashboard
 # https://your-ngrok-url.ngrok.io/api/webhook/midtrans
-```
 
-📚 **Dokumentasi:**
-- [QUICKSTART.md](./QUICKSTART.md) - Setup cepat tanpa script
-- [WEBHOOK_SETUP.md](./WEBHOOK_SETUP.md) - Setup webhook lengkap
-- [TESTING.md](./TESTING.md) - Guide testing donation
-
----
 
 ## 🎯 Apa itu Nyumbangin?
 
