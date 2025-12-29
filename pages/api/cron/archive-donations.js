@@ -1,39 +1,61 @@
-import { NextResponse } from 'next/server';
+// Auto-archive donations older than 24 hours
+// This endpoint should be called by a cron job every 6 hours
 import dbConnect from '@/lib/db';
 import Donation from '@/models/donations';
 import DonationHistory from '@/models/DonationHistory';
 import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+// Vercel Serverless Function Config
+export const config = {
+  maxDuration: 60,
+  api: {
+    bodyParser: true,
+    responseLimit: false,
+  },
+};
 
-export async function POST(request) {
-  console.log('=== CRON: ARCHIVE DONATIONS (App Router) ===');
+export default async function handler(req, res) {
+  console.log('=== CRON: ARCHIVE DONATIONS ===');
+  console.log('📝 Method:', req.method);
+  console.log('📝 Headers:', JSON.stringify(req.headers, null, 2));
   
-  try {
-    // Get headers
-    const cronSecret = request.headers.get('x-cron-secret');
-    
-    console.log('📝 Received cron request');
-    console.log('🔑 Secret provided:', cronSecret ? 'YES' : 'NO');
-    console.log('🔑 Expected secret:', process.env.CRON_SECRET ? 'SET' : 'NOT SET');
-    
-    // Verify cron secret for security (skip in development)
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    
-    if (!isDevelopment && cronSecret !== process.env.CRON_SECRET) {
-      console.log('❌ Unauthorized: Invalid cron secret');
-      return NextResponse.json(
-        { error: 'Unauthorized', details: 'Invalid or missing cron secret' },
-        { status: 401 }
-      );
-    }
-    
-    if (isDevelopment) {
-      console.log('⚠️  Running in DEVELOPMENT mode - security check skipped');
-    }
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-cron-secret');
+  
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  // Only allow POST method
+  if (req.method !== 'POST') {
+    console.log('❌ Method not allowed:', req.method);
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      received: req.method,
+      allowed: ['POST']
+    });
+  }
+  
+  // Verify cron secret for security (skip in development)
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const cronSecret = req.headers['x-cron-secret'];
+  
+  console.log('🔑 Secret provided:', cronSecret ? 'YES' : 'NO');
+  console.log('🔑 Expected secret:', process.env.CRON_SECRET ? 'SET' : 'NOT SET');
+  
+  if (!isDevelopment && cronSecret !== process.env.CRON_SECRET) {
+    console.log('❌ Unauthorized: Invalid cron secret');
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  if (isDevelopment) {
+    console.log('⚠️  Running in DEVELOPMENT mode - security check skipped');
+  }
 
+  try {
     await dbConnect();
     console.log('✅ Database connected');
     
@@ -102,31 +124,16 @@ export async function POST(request) {
     console.log('=== ARCHIVE SUMMARY ===');
     console.log(JSON.stringify(summary, null, 2));
     
-    return NextResponse.json(summary);
+    return res.status(200).json(summary);
   } catch (error) {
     console.error('=== ❌ CRON ERROR ===');
     console.error('Error details:', error);
     console.error('Stack trace:', error.stack);
     
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Server error', 
-        details: error.message 
-      },
-      { status: 500 }
-    );
+    return res.status(500).json({ 
+      success: false,
+      error: 'Server error', 
+      details: error.message 
+    });
   }
-}
-
-// Handle OPTIONS for CORS
-export async function OPTIONS(request) {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, x-cron-secret',
-    },
-  });
 }
