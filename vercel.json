@@ -1,8 +1,4 @@
 {
-  "crons": [{
-    "path": "/api/cron/archive-donations",
-    "schedule": "0 0,6,12,18 * * *"
-  }],
   "headers": [
     {
       "source": "/api/(.*)",
