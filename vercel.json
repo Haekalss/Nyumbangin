@@ -18,7 +18,7 @@
     }
   ],
   "functions": {
-    "pages/api/cron/*.js": {
+    "src/app/api/cron/*/route.js": {
       "maxDuration": 60
     }
   }
