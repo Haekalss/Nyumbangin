@@ -13,6 +13,7 @@ export default function MediaShareOverlay() {
   const [isPlaying, setIsPlaying] = useState(false);
   const playerRef = useRef(null);
   const intervalRef = useRef(null);
+  const youtubePlayerRef = useRef(null);
 
   // Fetch queue
   const fetchQueue = async () => {
@@ -102,8 +103,76 @@ export default function MediaShareOverlay() {
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      
+      // Initialize player when API is ready
+      window.onYouTubeIframeAPIReady = () => {
+        console.log('✅ YouTube IFrame API ready');
+      };
     }
   }, []);
+
+  // Initialize YouTube Player when video changes
+  useEffect(() => {
+    if (!currentVideo || !window.YT) return;
+
+    const initPlayer = () => {
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.destroy();
+      }
+
+      youtubePlayerRef.current = new window.YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        videoId: currentVideo.videoId,
+        playerVars: {
+          autoplay: 1,
+          mute: 0, // Unmuted for OBS Browser Source
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+          start: 0,
+          end: currentVideo.requestedDuration,
+          enablejsapi: 1,
+          origin: window.location.origin,
+          playsinline: 1
+        },
+        events: {
+          onReady: (event) => {
+            console.log('▶️ YouTube player ready');
+            event.target.setVolume(100);
+            event.target.unMute();
+            event.target.playVideo();
+            console.log('🔊 Playing with sound');
+          },
+          onStateChange: (event) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              console.log('▶️ Video is playing');
+            } else if (event.data === window.YT.PlayerState.ENDED) {
+              console.log('⏹️ Video ended');
+            }
+          }
+        }
+      });
+    };
+
+    // Wait for API to be ready
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    return () => {
+      if (youtubePlayerRef.current) {
+        try {
+          youtubePlayerRef.current.destroy();
+        } catch (e) {
+          console.error('Error destroying player:', e);
+        }
+      }
+    };
+  }, [currentVideo]);
 
   // Fetch queue periodically
   useEffect(() => {
@@ -119,6 +188,85 @@ export default function MediaShareOverlay() {
     };
   }, [username]);
 
+  // Listen for replay trigger from dashboard
+  useEffect(() => {
+    const handleReplayTrigger = (e) => {
+      if (e.key === 'mediashare-replay-trigger' && e.newValue) {
+        try {
+          const replayData = JSON.parse(e.newValue);
+          console.log('🔄 Replay media share triggered:', replayData);
+          
+          // Extract video ID from YouTube URL
+          const videoId = extractVideoId(replayData.youtubeUrl);
+          if (!videoId) {
+            console.error('❌ Invalid YouTube URL for replay');
+            return;
+          }
+          
+          // Create temporary media share object for replay
+          const replayVideo = {
+            _id: `replay-${Date.now()}`,
+            videoId: videoId,
+            donorName: replayData.donorName,
+            amount: replayData.amount,
+            message: replayData.message || '',
+            requestedDuration: replayData.duration || 30,
+            isReplay: true
+          };
+          
+          // Stop current video if any and play replay
+          if (currentVideo) {
+            console.log('⏸️ Pausing current video for replay');
+          }
+          
+          setCurrentVideo(replayVideo);
+          setIsPlaying(true);
+          
+          // Auto-finish replay after duration
+          setTimeout(() => {
+            console.log('✅ Replay finished');
+            setCurrentVideo(null);
+            setIsPlaying(false);
+            
+            // Resume normal queue after replay
+            fetchQueue();
+          }, replayVideo.requestedDuration * 1000);
+          
+        } catch (error) {
+          console.error('❌ Error handling replay trigger:', error);
+        }
+      }
+    };
+
+    // Listen to storage events
+    window.addEventListener('storage', handleReplayTrigger);
+    
+    return () => {
+      window.removeEventListener('storage', handleReplayTrigger);
+    };
+  }, [currentVideo]);
+
+  // Helper function to extract video ID from YouTube URL
+  const extractVideoId = (url) => {
+    if (!url) return null;
+    
+    // Handle various YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+      /youtube\.com\/embed\/([^&\n?#]+)/,
+      /youtube\.com\/v\/([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    return null;
+  };
+
   if (!currentVideo) {
     return (
       <div className="fixed inset-0 bg-transparent" />
@@ -129,14 +277,9 @@ export default function MediaShareOverlay() {
     <div className="fixed inset-0 bg-black flex items-center justify-center">
       {/* Video Player */}
       <div className="relative w-full h-full max-w-5xl max-h-[80vh] mx-auto">
-        <iframe
-          key={currentVideo._id} 
-          ref={playerRef}
+        <div 
+          id="youtube-player"
           className="w-full h-full"
-          src={`https://www.youtube.com/embed/${currentVideo.videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&start=0&end=${currentVideo.requestedDuration}`}
-          title="Media Share"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
         />
 
         {/* Donor Info Overlay */}

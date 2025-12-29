@@ -490,6 +490,34 @@ export default function Dashboard() {
   // Show notification preview when clicking on donation row
   const showNotificationPreview = async (donation) => {
     try {
+      // Check if this is a media share donation
+      if (donation.mediaShareRequest?.enabled && donation.mediaShareRequest?.youtubeUrl) {
+        // This is a media share - trigger media share overlay instead
+        const mediaShareData = {
+          donorName: donation.name,
+          amount: donation.amount,
+          youtubeUrl: donation.mediaShareRequest.youtubeUrl,
+          duration: donation.mediaShareRequest.duration || 0,
+          message: donation.message || '',
+          timestamp: Date.now(),
+          isReplay: true // Flag to indicate this is a replay
+        };
+        
+        // Store in localStorage for media share overlay to pick up
+        localStorage.setItem('mediashare-replay-trigger', JSON.stringify(mediaShareData));
+        
+        // Trigger storage event for media share overlay pages
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'mediashare-replay-trigger',
+          newValue: JSON.stringify(mediaShareData)
+        }));
+        
+        // Show toast for confirmation
+        toast.success('Preview media share dikirim ke halaman overlay media share');
+        return;
+      }
+      
+      // Regular donation notification
       // Fetch filtered words terlebih dahulu
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
