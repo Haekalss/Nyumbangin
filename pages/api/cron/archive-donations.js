@@ -1,7 +1,7 @@
 // Auto-archive donations older than 24 hours
 // This endpoint should be called by a cron job every 6 hours
 import dbConnect from '@/lib/db';
-import Creator from '@/models/creator';
+import Creator from '@/models/Creator';
 import Donation from '@/models/donations';
 import DonationHistory from '@/models/DonationHistory';
 import MonthlyLeaderboard from '@/models/MonthlyLeaderboard';
