@@ -138,7 +138,10 @@ export default async function handler(req, res) {
       // Kirim email notifikasi payout sudah ditransfer
       if (payout.creatorId?.email) {
         try {
-          await sendPayoutApprovedEmail({
+          console.log(`📧 Attempting to send email to: ${payout.creatorId.email}`);
+          console.log(`📧 SMTP configured: ${!!process.env.SMTP_USER}`);
+          
+          const emailResult = await sendPayoutApprovedEmail({
             creatorEmail: payout.creatorId.email,
             creatorName: payout.creatorId.displayName || payout.creatorId.username,
             amount: payout.finalAmount || payout.amount,
@@ -149,11 +152,18 @@ export default async function handler(req, res) {
               accountName: payout.creatorId.payoutSettings?.accountName,
             }
           });
-          console.log(`📧 Email payout processed (sudah ditransfer) sent to ${payout.creatorId.email}`);
+          
+          if (emailResult.success) {
+            console.log(`✅ Email payout processed sent successfully to ${payout.creatorId.email}`);
+          } else {
+            console.error(`❌ Email failed to send: ${emailResult.error}`);
+          }
         } catch (emailError) {
-          console.error('❌ Failed to send payout processed email:', emailError);
+          console.error('❌ Failed to send payout processed email:', emailError.message);
           // Don't fail the request if email fails
         }
+      } else {
+        console.warn(`⚠️ Creator email not found for ${payout.creatorUsername}`);
       }
     }
     
@@ -168,18 +178,27 @@ export default async function handler(req, res) {
     if (status === 'REJECTED') {
       if (payout.creatorId?.email) {
         try {
-          await sendPayoutRejectedEmail({
+          console.log(`📧 Attempting to send rejection email to: ${payout.creatorId.email}`);
+          
+          const emailResult = await sendPayoutRejectedEmail({
             creatorEmail: payout.creatorId.email,
             creatorName: payout.creatorId.displayName || payout.creatorId.username,
             amount: payout.amount,
             payoutReference: payout.payoutReference,
             reason: notes || 'Tidak ada keterangan dari admin.'
           });
-          console.log(`📧 Email payout rejected sent to ${payout.creatorId.email}`);
+          
+          if (emailResult.success) {
+            console.log(`✅ Email payout rejected sent successfully to ${payout.creatorId.email}`);
+          } else {
+            console.error(`❌ Email failed to send: ${emailResult.error}`);
+          }
         } catch (emailError) {
-          console.error('❌ Failed to send payout rejected email:', emailError);
+          console.error('❌ Failed to send payout rejected email:', emailError.message);
           // Don't fail the request if email fails
         }
+      } else {
+        console.warn(`⚠️ Creator email not found for ${payout.creatorUsername}`);
       }
     }
     
