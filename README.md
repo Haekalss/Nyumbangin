@@ -91,6 +91,43 @@ Platform donasi digital untuk content creator dan live streamer Indonesia.
 
 ## 🚀 How (Bagaimana Cara Menggunakannya?)
 
+### 🔧 Setup Development:
+
+#### 1️⃣ **Clone Repository**
+```bash
+git clone https://github.com/yourusername/nyumbangin.git
+cd nyumbangin
+```
+
+#### 2️⃣ **Install Dependencies**
+```bash
+npm install
+```
+
+#### 3️⃣ **Setup Environment Variables**
+```bash
+# Copy template
+cp .env.example .env.local
+
+# Edit .env.local dengan credentials kamu
+```
+
+📚 **Panduan Lengkap Dapat Credentials**
+
+Minimal yang perlu diisi:
+- `MONGODB_URI` - Database connection
+- `JWT_SECRET` - Generate: `node generate-secret.js`
+- `MIDTRANS_*` - Payment gateway (sandbox)
+- `SMTP_*` - Email service (opsional)
+
+#### 4️⃣ **Run Development Server**
+```bash
+npm run dev
+```
+Buka: http://localhost:3000
+
+---
+
 ### Untuk Creator:
 
 #### 1️⃣ **Registrasi**
@@ -143,13 +180,24 @@ Platform donasi digital untuk content creator dan live streamer Indonesia.
 
 ---
 
-## 📞 Contact & Support
+## � Email Notifications
 
-**Email**: support@nyumbangin.web.id  
+Platform ini dilengkapi dengan sistem notifikasi email otomatis untuk payout:
+
+### Fitur Email:
+- ✅ **Auto-send saat payout approved** - Creator langsung dapat notifikasi via email
+- ✅ **Auto-send saat payout rejected** - Dengan alasan penolakan yang jelas
+- ✅ **Beautiful HTML template** - Email profesional dengan design menarik
+- ✅ **Detail lengkap** - Jumlah, referensi, dan informasi bank
+
+---
+
+## �📞 Contact & Support
+
+**Email**: admin@nyumbangin.web.id  
 **Instagram**: @nyumbangin  
 
 ---
 
 **Nyumbangin** - Empowering Indonesian Content Creators 🇮🇩
 
-*Made with ❤️ for Indonesian Creator Community*

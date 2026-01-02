@@ -4,6 +4,7 @@ import Creator from '@/models/Creator';
 import Admin from '@/models/Admin';
 import Donation from '@/models/donations';
 import { verifyToken } from '@/lib/jwt';
+import { sendPayoutApprovedEmail, sendPayoutRejectedEmail } from '@/lib/email';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -109,7 +110,7 @@ export default async function handler(req, res) {
     payout.adminNote = notes;
     await payout.save();
     
-    // Jika PROCESSED, mark donasi sebagai sudah dicairkan (isPaidOut = true)
+    // Jika PROCESSED (sudah ditransfer ke bank), mark donasi dan kirim email
     if (status === 'PROCESSED') {
       // Mark semua donasi PAID yang belum dicairkan sebagai sudah dicairkan
       const updateResult = await Donation.updateMany(
@@ -130,9 +131,56 @@ export default async function handler(req, res) {
         }
       );
       
-      console.log(`✅ Payout PROCESSED for ${payout.creatorUsername}:`);
+      console.log(`✅ Payout PROCESSED (Sudah ditransfer) for ${payout.creatorUsername}:`);
       console.log(`   - ${updateResult.modifiedCount} donations marked as paid out`);
       console.log(`   - Payout amount: Rp ${payout.amount.toLocaleString('id-ID')}`);
+      
+      // Kirim email notifikasi payout sudah ditransfer
+      if (payout.creatorId?.email) {
+        try {
+          await sendPayoutApprovedEmail({
+            creatorEmail: payout.creatorId.email,
+            creatorName: payout.creatorId.displayName || payout.creatorId.username,
+            amount: payout.finalAmount || payout.amount,
+            payoutReference: payout.payoutReference,
+            bankInfo: {
+              bankName: payout.creatorId.payoutSettings?.bankName,
+              accountNumber: payout.creatorId.payoutSettings?.accountNumber,
+              accountName: payout.creatorId.payoutSettings?.accountName,
+            }
+          });
+          console.log(`📧 Email payout processed (sudah ditransfer) sent to ${payout.creatorId.email}`);
+        } catch (emailError) {
+          console.error('❌ Failed to send payout processed email:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
+    }
+    
+    // Jika APPROVED (disetujui tapi belum ditransfer), hanya log
+    if (status === 'APPROVED') {
+      console.log(`✅ Payout APPROVED (Menunggu transfer) for ${payout.creatorUsername}`);
+      console.log(`   - Payout amount: Rp ${payout.amount.toLocaleString('id-ID')}`);
+      console.log(`   - Email akan dikirim setelah status PROCESSED`);
+    }
+    
+    // Jika REJECTED, kirim email notifikasi penolakan
+    if (status === 'REJECTED') {
+      if (payout.creatorId?.email) {
+        try {
+          await sendPayoutRejectedEmail({
+            creatorEmail: payout.creatorId.email,
+            creatorName: payout.creatorId.displayName || payout.creatorId.username,
+            amount: payout.amount,
+            payoutReference: payout.payoutReference,
+            reason: notes || 'Tidak ada keterangan dari admin.'
+          });
+          console.log(`📧 Email payout rejected sent to ${payout.creatorId.email}`);
+        } catch (emailError) {
+          console.error('❌ Failed to send payout rejected email:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
     }
     
     return res.status(200).json({ success: true, data: payout });
