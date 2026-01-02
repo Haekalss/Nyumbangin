@@ -67,7 +67,52 @@ export default function AdminPage() {
     }
   };
   const handleDelete = async (creatorId) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus creator ini?')) return;
+    // Custom toast confirmation
+    const confirmDelete = () => {
+      return new Promise((resolve) => {
+        toast((t) => (
+          <div className="flex flex-col gap-3">
+            <div className="font-bold text-[#2d2d2d] dark:text-[#f5e9da]">
+              Hapus Creator?
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Akun creator ini akan dihapus permanen beserta semua data terkait
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(false);
+                }}
+              >
+                Batal
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(true);
+                }}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        ), { 
+          duration: Infinity,
+          style: {
+            background: '#fff',
+            padding: '16px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }
+        });
+      });
+    };
+
+    const confirmed = await confirmDelete();
+    if (!confirmed) return;
     
     try {
       const token = localStorage.getItem("token");
