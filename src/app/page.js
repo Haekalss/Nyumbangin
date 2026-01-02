@@ -180,9 +180,9 @@ export default function Home() {
           <Link href="/creator/register" className="bg-[#b8a492] text-[#2d2d2d] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
             Mulai Sebagai Creator
           </Link>
-          <button onClick={scrollToCreators} className="bg-[#2d2d2d] text-[#b8a492] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]">
+          <Link href="/coming-soon" className="bg-[#2d2d2d] text-[#b8a492] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]">
             Lihat Creator
-          </button>
+          </Link>
         </div>
       </section>
 

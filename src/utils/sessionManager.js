@@ -132,9 +132,9 @@ export class SessionManager {
       position: 'top-center'
     });
 
-    // Redirect to login
+    // Redirect to landing page
     setTimeout(() => {
-      router.push('/login');
+      router.push('/');
       // Reset flag setelah redirect
       this.isManualLogout = false;
     }, 500);
