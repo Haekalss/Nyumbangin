@@ -57,7 +57,7 @@ export function useProfileForm(initialUser, onSuccess) {
         payoutAccountHolder: initialUser.payoutAccountHolder || ''
       };
     });
-  }, [initialUser?._id, initialUser?.username]);
+  }, [initialUser]);
 
   const validate = () => {
     if (!formData.displayName || !formData.username) {

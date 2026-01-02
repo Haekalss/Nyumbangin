@@ -38,25 +38,17 @@ export default function Dashboard() {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [profileScrollTo, setProfileScrollTo] = useState(null); // 'payout' | 'basic' | null
-  const [profileInitUser, setProfileInitUser] = useState(null);
-  const [donationEnabled, setDonationEnabled] = useState(true);
-  const [togglingDonation, setTogglingDonation] = useState(false);
-  const { formData: profileFormData, setFormData: setProfileFormData, submit: submitProfile, loading: profileLoading, payoutLocked } = useProfileForm(profileInitUser, (updatedUser) => {
+  const { formData: profileFormData, setFormData: setProfileFormData, submit: submitProfile, loading: profileLoading, payoutLocked } = useProfileForm(user, (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    setProfileInitUser(updatedUser); // Update profileInitUser dengan data terbaru
     setShowProfile(false);
     
     // Refresh dashboard data setelah update profile/payout
     fetchData();
   });
 
-  // Sync profileInitUser with user when user changes (e.g., after profile update)
-  useEffect(() => {
-    if (user && showProfile) {
-      setProfileInitUser(user);
-    }
-  }, [user, showProfile]);
+  const [donationEnabled, setDonationEnabled] = useState(true);
+  const [togglingDonation, setTogglingDonation] = useState(false);
 
   // Handle OAuth callback - Generate JWT if needed
   useEffect(() => {
@@ -460,7 +452,6 @@ export default function Dashboard() {
   };
 
   const openProfile = (scrollTo = null) => {
-    setProfileInitUser(user);
     setProfileScrollTo(scrollTo);
     setShowProfile(true);
   };
