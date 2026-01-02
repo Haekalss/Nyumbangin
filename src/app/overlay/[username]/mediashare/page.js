@@ -132,14 +132,15 @@ export default function MediaShareOverlay() {
           rel: 0,
           showinfo: 0,
           start: 0,
-          end: currentVideo.requestedDuration,
+          // Don't use 'end' parameter - let video play naturally
+          // We'll handle stopping via setTimeout
           enablejsapi: 1,
           origin: window.location.origin,
           playsinline: 1
         },
         events: {
           onReady: (event) => {
-            console.log('▶️ YouTube player ready');
+            console.log('▶️ YouTube player ready, duration:', currentVideo.requestedDuration, 'seconds');
             event.target.setVolume(100);
             event.target.unMute();
             event.target.playVideo();
@@ -149,7 +150,7 @@ export default function MediaShareOverlay() {
             if (event.data === window.YT.PlayerState.PLAYING) {
               console.log('▶️ Video is playing');
             } else if (event.data === window.YT.PlayerState.ENDED) {
-              console.log('⏹️ Video ended');
+              console.log('⏹️ Video ended naturally');
             }
           }
         }
