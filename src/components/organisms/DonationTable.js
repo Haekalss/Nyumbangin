@@ -13,6 +13,7 @@ const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
         <tr>
           <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Donatur</th>
           <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Jumlah</th>
+          <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Tipe</th>
           <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Status</th>
           <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Tanggal</th>
           <th className="px-6 py-3 text-left text-xs font-bold text-[#b8a492] uppercase tracking-wider font-mono">Aksi</th>
@@ -21,6 +22,7 @@ const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
       <tbody className="bg-[#2d2d2d] divide-y divide-[#b8a492]/10">
         {donations.map((donation) => {
           const isPending = donation.status === 'PENDING';
+          const isMediaShare = donation.mediaShareRequest?.enabled;
           
           return (
             <tr
@@ -36,6 +38,17 @@ const DonationTable = ({ donations, onDelete, onPreviewNotification }) => {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-bold text-[#b8a492] font-mono">{formatRupiah(donation.amount)}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {isMediaShare ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                    🎬 Media Share
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#f5e9da] text-[#2d2d2d] border border-[#d6c6b9]">
+                    💰 Donasi
+                  </span>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <StatusBadge status={donation.status || 'PAID'}>{donation.status || 'PAID'}</StatusBadge>
