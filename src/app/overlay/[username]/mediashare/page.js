@@ -269,9 +269,7 @@ export default function MediaShareOverlay() {
   };
 
   if (!currentVideo) {
-    return (
-      <div className="fixed inset-0 bg-transparent" />
-    );
+    return null;
   }
 
   return (

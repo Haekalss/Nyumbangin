@@ -282,7 +282,7 @@ export default function NotificationsOverlay() {
       {/* Notification container (always mounted, display controlled) */}
       <div 
         ref={notificationRef}
-        className="fixed inset-0 z-50 items-center justify-center"
+        className="fixed inset-0 z-50 flex items-center justify-center"
         style={{ display: 'none' }}
       >
         <div className="bg-[#b8a492] text-[#2d2d2d] px-8 py-6 rounded-xl border-4 border-[#2d2d2d] flex flex-col gap-2 shadow-lg" style={{ minWidth: 400, maxWidth: 600 }}>
