@@ -317,7 +317,7 @@ export const sendPayoutApprovedEmail = async ({ creatorEmail, creatorName, amoun
           <p class="footer-subtitle">Platform Donasi untuk Creator Indonesia</p>
           <p class="footer-note">
             Email ini dikirim otomatis. Jangan balas email ini.<br>
-            Untuk bantuan, hubungi support@nyumbangin.web.id
+            Untuk bantuan, hubungi nyumbangin8@gmail.com
           </p>
         </div>
       </div>
@@ -552,7 +552,7 @@ export const sendPayoutRejectedEmail = async ({ creatorEmail, creatorName, amoun
           <p class="footer-subtitle">Platform Donasi untuk Creator Indonesia</p>
           <p class="footer-note">
             Email ini dikirim otomatis. Jangan balas email ini.<br>
-            Untuk bantuan, hubungi admin@nyumbangin.web.id
+            Untuk bantuan, hubungi nyumbangin8@gmail.com
           </p>
         </div>
       </div>
