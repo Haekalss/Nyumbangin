@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import axios from 'axios';
@@ -49,6 +49,9 @@ export default function Dashboard() {
 
   const [donationEnabled, setDonationEnabled] = useState(true);
   const [togglingDonation, setTogglingDonation] = useState(false);
+  
+  // Ref untuk track jumlah donasi terakhir (untuk polling)
+  const lastDonationCountRef = useRef(0);
 
   // Handle OAuth callback - Generate JWT if needed
   useEffect(() => {
@@ -109,15 +112,15 @@ export default function Dashboard() {
 
     initialize();
 
-    // Polling untuk check donasi baru setiap 30 detik (hanya jika tab active)
+    // Polling otomatis setiap 10 detik untuk refresh data
     let donationPolling;
 
     const startPolling = () => {
       donationPolling = setInterval(() => {
         if (isActive && document.visibilityState === 'visible') {
-          fetchData(true);
+          fetchData(true); // Auto refresh dengan notif jika ada donasi baru
         }
-      }, 30 * 1000);
+      }, 10 * 1000); // 10 detik
     };
 
     // Start polling setelah initial load
@@ -188,6 +191,13 @@ export default function Dashboard() {
         axios.get('/api/user/profile', config)
       ]);
 
+      // Update user state with fresh profile data including payout fields
+      if (profileRes.data.user) {
+        const updatedUser = profileRes.data.user;
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+
       // Set donation enabled status dari profile
       if (profileRes.data.creator?.donationSettings?.isEnabled !== undefined) {
         setDonationEnabled(profileRes.data.creator.donationSettings.isEnabled);
@@ -208,6 +218,9 @@ export default function Dashboard() {
 
       setDonations(todayDonations);
       setStats(statsRes.data.stats || {});
+      
+      // Update ref untuk polling comparison
+      lastDonationCountRef.current = todayDonations.length;
     } catch (error) {
       console.error('Error fetching data:', error);
       

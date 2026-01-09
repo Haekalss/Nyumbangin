@@ -37,6 +37,11 @@ export default async function handler(req, res) {
         creatorObj.profileImage = `/api/user/profile-image/${creator._id}`;
       }
       
+      // Explicitly ensure payout virtual fields are included
+      creatorObj.payoutBankName = creator.payoutBankName || '';
+      creatorObj.payoutAccountNumber = creator.payoutAccountNumber || '';
+      creatorObj.payoutAccountHolder = creator.payoutAccountHolder || '';
+      
       // Add isPayoutReady status
       creatorObj.isPayoutReady = creator.hasCompletePayoutSettings();
       
@@ -50,7 +55,7 @@ export default async function handler(req, res) {
         isPayoutReady: creatorObj.isPayoutReady
       });
       
-      return res.status(200).json({ success: true, user: creatorObj });
+      return res.status(200).json({ success: true, user: creatorObj, creator: creatorObj });
     }
 
     const { 
@@ -180,6 +185,11 @@ export default async function handler(req, res) {
     if (currentCreator.profileImageId) {
       sanitized.profileImage = `/api/user/profile-image/${currentCreator._id}`;
     }
+    
+    // Explicitly ensure payout virtual fields are included
+    sanitized.payoutBankName = currentCreator.payoutBankName || '';
+    sanitized.payoutAccountNumber = currentCreator.payoutAccountNumber || '';
+    sanitized.payoutAccountHolder = currentCreator.payoutAccountHolder || '';
     
     // Add isPayoutReady status
     sanitized.isPayoutReady = currentCreator.hasCompletePayoutSettings();

@@ -4,7 +4,7 @@ import Button from '../atoms/Button';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
-const ShareModal = ({ isOpen, onClose, creatorUsername, donationId }) => {
+const ShareModal = ({ isOpen, onClose, creatorUsername, donationId, onShare }) => {
   const [copying, setCopying] = useState(false);
   const [sharing, setSharing] = useState(false);
 
@@ -34,6 +34,12 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId }) => {
       await navigator.clipboard.writeText(donationUrl);
       await trackShare('copy');
       toast.success('Link berhasil disalin!');
+      
+      // Auto close modal and trigger callback
+      setTimeout(() => {
+        onClose();
+        if (onShare) onShare();
+      }, 500);
     } catch (error) {
       toast.error('Gagal menyalin link');
     } finally {
@@ -50,6 +56,12 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId }) => {
     window.open(whatsappUrl, '_blank');
     setSharing(false);
     toast.success('Membuka WhatsApp...');
+    
+    // Auto close modal and trigger callback
+    setTimeout(() => {
+      onClose();
+      if (onShare) onShare();
+    }, 500);
   };
 
   const handleTwitterShare = async () => {
@@ -60,6 +72,12 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId }) => {
     window.open(twitterUrl, '_blank');
     setSharing(false);
     toast.success('Membuka Twitter...');
+    
+    // Auto close modal and trigger callback
+    setTimeout(() => {
+      onClose();
+      if (onShare) onShare();
+    }, 500);
   };
 
   const handleFacebookShare = async () => {
@@ -69,6 +87,12 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId }) => {
     window.open(facebookUrl, '_blank');
     setSharing(false);
     toast.success('Membuka Facebook...');
+    
+    // Auto close modal and trigger callback
+    setTimeout(() => {
+      onClose();
+      if (onShare) onShare();
+    }, 500);
   };
 
   const handleTelegramShare = async () => {
@@ -79,6 +103,12 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId }) => {
     window.open(telegramUrl, '_blank');
     setSharing(false);
     toast.success('Membuka Telegram...');
+    
+    // Auto close modal and trigger callback
+    setTimeout(() => {
+      onClose();
+      if (onShare) onShare();
+    }, 500);
   };
 
   return (

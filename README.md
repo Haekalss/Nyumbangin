@@ -191,7 +191,29 @@ Platform ini dilengkapi dengan sistem notifikasi email otomatis untuk payout:
 - ✅ **Detail lengkap** - Jumlah, referensi, dan informasi bank
 
 ---
+## 📚 Dokumentasi
 
+Project ini dilengkapi dengan 2 set dokumentasi lengkap:
+
+### 👥 **[User Guide](user-guide/)** - Panduan Penggunaan Aplikasi
+Untuk end users yang ingin menggunakan platform:
+- 💝 **Donatur** - Cara donasi, metode pembayaran, troubleshooting
+- 🎨 **Creator** - Setup akun, menerima donasi, payout
+- 👨‍💼 **Admin** - Mengelola platform, approve payout, manage users
+- 📊 **7 file** (~31,000 kata) dalam Bahasa Indonesia
+
+### 💻 **[Developer Tutorial](tutorial-book/)** - Panduan Developer
+Untuk developer yang ingin memahami atau berkontribusi:
+- 🏗️ **Architecture** - Structure, models, authentication
+- 🔧 **Setup** - Development environment, deployment
+- 📖 **6 bab inti** + 5 lampiran dalam Bahasa Indonesia
+- 🎯 **Hands-on exercises** untuk practice
+
+**Mulai dari sini**: 
+- User? → [User Guide Cover](user-guide/User-Guide-Cover.md)
+- Developer? → [Developer Tutorial Cover](tutorial-book/00-Cover.md)
+
+---
 ## �📞 Contact & Support
 
 **Email**: admin@nyumbangin.web.id  

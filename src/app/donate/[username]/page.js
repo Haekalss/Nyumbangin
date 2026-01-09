@@ -374,6 +374,10 @@ export default function DonatePage() {
             setShowShareModal(false);
             fetchShareStats(); // Refresh share count when modal closed
           }}
+          onShare={() => {
+            // Refresh page after share/copy
+            window.location.reload();
+          }}
           creatorUsername={creator?.username}
           donationId={completedDonationId}
         />

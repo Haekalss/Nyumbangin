@@ -7,8 +7,14 @@ const NotificationToast = ({ message, detail, time, progress }) => {
       <Text variant="h4" weight="bold" color="primary">{message}</Text>
       {detail && <Text variant="small" color="primary">Pesan: {detail}</Text>}
       <Text variant="xs" color="primary" className="opacity-80">{time}</Text>
-      <div className="w-full h-1 bg-[#2d2d2d]/30 rounded mt-2 overflow-hidden">
-        <div className="h-1 bg-[#2d2d2d] transition-all duration-50" style={{ width: `${progress}%` }}></div>
+      <div className="w-full h-2 bg-[#2d2d2d]/30 rounded mt-2 overflow-hidden">
+        <div 
+          className="h-2 bg-[#2d2d2d]" 
+          style={{ 
+            width: `${progress}%`,
+            transition: 'width 0.05s linear'
+          }}
+        ></div>
       </div>
     </div>
   );
