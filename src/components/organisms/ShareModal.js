@@ -117,7 +117,7 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId, onShare }) =
         {/* Mascot & Thank You Message */}
         <div className="text-center">
           <img 
-            src="/logo2.png" 
+            src="/Logo2.png" 
             alt="Nyumbangin Mascot" 
             className="w-24 h-24 mx-auto mb-3"
           />
