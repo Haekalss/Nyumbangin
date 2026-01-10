@@ -112,46 +112,66 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId, onShare }) =
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="🎉 Bagikan Link" maxWidth="max-w-sm">
-      <div className="space-y-3">
-        {/* Success Message */}
-        <p className="text-[#b8a492] font-mono text-xs text-center">
-          Bantu sebarkan link donasi <strong>{creatorUsername}</strong>
-        </p>
+    <Modal isOpen={isOpen} onClose={onClose} title="🎉 Donasi Berhasil!" maxWidth="max-w-sm">
+      <div className="space-y-4">
+        {/* Mascot & Thank You Message */}
+        <div className="text-center">
+          <img 
+            src="/logo2.png" 
+            alt="Nyumbangin Mascot" 
+            className="w-24 h-24 mx-auto mb-3"
+          />
+          <h3 className="text-lg font-bold text-[#b8a492] font-mono mb-1">
+            Terima Kasih!
+          </h3>
+          <p className="text-[#b8a492]/80 font-mono text-xs">
+            Donasimu sangat berarti untuk <strong>{creatorUsername}</strong>
+          </p>
+        </div>
 
-        {/* Share Buttons - Grid 2 kolom */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={handleWhatsAppShare}
-            disabled={sharing}
-            className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
-          >
-            💬 WhatsApp
-          </button>
+        {/* Divider */}
+        <div className="border-t border-[#b8a492]/20"></div>
 
-          <button
-            onClick={handleTwitterShare}
-            disabled={sharing}
-            className="flex items-center justify-center gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
-          >
-            🐦 Twitter
-          </button>
+        {/* Share Section */}
+        <div>
+          <p className="text-[#b8a492] font-mono text-xs text-center mb-3">
+            Bantu sebarkan link donasi ini 🚀
+          </p>
 
-          <button
-            onClick={handleFacebookShare}
-            disabled={sharing}
-            className="flex items-center justify-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
-          >
-            👥 Facebook
-          </button>
+          {/* Share Buttons - Grid 2 kolom */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleWhatsAppShare}
+              disabled={sharing}
+              className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
+            >
+              💬 WhatsApp
+            </button>
 
-          <button
-            onClick={handleTelegramShare}
-            disabled={sharing}
-            className="flex items-center justify-center gap-2 bg-[#0088cc] hover:bg-[#0077b5] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
-          >
-            ✈️ Telegram
-          </button>
+            <button
+              onClick={handleTwitterShare}
+              disabled={sharing}
+              className="flex items-center justify-center gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
+            >
+              🐦 Twitter
+            </button>
+
+            <button
+              onClick={handleFacebookShare}
+              disabled={sharing}
+              className="flex items-center justify-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
+            >
+              👥 Facebook
+            </button>
+
+            <button
+              onClick={handleTelegramShare}
+              disabled={sharing}
+              className="flex items-center justify-center gap-2 bg-[#0088cc] hover:bg-[#0077b5] text-white py-2 px-3 rounded-lg font-mono text-sm transition-all disabled:opacity-50"
+            >
+              ✈️ Telegram
+            </button>
+          </div>
         </div>
 
         {/* Copy Link Button */}
