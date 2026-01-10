@@ -10,15 +10,14 @@ export default function MediaShareOverlay() {
   const playerRef = useRef(null);
   const ytReadyRef = useRef(false);
 
-  const currentRef = useRef(null);
+  const [currentVideo, setCurrentVideo] = useState(null);
   const isPlayingRef = useRef(false);
   const playedIdsRef = useRef(new Set());
 
   const pollRef = useRef(null);
   const tickRef = useRef(null);
 
-  const remainingRef = useRef(0);
-  const [, forceRender] = useState(0);
+  const [remaining, setRemaining] = useState(0);
 
   useEffect(() => {
     if (window.YT) return initPlayer();
@@ -50,8 +49,6 @@ export default function MediaShareOverlay() {
   };
 
   const onStateChange = (e) => {
-    if (!currentRef.current) return;
-
     if (e.data === window.YT.PlayerState.PLAYING) startTick();
     if (
       e.data === window.YT.PlayerState.PAUSED ||
@@ -64,10 +61,13 @@ export default function MediaShareOverlay() {
     if (tickRef.current) return;
 
     tickRef.current = setInterval(() => {
-      remainingRef.current -= 1;
-      forceRender((v) => v + 1);
-
-      if (remainingRef.current <= 0) completeVideo();
+      setRemaining((prev) => {
+        if (prev <= 1) {
+          completeVideo();
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
   };
 
@@ -80,9 +80,9 @@ export default function MediaShareOverlay() {
     if (!ytReadyRef.current || isPlayingRef.current) return;
 
     isPlayingRef.current = true;
-    currentRef.current = video;
+    setCurrentVideo(video);
     playedIdsRef.current.add(video._id);
-    remainingRef.current = video.requestedDuration;
+    setRemaining(video.requestedDuration);
 
     playerRef.current.loadVideoById(video.videoId);
 
@@ -97,22 +97,21 @@ export default function MediaShareOverlay() {
   const completeVideo = async () => {
     stopTick();
 
-    const video = currentRef.current;
-    if (!video) return;
+    if (!currentVideo) return;
 
     playerRef.current.stopVideo();
 
     try {
       await axios.put(`/api/mediashare/${username}`, {
-        id: video._id,
+        id: currentVideo._id,
         status: "PLAYED",
-        actualDuration: video.requestedDuration,
+        actualDuration: currentVideo.requestedDuration,
       });
     } catch {}
 
-    currentRef.current = null;
+    setCurrentVideo(null);
     isPlayingRef.current = false;
-    remainingRef.current = 0;
+    setRemaining(0);
   };
 
   const fetchQueue = async () => {
@@ -138,9 +137,7 @@ export default function MediaShareOverlay() {
     };
   }, [username]);
 
-  if (!currentRef.current) return null;
-
-  const v = currentRef.current;
+  if (!currentVideo) return null;
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center">
@@ -148,21 +145,21 @@ export default function MediaShareOverlay() {
         <div id="yt-player" className="w-full h-full" />
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-          <p className="text-white text-2xl font-bold">{v.donorName}</p>
+          <p className="text-white text-2xl font-bold">{currentVideo.donorName}</p>
           <p className="text-white/80 text-lg">
             {new Intl.NumberFormat("id-ID", {
               style: "currency",
               currency: "IDR",
               minimumFractionDigits: 0,
-            }).format(v.amount)}
+            }).format(currentVideo.amount)}
           </p>
 
-          {v.message && (
-            <p className="text-white/90 mt-2 italic">"{v.message}"</p>
+          {currentVideo.message && (
+            <p className="text-white/90 mt-2 italic">"{currentVideo.message}"</p>
           )}
 
           <p className="text-white/50 text-sm mt-2">
-            ⏱️ {remainingRef.current}s
+            ⏱️ {remaining}s
           </p>
         </div>
       </div>
