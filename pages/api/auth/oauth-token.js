@@ -20,15 +20,15 @@ export default async function handler(req, res) {
     let user = null;
     let userType = null;
 
-    // Check if it's a creator first
-    user = await Creator.findOne({ email });
+    // Check if it's an admin first (consistent with NextAuth)
+    user = await Admin.findOne({ email });
     if (user) {
-      userType = 'creator';
+      userType = 'admin';
     } else {
-      // Check if it's an admin
-      user = await Admin.findOne({ email });
+      // Check if it's a creator
+      user = await Creator.findOne({ email });
       if (user) {
-        userType = 'admin';
+        userType = 'creator';
       }
     }
 

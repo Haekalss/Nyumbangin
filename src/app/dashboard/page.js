@@ -7,7 +7,6 @@ import api from '@/lib/axios';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSessionManager } from '@/utils/sessionManager';
-import { useRequireAuth } from '@/hooks/useAuth';
 import ProfileModal from '@/components/organisms/ProfileModal';
 import { formatRupiah } from '@/utils/format';
 import { useProfileForm } from '@/hooks/useProfileForm';
@@ -25,7 +24,6 @@ export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const { data: session, status } = useSession();
   const { startMonitoring, stopMonitoring, logout } = useSessionManager();
   const [user, setUser] = useState(null);
@@ -596,8 +594,8 @@ export default function Dashboard() {
     }
   };
 
-  // Show loading while checking auth or loading data
-  if (authLoading || loading) {
+  // Show loading while session loading or loading data
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b8a492]"></div>
@@ -606,7 +604,7 @@ export default function Dashboard() {
   }
 
   // Don't render if not authenticated (will redirect)
-  if (!isAuthenticated) {
+  if (!user && status !== 'authenticated') {
     return null;
   }
 
