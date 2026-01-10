@@ -92,23 +92,26 @@ export default async function handler(req, res) {
       // ✅ CREATE NOTIFICATION when payment is successful
       // BUT skip notification if this is a media share (will show in mediashare overlay instead)
       try {
-        const hasMediaShare = freshDonation.mediaShareRequest && freshDonation.mediaShareRequest.enabled;
+        const hasMediaShare = freshDonation.mediaShareRequest && 
+                             freshDonation.mediaShareRequest.enabled === true && 
+                             freshDonation.mediaShareRequest.youtubeUrl;
         
         console.log('🔍 Checking media share:', {
           hasMediaShareRequest: !!freshDonation.mediaShareRequest,
           enabled: freshDonation.mediaShareRequest?.enabled,
           youtubeUrl: freshDonation.mediaShareRequest?.youtubeUrl,
-          processed: freshDonation.mediaShareRequest?.processed
+          processed: freshDonation.mediaShareRequest?.processed,
+          hasMediaShare: hasMediaShare
         });
         
         if (!hasMediaShare) {
           // Only create notification for regular donations (no media share)
           await Notification.createDonationNotification(freshDonation);
-          console.log('✅ Notification created for donation:', freshDonation._id);
+          console.log('✅ Notification created for REGULAR donation:', freshDonation._id);
           console.log('💡 Overlay will pick up this donation via polling');
         } else {
-          console.log('⏩ Skipping notification - this is a media share donation');
-          console.log('💡 Will show in media share overlay instead');
+          console.log('⏩ SKIPPING notification - this is a MEDIA SHARE donation');
+          console.log('💡 Will show in media share overlay instead, NOT in regular donation overlay');
         }
           
         // ✅ UPDATE LEADERBOARD immediately after successful payment

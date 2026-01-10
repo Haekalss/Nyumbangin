@@ -94,16 +94,24 @@ export default async function handler(req, res) {
       // Send notification if paid (but skip for media share donations)
       if (newStatus === 'PAID') {
         try {
-          const hasMediaShare = freshDonation.mediaShareRequest && freshDonation.mediaShareRequest.enabled;
+          const hasMediaShare = freshDonation.mediaShareRequest && 
+                               freshDonation.mediaShareRequest.enabled === true && 
+                               freshDonation.mediaShareRequest.youtubeUrl;
           
           console.log('🎯 Decision:', hasMediaShare ? 'SKIP notification (Media Share)' : 'CREATE notification (Regular)');
+          console.log('🔍 Media share check:', {
+            hasRequest: !!freshDonation.mediaShareRequest,
+            enabled: freshDonation.mediaShareRequest?.enabled,
+            hasUrl: !!freshDonation.mediaShareRequest?.youtubeUrl,
+            result: hasMediaShare
+          });
           
           if (!hasMediaShare) {
             await Notification.createDonationNotification(freshDonation);
-            console.log('✅ Notification created for donation:', freshDonation._id);
+            console.log('✅ Notification created for REGULAR donation:', freshDonation._id);
             console.log('💡 Overlay will pick up this donation via polling');
           } else {
-            console.log('⏩ Skipping notification - this is a media share donation');
+            console.log('⏩ SKIPPING notification - this is a MEDIA SHARE donation');
             console.log('💡 Processing media share...');
             
             // Create media share directly (since webhook might not be called in development)
