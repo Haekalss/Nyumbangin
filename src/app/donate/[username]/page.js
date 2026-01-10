@@ -21,7 +21,6 @@ export default function DonatePage() {
   const [donating, setDonating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [enableMediaShare, setEnableMediaShare] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [mediaDuration, setMediaDuration] = useState(30);
   const [pendingRef, setPendingRef] = useState(null);
@@ -102,6 +101,22 @@ export default function DonatePage() {
     });
   };
 
+  // Format amount with thousand separator for display
+  const formatAmountDisplay = (value) => {
+    if (!value) return '';
+    const numericValue = value.toString().replace(/\D/g, '');
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  // Handle amount input change - strip non-numeric and store raw value
+  const handleAmountChange = (e) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    setFormData({
+      ...formData,
+      amount: rawValue
+    });
+  };
+
   // Calculate max duration based on amount
   const getMaxDuration = (amount) => {
     const amt = parseInt(amount) || 0;
@@ -114,13 +129,13 @@ export default function DonatePage() {
 
   // Update media duration when amount changes
   useEffect(() => {
-    if (formData.amount && enableMediaShare) {
+    if (formData.amount && youtubeUrl) {
       const maxDur = getMaxDuration(formData.amount);
       if (mediaDuration > maxDur) {
         setMediaDuration(maxDur);
       }
     }
-  }, [formData.amount, enableMediaShare]);
+  }, [formData.amount, youtubeUrl]);
 
   const loadSnapScript = () => {
     return new Promise((resolve, reject) => {
@@ -173,14 +188,8 @@ export default function DonatePage() {
       return;
     }
 
-    // Validate media share if enabled
-    if (enableMediaShare) {
-      if (!youtubeUrl) {
-        toast.error('URL YouTube wajib diisi untuk Media Share!');
-        setDonating(false);
-        return;
-      }
-      
+    // Validate media share if URL is provided
+    if (youtubeUrl) {
       const youtubePattern = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
       if (!youtubePattern.test(youtubeUrl)) {
         toast.error('Format URL YouTube tidak valid!');
@@ -208,8 +217,8 @@ export default function DonatePage() {
         ...formData
       };
 
-      // Add media share request if enabled
-      if (enableMediaShare && youtubeUrl) {
+      // Add media share request if URL provided
+      if (youtubeUrl) {
         donationData.mediaShare = {
           enabled: true,
           youtubeUrl: youtubeUrl,
@@ -234,7 +243,7 @@ export default function DonatePage() {
                 await axios.post('/api/check-payment-status', { merchant_ref: merchantRef });
                 
                 // Media share will be auto-created by webhook after payment confirmed
-                if (enableMediaShare) {
+                if (youtubeUrl) {
                   toast.success('Media share akan segera diproses!');
                 }
               } catch (err) {
@@ -409,9 +418,9 @@ export default function DonatePage() {
 
           {/* Form with 2 columns on desktop when media share enabled */}
           <form onSubmit={handleSubmit}>
-            <div className={`${isMediaShareEnabled ? 'lg:grid lg:grid-cols-5 lg:gap-8' : ''}`}>
-              {/* Left Column - Basic Info (3/5 width) */}
-              <div className={`space-y-4 ${isMediaShareEnabled ? 'lg:col-span-3' : ''}`}>
+            <div className={isMediaShareEnabled ? 'lg:grid lg:grid-cols-5 lg:gap-8' : ''}>
+              {/* Left Column - Basic Info (3/5 width when media share on, full width when off) */}
+              <div className={`space-y-4 ${isMediaShareEnabled ? 'lg:col-span-3' : 'max-w-md mx-auto'}`}>
                 {/* Nama */}
                 <div>
                   <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
@@ -463,17 +472,20 @@ export default function DonatePage() {
                       </button>
                     ))}
                   </div>
-                  <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleChange}
-                    required
-                    min="1000"
-                    className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base"
-                    placeholder="Atau masukkan jumlah custom"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b8a492] font-mono text-sm sm:text-base">Rp</span>
+                    <input
+                      type="text"
+                      id="amount"
+                      name="amount"
+                      value={formatAmountDisplay(formData.amount)}
+                      onChange={handleAmountChange}
+                      required
+                      inputMode="numeric"
+                      className="w-full pl-10 pr-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base"
+                      placeholder="Jumlah custom"
+                    />
+                  </div>
                 </div>
 
                 {/* Pesan */}
@@ -498,47 +510,33 @@ export default function DonatePage() {
                 <div className="mt-6 lg:mt-0 lg:col-span-2">
                   <div className="border-2 border-[#b8a492]/30 rounded-lg p-4 h-full">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="mb-3">
                       <label className="text-xs sm:text-sm font-bold text-[#b8a492] font-mono">
-                        🎥 Media Share
+                        🎥 Media Share (Opsional)
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEnableMediaShare(!enableMediaShare);
-                          if (!enableMediaShare) {
-                            const maxDur = getMaxDuration(formData.amount);
-                            setMediaDuration(Math.min(30, maxDur));
-                          }
-                        }}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                          enableMediaShare
-                            ? 'bg-[#b8a492] text-[#2d2d2d]'
-                            : 'bg-[#2d2d2d] text-[#b8a492] border border-[#b8a492]/50'
-                        }`}
-                      >
-                        {enableMediaShare ? 'ON' : 'OFF'}
-                      </button>
+                      <p className="text-[10px] text-[#b8a492]/60 font-mono mt-1">
+                        Kosongkan jika tidak ingin putar video
+                      </p>
                     </div>
 
-                    {enableMediaShare ? (
-                      <div className="space-y-4">
-                        {/* YouTube URL Input */}
-                        <div>
-                          <label htmlFor="youtubeUrl" className="block text-xs font-bold text-[#b8a492] font-mono mb-1">
-                            URL YouTube <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="youtubeUrl"
-                            value={youtubeUrl}
-                            onChange={(e) => setYoutubeUrl(e.target.value)}
-                            className="w-full px-3 py-2 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm"
-                            placeholder="https://youtube.com/watch?v=..."
-                          />
-                        </div>
+                    <div className="space-y-4">
+                      {/* YouTube URL Input */}
+                      <div>
+                        <label htmlFor="youtubeUrl" className="block text-xs font-bold text-[#b8a492] font-mono mb-1">
+                          URL YouTube
+                        </label>
+                        <input
+                          type="text"
+                          id="youtubeUrl"
+                          value={youtubeUrl}
+                          onChange={(e) => setYoutubeUrl(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm"
+                          placeholder="https://youtube.com/watch?v=..."
+                        />
+                      </div>
 
-                        {/* Duration Slider */}
+                      {/* Duration Slider - only show if URL entered */}
+                      {youtubeUrl && (
                         <div>
                           <div className="flex justify-between items-center mb-1">
                             <label htmlFor="mediaDuration" className="block text-xs font-bold text-[#b8a492] font-mono">
@@ -561,21 +559,15 @@ export default function DonatePage() {
                             <span className="text-xl font-bold text-[#b8a492] font-mono">{mediaDuration}s</span>
                           </div>
                         </div>
+                      )}
 
-                        {/* Info Box */}
-                        <div className="bg-[#b8a492]/10 rounded-lg p-2">
-                          <p className="text-[10px] text-[#b8a492]/70 font-mono text-center">
-                            10rb → 30s • 20rb → 1m • 50rb → 2m • 100rb+ → 5m
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-2">
-                        <p className="text-xs text-[#b8a492]/50 font-mono">
-                          Aktifkan untuk putar video di stream
+                      {/* Info Box */}
+                      <div className="bg-[#b8a492]/10 rounded-lg p-2">
+                        <p className="text-[10px] text-[#b8a492]/70 font-mono text-center">
+                          10rb → 30s • 20rb → 1m • 50rb → 2m • 100rb+ → 5m
                         </p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               )}
