@@ -16,9 +16,17 @@ export default async function handler(req, res) {
     }
 
     // Query donations created after 'since' timestamp
+    // EXCLUDE media share donations - they show in mediashare overlay instead
     const query = {
       createdByUsername: username,
-      status: 'PAID'
+      status: 'PAID',
+      $or: [
+        { 'mediaShareRequest.enabled': { $ne: true } },
+        { 'mediaShareRequest.youtubeUrl': { $exists: false } },
+        { 'mediaShareRequest.youtubeUrl': null },
+        { 'mediaShareRequest.youtubeUrl': '' },
+        { mediaShareRequest: { $exists: false } }
+      ]
     };
     
     if (since) {
