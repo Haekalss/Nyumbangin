@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     let limit = 50;
     if (req.query.limit) {
       const parsedLimit = parseInt(req.query.limit);
-      if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100) {
+      if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 1000) {
         limit = parsedLimit;
       }
     }

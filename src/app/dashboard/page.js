@@ -14,7 +14,6 @@ import Header from '@/components/organisms/Header';
 import DonationTable from '@/components/organisms/DonationTable';
 import StatsSection from '@/components/organisms/StatsSection';
 import LeaderboardModal from '@/components/organisms/LeaderboardModal';
-import HistoryModal from '@/components/organisms/HistoryModal';
 import { filterMessage } from '@/utils/messageFilter';
 import MobileBlocker from '@/components/MobileBlocker';
 import { getStartOfDayIndonesia, getTodayDonations } from '@/utils/dateUtils';
@@ -31,10 +30,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
-  const [historyData, setHistoryData] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [filteredHistoryData, setFilteredHistoryData] = useState([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
@@ -295,52 +290,12 @@ export default function Dashboard() {
       
       // Refresh semua data setelah delete
       fetchData();
-      fetchHistoryData();
       fetchLeaderboardData();
       
       toast.success('Donasi berhasil dihapus');
     } catch (error) {
       console.error('Error deleting donation:', error);
       toast.error('Gagal menghapus donasi');
-    }
-  };
-
-  const fetchHistoryData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
-      // Fetch ALL donations for history (no 24-hour filter)
-      const response = await axios.get('/api/dashboard/donations?limit=1000', config);
-      const allDonations = response.data.data || [];
-      
-      // Filter only PAID donations for history modal
-      const paidDonations = allDonations.filter(d => d.status === 'PAID');
-      
-      // Group donations by date
-      const grouped = paidDonations.reduce((acc, donation) => {
-        const date = new Date(donation.createdAt).toLocaleDateString('id-ID');
-        if (!acc[date]) {
-          acc[date] = {
-            date,
-            total: 0,
-            count: 0,
-            donations: []
-          };
-        }
-        acc[date].total += donation.amount;
-        acc[date].count += 1;
-        acc[date].donations.push(donation);
-        return acc;
-      }, {});
-
-      const historyArray = Object.values(grouped).sort((a, b) => new Date(b.date) - new Date(a.date));
-      setHistoryData(historyArray);
-      setFilteredHistoryData(historyArray);
-    } catch (error) {
-      console.error('Error fetching history data:', error);
     }
   };
 
@@ -404,16 +359,6 @@ export default function Dashboard() {
       setLeaderboardData([...leaderboardArray]);
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
-    }
-  };
-
-  const handleDateFilter = (date) => {
-    setSelectedDate(date);
-    if (date === '') {
-      setFilteredHistoryData(historyData);
-    } else {
-      const filtered = historyData.filter(day => day.date === date);
-      setFilteredHistoryData(filtered);
     }
   };
 
@@ -663,16 +608,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* History Modal */}
-      {showHistory && (
-        <HistoryModal 
-          onClose={() => setShowHistory(false)} 
-          historyData={filteredHistoryData} 
-          selectedDate={selectedDate} 
-          onDateFilterChange={handleDateFilter} 
-        />
-      )}
-
       {/* Leaderboard Modal */}
       {showLeaderboard && (
         <LeaderboardModal 
@@ -702,7 +637,7 @@ export default function Dashboard() {
         {stats && (
           <StatsSection 
             stats={stats} 
-            onHistoryClick={() => { setShowHistory(true); fetchHistoryData(); }} 
+            onHistoryClick={() => router.push('/history')} 
             onLeaderboardClick={() => { setShowLeaderboard(true); fetchLeaderboardData(); }} 
           />
         )}
