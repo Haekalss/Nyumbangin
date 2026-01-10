@@ -144,7 +144,7 @@ export default async function handler(req, res) {
           const emailResult = await sendPayoutApprovedEmail({
             creatorEmail: payout.creatorId.email,
             creatorName: payout.creatorId.displayName || payout.creatorId.username,
-            amount: payout.finalAmount || payout.amount,
+            amount: payout.amount,
             payoutReference: payout.payoutReference,
             bankInfo: {
               bankName: payout.creatorId.payoutSettings?.bankName,
