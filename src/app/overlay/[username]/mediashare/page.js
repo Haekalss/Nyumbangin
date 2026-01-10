@@ -155,6 +155,88 @@ export default function MediaShareOverlay() {
     };
   }, [username]);
 
+  /* ================= REPLAY LISTENER ================= */
+  useEffect(() => {
+    if (!username) return;
+
+    const processReplayData = (replayData) => {
+      if (!replayData || !replayData.youtubeUrl) return;
+      
+      // Extract video ID from URL
+      const match = replayData.youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      if (match && match[1]) {
+        const replayVideo = {
+          _id: `replay-${Date.now()}`,
+          videoId: match[1],
+          donorName: replayData.donorName,
+          amount: replayData.amount,
+          message: replayData.message || '',
+          requestedDuration: replayData.duration || 30,
+        };
+        
+        // Stop current video if playing
+        stopTick();
+        if (playerRef.current) {
+          try { playerRef.current.stopVideo(); } catch {}
+        }
+        
+        // Force play this video
+        isPlayingRef.current = false;
+        currentRef.current = null;
+        playVideo(replayVideo);
+      }
+    };
+
+    // Poll API for replay trigger (works with OBS)
+    const checkAPIReplay = async () => {
+      try {
+        const res = await fetch(`/api/overlay/replay-trigger?username=${username}&type=mediashare`);
+        const data = await res.json();
+        if (data.success && data.trigger) {
+          processReplayData(data.trigger.data);
+        }
+      } catch {}
+    };
+
+    // Check API every 2 seconds
+    const apiCheckInterval = setInterval(checkAPIReplay, 2000);
+
+    // Also listen for localStorage (for browser-based testing)
+    const handleStorageChange = (e) => {
+      if (e.key === 'mediashare-replay-trigger' && e.newValue) {
+        try {
+          const replayData = JSON.parse(e.newValue);
+          processReplayData(replayData);
+        } catch {}
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Check localStorage on mount
+    const checkLocalStorage = () => {
+      const replayData = localStorage.getItem('mediashare-replay-trigger');
+      if (!replayData) return;
+      
+      try {
+        const data = JSON.parse(replayData);
+        if (data.timestamp && Date.now() - data.timestamp < 5000) {
+          processReplayData(data);
+          localStorage.removeItem('mediashare-replay-trigger');
+        }
+      } catch {}
+    };
+
+    checkLocalStorage();
+    const localCheckInterval = setInterval(checkLocalStorage, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(apiCheckInterval);
+      clearInterval(localCheckInterval);
+    };
+  }, [username]);
+
   const video = currentRef.current;
   const visible = Boolean(video);
 

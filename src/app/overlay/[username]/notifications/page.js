@@ -8,7 +8,7 @@ import { formatRupiah } from '@/utils/format';
 const NOTIFICATION_DURATION = 8000; // 8 seconds
 const POLLING_INTERVAL = 5000; // 5 seconds (reduced from 3s)
 const STORAGE_CHECK_INTERVAL = 1000; // 1 second (reduced from 500ms)
-const RECENT_NOTIFICATION_THRESHOLD = 2000; // 2 seconds
+const RECENT_NOTIFICATION_THRESHOLD = 5000; // 5 seconds (increased for reliability)
 
 export default function NotificationsOverlay() {
   const params = useParams();
@@ -227,6 +227,21 @@ export default function NotificationsOverlay() {
       }, NOTIFICATION_DURATION);
     };
 
+    // Poll API for replay trigger (works with OBS)
+    const checkAPIReplay = async () => {
+      try {
+        const res = await fetch(`/api/overlay/replay-trigger?username=${username}&type=notification`);
+        const data = await res.json();
+        if (data.success && data.trigger) {
+          showPreviewNotification(data.trigger.data);
+        }
+      } catch {}
+    };
+
+    // Check API every 2 seconds
+    const apiCheckInterval = setInterval(checkAPIReplay, 2000);
+
+    // Also listen for localStorage (for browser-based testing)
     const handleStorageChange = (e) => {
       if (e.key === 'overlay-notification-trigger' && e.newValue) {
         try {
@@ -240,16 +255,16 @@ export default function NotificationsOverlay() {
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Reduced check frequency to 1 second
+    // Check localStorage on mount and periodically
     const checkForTrigger = () => {
       const triggerData = localStorage.getItem('overlay-notification-trigger');
       if (!triggerData) return;
       
       try {
         const notificationData = JSON.parse(triggerData);
-        // Only show if recent
         if (Date.now() - notificationData.timestamp < RECENT_NOTIFICATION_THRESHOLD) {
           showPreviewNotification(notificationData);
+          localStorage.removeItem('overlay-notification-trigger');
         }
       } catch (error) {
         console.error('Error parsing stored notification:', error);
@@ -262,6 +277,7 @@ export default function NotificationsOverlay() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(checkInterval);
+      clearInterval(apiCheckInterval);
       cleanupTimers();
     };
   }, [username, displayNotification, cleanupTimers]);

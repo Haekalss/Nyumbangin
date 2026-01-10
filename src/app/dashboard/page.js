@@ -529,28 +529,29 @@ export default function Dashboard() {
           donorName: donation.name,
           amount: donation.amount,
           youtubeUrl: donation.mediaShareRequest.youtubeUrl,
-          duration: donation.mediaShareRequest.duration || 0,
+          duration: donation.mediaShareRequest.duration || 30,
           message: donation.message || '',
           timestamp: Date.now(),
-          isReplay: true // Flag to indicate this is a replay
+          isReplay: true
         };
         
-        // Store in localStorage for media share overlay to pick up
-        localStorage.setItem('mediashare-replay-trigger', JSON.stringify(mediaShareData));
+        // Send to API for OBS overlay to pick up
+        await axios.post(`/api/overlay/replay-trigger?username=${user.username}&type=mediashare`, {
+          data: mediaShareData
+        });
         
-        // Trigger storage event for media share overlay pages
+        // Also store in localStorage for browser-based overlays
+        localStorage.setItem('mediashare-replay-trigger', JSON.stringify(mediaShareData));
         window.dispatchEvent(new StorageEvent('storage', {
           key: 'mediashare-replay-trigger',
           newValue: JSON.stringify(mediaShareData)
         }));
         
-        // Show toast for confirmation
-        toast.success('Preview media share dikirim ke halaman overlay media share');
+        toast.success('Preview media share dikirim ke overlay');
         return;
       }
       
       // Regular donation notification
-      // Fetch filtered words terlebih dahulu
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.get('/api/creator/filtered-words', config);
@@ -559,7 +560,6 @@ export default function Dashboard() {
       const filteredWords = data.filteredWords || [];
       const filteredMessageText = filterMessage(donation.message || '', filteredWords);
       
-      // Send notification data to overlay via localStorage
       const notificationData = {
         message: `Donasi baru dari ${donation.name} sebesar ${formatRupiah(donation.amount)}`,
         detail: filteredMessageText,
@@ -567,17 +567,19 @@ export default function Dashboard() {
         timestamp: Date.now()
       };
       
-      // Store in localStorage for overlay to pick up
-      localStorage.setItem('overlay-notification-trigger', JSON.stringify(notificationData));
+      // Send to API for OBS overlay to pick up
+      await axios.post(`/api/overlay/replay-trigger?username=${user.username}&type=notification`, {
+        data: notificationData
+      });
       
-      // Trigger storage event for overlay pages
+      // Also store in localStorage for browser-based overlays
+      localStorage.setItem('overlay-notification-trigger', JSON.stringify(notificationData));
       window.dispatchEvent(new StorageEvent('storage', {
         key: 'overlay-notification-trigger',
         newValue: JSON.stringify(notificationData)
       }));
       
-      // Show toast for confirmation
-      toast.success('Preview notifikasi dikirim ke halaman overlay');
+      toast.success('Preview notifikasi dikirim ke overlay');
     } catch (error) {
       console.error('Error preview notification:', error);
       toast.error('Gagal menampilkan preview');
