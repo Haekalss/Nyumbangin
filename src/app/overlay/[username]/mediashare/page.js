@@ -243,31 +243,46 @@ export default function MediaShareOverlay() {
   /* ================= RENDER (DOM SELALU ADA) ================= */
   return (
     <div
-      className={`fixed inset-0 bg-black flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 bg-transparent flex items-center justify-center transition-opacity duration-300 ${
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      <div className="relative w-full h-full max-w-5xl max-h-[80vh]">
-        <div id="yt-player" className="w-full h-full" />
+      <div className="w-full flex justify-center px-6">
+        <div style={{ width: 'min(90vw, 880px)' }}>
+          <div className="bg-[#e9e9e9] border-4 border-[#b8a492] rounded-xl overflow-hidden">
+            {/* Video area (white) - constrained to 16:9 and not too wide */}
+            <div
+              className="bg-white w-full flex items-center justify-center"
+              style={{ aspectRatio: '16/9', width: '100%' }}
+            >
+              <div id="yt-player" className="w-full h-full" />
+            </div>
 
-        {video && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-            <p className="text-white text-2xl font-bold">{video.donorName}</p>
-            <p className="text-white/80 text-lg">
-              {new Intl.NumberFormat("id-ID", {
-                style: "currency",
-                currency: "IDR",
-                minimumFractionDigits: 0,
-              }).format(video.amount)}
-            </p>
+          {/* Info area (dark) */}
+          {video && (
+            <div className="bg-[#b8a492] p-6 border-t-2 border-[#2d2d2d] text-[#2d2d2d]">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                <div>
+                  <p className="text-[#2d2d2d] text-2xl font-extrabold font-mono">{video.donorName}</p>
+                  <p className="text-[#2d2d2d] text-lg font-mono mt-1">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                      minimumFractionDigits: 0,
+                    }).format(video.amount)}
+                  </p>
+                </div>
 
-            {video.message && (
-              <p className="text-white/90 mt-2 italic">"{video.message}"</p>
-            )}
-
-            <p className="text-white/50 text-sm mt-2">⏱️ {remaining}s</p>
+                {video.message ? (
+                  <div className="text-[#2d2d2d]/80 text-sm md:text-base font-mono">
+                    <div className="italic">{video.message}</div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

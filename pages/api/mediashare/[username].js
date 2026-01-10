@@ -3,6 +3,7 @@ import MediaShare from '@/models/MediaShare';
 import Donation from '@/models/donations';
 import Creator from '@/models/Creator';
 import { verifyToken } from '@/lib/jwt';
+import mongoose from 'mongoose';
 
 export default async function handler(req, res) {
   await dbConnect();
@@ -122,6 +123,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Data tidak lengkap' });
       }
 
+      // Support synthetic/replay IDs used for testing or immediate replay
+      if (typeof id === 'string' && id.startsWith('replay-')) {
+        // No DB entry to update for replay items; acknowledge the request
+        return res.status(200).json({ success: true, message: 'Replay media share acknowledged' });
+      }
+
+      // Validate ObjectId before querying to avoid CastError
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'ID media share tidak valid' });
+      }
+
       const mediaShare = await MediaShare.findById(id);
       if (!mediaShare) {
         return res.status(404).json({ error: 'Media share tidak ditemukan' });
@@ -166,6 +178,15 @@ export default async function handler(req, res) {
 
       if (!id) {
         return res.status(400).json({ error: 'ID media share diperlukan' });
+      }
+
+      // Prevent deleting/skip of synthetic replay items
+      if (typeof id === 'string' && id.startsWith('replay-')) {
+        return res.status(404).json({ error: 'Media share tidak ditemukan' });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'ID media share tidak valid' });
       }
 
       const mediaShare = await MediaShare.findById(id);
