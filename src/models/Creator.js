@@ -82,6 +82,7 @@ const CreatorSchema = new mongoose.Schema({
     minAmount: { type: Number, default: 5000 }, // Rp 5k
     maxAmount: { type: Number, default: 10000000 }, // Rp 10jt
     isEnabled: { type: Boolean, default: true },
+    mediaShareEnabled: { type: Boolean, default: true }, // Enable/disable media share feature
     customMessage: { type: String, default: 'Terima kasih atas dukungannya!' },
     filteredWords: { type: [String], default: [] } // Kata-kata yang akan difilter
   },

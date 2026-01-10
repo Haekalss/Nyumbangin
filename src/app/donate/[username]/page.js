@@ -31,12 +31,22 @@ export default function DonatePage() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
+  // Check if media share is enabled for this creator
+  const isMediaShareEnabled = creator?.donationSettings?.mediaShareEnabled !== false;
+
   useEffect(() => {
     if (username) {
       fetchCreatorData();
       fetchShareStats();
     }
   }, [username]);
+
+  // Auto-enable media share on desktop if creator has it enabled
+  useEffect(() => {
+    if (isMediaShareEnabled && typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setEnableMediaShare(true);
+    }
+  }, [isMediaShareEnabled]);
 
   const fetchCreatorData = async () => {
     try {
@@ -365,7 +375,7 @@ export default function DonatePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono px-4 sm:px-6 lg:px-8 py-6">
       {/* Share Modal */}
       {showShareModal && (
         <ShareModal
@@ -383,7 +393,8 @@ export default function DonatePage() {
         />
       )}
 
-      <div className="max-w-md w-full mx-auto py-6 sm:py-8">
+      {/* Main Container - wider on desktop */}
+      <div className="w-full max-w-md lg:max-w-3xl mx-auto py-6 sm:py-8">
         <div className="bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492] shadow-lg p-4 sm:p-6">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#b8a492] mb-4 sm:mb-6 font-mono text-center">
             Dukung <span className="font-bold">{creator.displayName}</span>
@@ -403,185 +414,205 @@ export default function DonatePage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
-                Nama Anda <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                disabled={isAnonymous}
-                className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="Masukkan nama Anda"
-              />
-              <div className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  id="anonymous"
-                  checked={isAnonymous}
-                  onChange={handleAnonymousToggle}
-                  className="w-4 h-4 accent-[#b8a492] cursor-pointer"
-                />
-                <label htmlFor="anonymous" className="text-xs text-[#b8a492] font-mono cursor-pointer">
-                  Donasi sebagai Anonim
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="amount" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-2">
-                Jumlah Donasi <span className="text-red-400">*</span>
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-3">
-                {presetAmounts.map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    onClick={() => handleAmountSelect(amount)}
-                    className={`px-3 py-2 rounded-lg border-2 font-mono text-xs sm:text-sm font-bold transition-all ${
-                      formData.amount === amount.toString()
-                        ? 'bg-[#b8a492] text-[#2d2d2d] border-[#b8a492]'
-                        : 'bg-[#2d2d2d] text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]'
-                    }`}
-                  >
-                    {formatRupiah(amount)}
-                  </button>
-                ))}
-              </div>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                required
-                min="1000"
-                className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base"
-                placeholder="Atau masukkan jumlah custom"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="message" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
-                Pesan (Opsional)
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base resize-none"
-                placeholder="Tulis pesan dukungan Anda..."
-              />
-            </div>
-
-            {/* Media Share Section */}
-            <div className="border-2 border-[#b8a492]/30 rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-[#b8a492] font-mono">
-                  🎥 Media Share (YouTube)
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEnableMediaShare(!enableMediaShare);
-                    if (!enableMediaShare) {
-                      const maxDur = getMaxDuration(formData.amount);
-                      setMediaDuration(Math.min(30, maxDur));
-                    }
-                  }}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    enableMediaShare
-                      ? 'bg-[#b8a492] text-[#2d2d2d]'
-                      : 'bg-[#2d2d2d] text-[#b8a492] border border-[#b8a492]'
-                  }`}
-                >
-                  {enableMediaShare ? 'Aktif' : 'Nonaktif'}
-                </button>
-              </div>
-
-              {enableMediaShare && (
-                <div className="space-y-3 pt-2">
-                  <div>
-                    <label htmlFor="youtubeUrl" className="block text-xs font-bold text-[#b8a492] font-mono mb-1">
-                      URL YouTube <span className="text-red-400">*</span>
+          {/* Form with 2 columns on desktop when media share enabled */}
+          <form onSubmit={handleSubmit}>
+            <div className={`${isMediaShareEnabled ? 'lg:grid lg:grid-cols-5 lg:gap-8' : ''}`}>
+              {/* Left Column - Basic Info (3/5 width) */}
+              <div className={`space-y-4 ${isMediaShareEnabled ? 'lg:col-span-3' : ''}`}>
+                {/* Nama */}
+                <div>
+                  <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
+                    Nama Anda <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    disabled={isAnonymous}
+                    className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Masukkan nama Anda"
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="anonymous"
+                      checked={isAnonymous}
+                      onChange={handleAnonymousToggle}
+                      className="w-4 h-4 accent-[#b8a492] cursor-pointer"
+                    />
+                    <label htmlFor="anonymous" className="text-xs text-[#b8a492] font-mono cursor-pointer">
+                      Donasi sebagai Anonim
                     </label>
-                    <input
-                      type="text"
-                      id="youtubeUrl"
-                      value={youtubeUrl}
-                      onChange={(e) => setYoutubeUrl(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm"
-                      placeholder="https://youtube.com/watch?v=..."
-                    />
                   </div>
+                </div>
 
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label htmlFor="mediaDuration" className="block text-xs font-bold text-[#b8a492] font-mono">
-                        Durasi Video (detik)
+                {/* Jumlah */}
+                <div>
+                  <label htmlFor="amount" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-2">
+                    Jumlah Donasi <span className="text-red-400">*</span>
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
+                    {presetAmounts.map((amount) => (
+                      <button
+                        key={amount}
+                        type="button"
+                        onClick={() => handleAmountSelect(amount)}
+                        className={`px-2 py-2 rounded-lg border-2 font-mono text-xs font-bold transition-all ${
+                          formData.amount === amount.toString()
+                            ? 'bg-[#b8a492] text-[#2d2d2d] border-[#b8a492]'
+                            : 'bg-[#2d2d2d] text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]'
+                        }`}
+                      >
+                        {formatRupiah(amount)}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                    min="1000"
+                    className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base"
+                    placeholder="Atau masukkan jumlah custom"
+                  />
+                </div>
+
+                {/* Pesan */}
+                <div>
+                  <label htmlFor="message" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
+                    Pesan (Opsional)
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows="3"
+                    className="w-full px-3 py-2 sm:py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492] focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm sm:text-base resize-none"
+                    placeholder="Tulis pesan dukungan Anda..."
+                  />
+                </div>
+              </div>
+
+              {/* Right Column - Media Share (2/5 width) */}
+              {isMediaShareEnabled && (
+                <div className="mt-6 lg:mt-0 lg:col-span-2">
+                  <div className="border-2 border-[#b8a492]/30 rounded-lg p-4 h-full">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-xs sm:text-sm font-bold text-[#b8a492] font-mono">
+                        🎥 Media Share
                       </label>
-                      <span className="text-xs text-[#b8a492]/70 font-mono">
-                        Max: {getMaxDuration(formData.amount)}s
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEnableMediaShare(!enableMediaShare);
+                          if (!enableMediaShare) {
+                            const maxDur = getMaxDuration(formData.amount);
+                            setMediaDuration(Math.min(30, maxDur));
+                          }
+                        }}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                          enableMediaShare
+                            ? 'bg-[#b8a492] text-[#2d2d2d]'
+                            : 'bg-[#2d2d2d] text-[#b8a492] border border-[#b8a492]/50'
+                        }`}
+                      >
+                        {enableMediaShare ? 'ON' : 'OFF'}
+                      </button>
                     </div>
-                    <input
-                      type="range"
-                      id="mediaDuration"
-                      min="10"
-                      max={getMaxDuration(formData.amount)}
-                      value={mediaDuration}
-                      onChange={(e) => setMediaDuration(parseInt(e.target.value))}
-                      className="w-full h-2 bg-[#b8a492]/20 rounded-lg appearance-none cursor-pointer accent-[#b8a492]"
-                    />
-                    <div className="text-center mt-1">
-                      <span className="text-lg font-bold text-[#b8a492] font-mono">{mediaDuration}s</span>
-                    </div>
-                  </div>
 
-                  <div className="bg-[#b8a492]/10 rounded-lg p-3">
-                    <p className="text-xs text-[#b8a492]/80 font-mono leading-relaxed">
-                      💡 <strong>Info:</strong><br/>
-                      • Rp 10.000 = 30 detik<br/>
-                      • Rp 20.000 = 1 menit<br/>
-                      • Rp 50.000 = 2 menit<br/>
-                      • Rp 100.000+ = 5 menit
-                    </p>
+                    {enableMediaShare ? (
+                      <div className="space-y-4">
+                        {/* YouTube URL Input */}
+                        <div>
+                          <label htmlFor="youtubeUrl" className="block text-xs font-bold text-[#b8a492] font-mono mb-1">
+                            URL YouTube <span className="text-red-400">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="youtubeUrl"
+                            value={youtubeUrl}
+                            onChange={(e) => setYoutubeUrl(e.target.value)}
+                            className="w-full px-3 py-2 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm"
+                            placeholder="https://youtube.com/watch?v=..."
+                          />
+                        </div>
+
+                        {/* Duration Slider */}
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <label htmlFor="mediaDuration" className="block text-xs font-bold text-[#b8a492] font-mono">
+                              Durasi
+                            </label>
+                            <span className="text-xs text-[#b8a492]/70 font-mono">
+                              Max: {getMaxDuration(formData.amount)}s
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            id="mediaDuration"
+                            min="10"
+                            max={getMaxDuration(formData.amount)}
+                            value={mediaDuration}
+                            onChange={(e) => setMediaDuration(parseInt(e.target.value))}
+                            className="w-full h-2 bg-[#b8a492]/20 rounded-lg appearance-none cursor-pointer accent-[#b8a492]"
+                          />
+                          <div className="text-center mt-1">
+                            <span className="text-xl font-bold text-[#b8a492] font-mono">{mediaDuration}s</span>
+                          </div>
+                        </div>
+
+                        {/* Info Box */}
+                        <div className="bg-[#b8a492]/10 rounded-lg p-2">
+                          <p className="text-[10px] text-[#b8a492]/70 font-mono text-center">
+                            10rb → 30s • 20rb → 1m • 50rb → 2m • 100rb+ → 5m
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-2">
+                        <p className="text-xs text-[#b8a492]/50 font-mono">
+                          Aktifkan untuk putar video di stream
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Checkbox Persetujuan */}
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={agreedToTerms}
-                onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="mt-1 w-4 h-4 sm:w-5 sm:h-5 accent-[#b8a492] cursor-pointer flex-shrink-0"
-              />
-              <label htmlFor="terms" className="text-[10px] sm:text-xs text-[#b8a492] font-mono leading-relaxed cursor-pointer">
-                Saya menyetujui bahwa donasi ini bersifat sukarela dan tidak dapat dikembalikan. Saya telah membaca dan menyetujui{' '}
-                <a href="/terms" target="_blank" className="underline hover:text-[#d6c6b9]">syarat dan ketentuan</a> Nyumbangin.
-              </label>
+            {/* Checkbox dan Button - Full Width */}
+            <div className="mt-6 space-y-4">
+              {/* Checkbox Persetujuan */}
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 sm:w-5 sm:h-5 accent-[#b8a492] cursor-pointer flex-shrink-0"
+                />
+                <label htmlFor="terms" className="text-[10px] sm:text-xs text-[#b8a492] font-mono leading-relaxed cursor-pointer">
+                  Saya menyetujui bahwa donasi ini bersifat sukarela dan tidak dapat dikembalikan. Saya telah membaca dan menyetujui{' '}
+                  <a href="/terms" target="_blank" className="underline hover:text-[#d6c6b9]">syarat dan ketentuan</a> Nyumbangin.
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={donating || !agreedToTerms}
+                className="w-full bg-[#b8a492] text-[#2d2d2d] py-3 sm:py-4 px-4 rounded-lg font-extrabold text-base sm:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] focus:outline-none focus:ring-2 focus:ring-[#b8a492] disabled:opacity-50 disabled:cursor-not-allowed font-mono transition-all duration-200"
+              >
+                {donating ? 'Mengirim...' : `Donasi ${formatRupiah(formData.amount ? parseInt(formData.amount) : 0)}`}
+              </button>
             </div>
-
-            <button
-              type="submit"
-              disabled={donating || !agreedToTerms}
-              className="w-full bg-[#b8a492] text-[#2d2d2d] py-3 sm:py-4 px-4 rounded-lg font-extrabold text-base sm:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] focus:outline-none focus:ring-2 focus:ring-[#b8a492] disabled:opacity-50 disabled:cursor-not-allowed font-mono transition-all duration-200"
-            >
-              {donating ? 'Mengirim...' : `Donasi ${formatRupiah(formData.amount ? parseInt(formData.amount) : 0)}`}
-            </button>
-
-            {/* Removed sandbox simulation controls */}
           </form>
         </div>
       </div>

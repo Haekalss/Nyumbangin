@@ -48,7 +48,9 @@ export default function Dashboard() {
   });
 
   const [donationEnabled, setDonationEnabled] = useState(true);
+  const [mediaShareEnabled, setMediaShareEnabled] = useState(true);
   const [togglingDonation, setTogglingDonation] = useState(false);
+  const [togglingMediaShare, setTogglingMediaShare] = useState(false);
   
   // Ref untuk track jumlah donasi terakhir (untuk polling)
   const lastDonationCountRef = useRef(0);
@@ -201,6 +203,10 @@ export default function Dashboard() {
       // Set donation enabled status dari profile
       if (profileRes.data.creator?.donationSettings?.isEnabled !== undefined) {
         setDonationEnabled(profileRes.data.creator.donationSettings.isEnabled);
+      }
+      // Set media share enabled status dari profile
+      if (profileRes.data.creator?.donationSettings?.mediaShareEnabled !== undefined) {
+        setMediaShareEnabled(profileRes.data.creator.donationSettings.mediaShareEnabled);
       }
 
       // Filter donations untuk hari ini (sejak midnight 00:00 WIB)
@@ -491,6 +497,28 @@ export default function Dashboard() {
     }
   };
 
+  const toggleMediaShareStatus = async () => {
+    try {
+      setTogglingMediaShare(true);
+      const token = localStorage.getItem('token');
+      const newStatus = !mediaShareEnabled;
+      
+      await axios.put(
+        '/api/creator/toggle-mediashare',
+        { mediaShareEnabled: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMediaShareEnabled(newStatus);
+      toast.success(newStatus ? 'Media Share diaktifkan 🎥' : 'Media Share dinonaktifkan 🔇');
+    } catch (error) {
+      console.error('Error toggling media share:', error);
+      toast.error('Gagal mengubah status media share');
+    } finally {
+      setTogglingMediaShare(false);
+    }
+  };
+
   // Show notification preview when clicking on donation row
   const showNotificationPreview = async (donation) => {
     try {
@@ -672,27 +700,51 @@ export default function Dashboard() {
                 <p className="mt-1 max-w-2xl text-sm text-[#b8a492] font-mono">Donasi dalam 24 jam terakhir (otomatis reset setiap hari)</p>
               </div>
               {user?.username && (
-                <div className="flex items-center gap-3 bg-[#1a1a1a] px-3 py-2 rounded-lg border border-[#b8a492]/30">
-                  <div className="text-right">
-                    <div className="text-xs text-[#b8a492]/60 font-mono">Status Donasi</div>
-                    <div className={`text-sm font-bold font-mono ${donationEnabled ? 'text-green-400' : 'text-gray-400'}`}>
-                      {donationEnabled ? 'Aktif' : 'Nonaktif'}
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4">
+                  {/* Donation Toggle */}
+                  <div className="flex items-center gap-3 bg-[#1a1a1a] px-3 py-2 rounded-lg border border-[#b8a492]/30">
+                    <div className="text-right">
+                      <div className="text-xs text-[#b8a492]/60 font-mono">Donasi</div>
+                      <div className={`text-sm font-bold font-mono ${donationEnabled ? 'text-green-400' : 'text-gray-400'}`}>
+                        {donationEnabled ? 'Aktif' : 'Off'}
+                      </div>
                     </div>
-                  </div>
-                  <button
-                    onClick={toggleDonationStatus}
-                    disabled={togglingDonation}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#b8a492] focus:ring-offset-1 disabled:opacity-50 ${
-                      donationEnabled ? 'bg-green-600' : 'bg-gray-600'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                        donationEnabled ? 'translate-x-6' : 'translate-x-1'
+                    <button
+                      onClick={toggleDonationStatus}
+                      disabled={togglingDonation}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#b8a492] focus:ring-offset-1 disabled:opacity-50 ${
+                        donationEnabled ? 'bg-green-600' : 'bg-gray-600'
                       }`}
-                    />
-                    <span className="sr-only">Toggle donation status</span>
-                  </button>
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                          donationEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  {/* Media Share Toggle */}
+                  <div className="flex items-center gap-3 bg-[#1a1a1a] px-3 py-2 rounded-lg border border-[#b8a492]/30">
+                    <div className="text-right">
+                      <div className="text-xs text-[#b8a492]/60 font-mono">MediaShare</div>
+                      <div className={`text-sm font-bold font-mono ${mediaShareEnabled ? 'text-purple-400' : 'text-gray-400'}`}>
+                        {mediaShareEnabled ? 'Aktif' : 'Off'}
+                      </div>
+                    </div>
+                    <button
+                      onClick={toggleMediaShareStatus}
+                      disabled={togglingMediaShare}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#b8a492] focus:ring-offset-1 disabled:opacity-50 ${
+                        mediaShareEnabled ? 'bg-purple-600' : 'bg-gray-600'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                          mediaShareEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

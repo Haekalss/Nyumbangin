@@ -85,7 +85,10 @@ export default async function handler(req, res) {
         creator: {
           username: creator.username,
           displayName: creator.displayName,
-          description: creator.bio
+          description: creator.bio,
+          donationSettings: {
+            mediaShareEnabled: creator.donationSettings?.mediaShareEnabled !== false
+          }
         },
         donations,
         stats: {
