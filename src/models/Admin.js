@@ -20,7 +20,7 @@ const AdminSchema = new mongoose.Schema({
   },
   password: { 
     type: String, 
-    required: true,
+    required: function() { return !this.oauthProvider; },
     minlength: 6
   },
   fullName: { 
@@ -46,6 +46,10 @@ const AdminSchema = new mongoose.Schema({
       'VIEW_CONTACTS'       // View contact form submissions
     ]
   }],
+  
+  // OAuth fields
+  oauthProvider: { type: String, enum: ['google', null], default: null },
+  oauthId: { type: String, default: null },
   
   // Account status
   isActive: { type: Boolean, default: true },

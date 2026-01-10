@@ -78,6 +78,13 @@ export default function Dashboard() {
             localStorage.setItem('token', tokenRes.data.token);
             localStorage.setItem('user', JSON.stringify(tokenRes.data.user));
             
+            // Check if user is admin - redirect to admin page
+            if (tokenRes.data.user.userType === 'admin') {
+              toast.success('Login admin berhasil!');
+              router.push('/admin');
+              return;
+            }
+            
             // Set user and continue to dashboard
             setUser(tokenRes.data.user);
             toast.success('Login berhasil!');

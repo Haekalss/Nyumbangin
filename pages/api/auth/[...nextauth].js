@@ -3,6 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from '@/lib/db';
 import Creator from '@/models/Creator';
+import Admin from '@/models/Admin';
 import bcrypt from 'bcryptjs';
 
 export const authOptions = {
@@ -63,7 +64,25 @@ export const authOptions = {
       if (account?.provider === 'google') {
         await dbConnect();
         
-        // Check if user exists
+        // Check if user exists as Admin first
+        let admin = await Admin.findOne({ email: user.email });
+        
+        if (admin) {
+          // User is an admin - update OAuth info if needed
+          if (!admin.oauthProvider) {
+            admin.oauthProvider = 'google';
+            admin.oauthId = profile.sub;
+            await admin.save();
+          }
+          
+          user.id = admin._id.toString();
+          user.username = admin.username;
+          user.userType = 'admin';
+          user.isAdmin = true;
+          return true;
+        }
+        
+        // Check if user exists as Creator
         let creator = await Creator.findOne({ email: user.email });
         
         if (!creator) {
@@ -83,6 +102,8 @@ export const authOptions = {
         
         user.id = creator._id.toString();
         user.username = creator.username;
+        user.userType = 'creator';
+        user.isAdmin = false;
       }
       return true;
     },
@@ -90,6 +111,8 @@ export const authOptions = {
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.userType = user.userType || 'creator';
+        token.isAdmin = user.isAdmin || false;
       }
       return token;
     },
@@ -97,6 +120,8 @@ export const authOptions = {
       if (token) {
         session.user.id = token.id;
         session.user.username = token.username;
+        session.user.userType = token.userType;
+        session.user.isAdmin = token.isAdmin;
       }
       return session;
     }
