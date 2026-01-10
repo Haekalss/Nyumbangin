@@ -395,8 +395,8 @@ export default function DonatePage() {
         />
       )}
 
-      {/* Main Container - wider on desktop */}
-      <div className="w-full max-w-md lg:max-w-3xl mx-auto py-6 sm:py-8">
+      {/* Main Container - wider on desktop only when media share enabled */}
+      <div className={`w-full mx-auto py-6 sm:py-8 ${isMediaShareEnabled ? 'max-w-md lg:max-w-3xl' : 'max-w-md'}`}>
         <div className="bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492] shadow-lg p-4 sm:p-6">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#b8a492] mb-4 sm:mb-6 font-mono text-center">
             Dukung <span className="font-bold">{creator.displayName}</span>
@@ -420,7 +420,7 @@ export default function DonatePage() {
           <form onSubmit={handleSubmit}>
             <div className={isMediaShareEnabled ? 'lg:grid lg:grid-cols-5 lg:gap-8' : ''}>
               {/* Left Column - Basic Info (3/5 width when media share on, full width when off) */}
-              <div className={`space-y-4 ${isMediaShareEnabled ? 'lg:col-span-3' : 'max-w-md mx-auto'}`}>
+              <div className={`space-y-4 ${isMediaShareEnabled ? 'lg:col-span-3' : ''}`}>
                 {/* Nama */}
                 <div>
                   <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-[#b8a492] font-mono mb-1">
