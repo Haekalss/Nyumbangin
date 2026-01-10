@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '@/lib/axios';
 
 export function useAdminData() {  const [data, setData] = useState({
     creators: [],
@@ -23,14 +23,10 @@ export function useAdminData() {  const [data, setData] = useState({
     feedbacks: null
   });
 
-  const getAuthHeaders = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-  });
-
   const fetchCreators = useCallback(async () => {
     setLoading(prev => ({ ...prev, creators: true }));
     try {
-      const res = await axios.get('/api/admin/creators', getAuthHeaders());
+      const res = await api.get('/api/admin/creators');
       setData(prev => ({ ...prev, creators: res.data?.creators || [] }));
       setErrors(prev => ({ ...prev, creators: null }));
     } catch (err) {
@@ -45,7 +41,7 @@ export function useAdminData() {  const [data, setData] = useState({
   const fetchPayouts = useCallback(async () => {
     setLoading(prev => ({ ...prev, payouts: true }));
     try {
-      const res = await axios.get('/api/admin/payouts', getAuthHeaders());
+      const res = await api.get('/api/admin/payouts');
       setData(prev => ({ ...prev, payouts: res.data?.data || [] }));
       setErrors(prev => ({ ...prev, payouts: null }));
     } catch (err) {
@@ -59,7 +55,7 @@ export function useAdminData() {  const [data, setData] = useState({
   const fetchDonations = useCallback(async () => {
     setLoading(prev => ({ ...prev, donations: true }));
     try {
-      const res = await axios.get('/api/admin/donations?limit=200', getAuthHeaders());
+      const res = await api.get('/api/admin/donations?limit=200');
       setData(prev => ({ ...prev, donations: res.data?.data || [] }));
       setErrors(prev => ({ ...prev, donations: null }));
     } catch (err) {
@@ -74,7 +70,7 @@ export function useAdminData() {  const [data, setData] = useState({
   const fetchFeedbacks = useCallback(async () => {
     setLoading(prev => ({ ...prev, feedbacks: true }));
     try {
-      const res = await axios.get('/api/admin/feedback', getAuthHeaders());
+      const res = await api.get('/api/admin/feedback');
       setData(prev => ({ 
         ...prev, 
         feedbacks: res.data?.data || [],

@@ -110,9 +110,9 @@ export class SessionManager {
       });
     }
 
-    // Redirect to login after a short delay
+    // Redirect to landing page after a short delay
     setTimeout(() => {
-      router.push('/login');
+      router.push('/');
     }, 1000);
   }
 

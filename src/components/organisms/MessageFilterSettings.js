@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
 export default function MessageFilterSettings() {
+  const router = useRouter();
   const [filteredWords, setFilteredWords] = useState([]);
   const [newWord, setNewWord] = useState('');
   const [loading, setLoading] = useState(true);
@@ -17,14 +19,14 @@ export default function MessageFilterSettings() {
 
   const fetchFilteredWords = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('/api/creator/filtered-words', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/api/creator/filtered-words');
       setFilteredWords(res.data.filteredWords || []);
     } catch (error) {
       console.error('Error fetching filtered words:', error);
-      toast.error('Gagal memuat data filter');
+      // 401 will be handled by axios interceptor
+      if (error.response?.status !== 401) {
+        toast.error('Gagal memuat data filter');
+      }
     } finally {
       setLoading(false);
     }
@@ -64,18 +66,15 @@ export default function MessageFilterSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('token');
       
-      await axios.put(
-        '/api/creator/filtered-words',
-        { filteredWords },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/api/creator/filtered-words', { filteredWords });
 
       toast.success('Filter kata berhasil disimpan');
     } catch (error) {
       console.error('Error saving filtered words:', error);
-      toast.error('Gagal menyimpan filter kata');
+      if (error.response?.status !== 401) {
+        toast.error('Gagal menyimpan filter kata');
+      }
     } finally {
       setSaving(false);
     }

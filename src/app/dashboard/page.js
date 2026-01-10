@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import api from '@/lib/axios';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSessionManager } from '@/utils/sessionManager';
+import { useRequireAuth } from '@/hooks/useAuth';
 import ProfileModal from '@/components/organisms/ProfileModal';
 import { formatRupiah } from '@/utils/format';
 import { useProfileForm } from '@/hooks/useProfileForm';
@@ -23,6 +25,7 @@ export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const { data: session, status } = useSession();
   const { startMonitoring, stopMonitoring, logout } = useSessionManager();
   const [user, setUser] = useState(null);
@@ -586,12 +589,18 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) {
+  // Show loading while checking auth or loading data
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b8a492]"></div>
       </div>
     );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
   }
 
 

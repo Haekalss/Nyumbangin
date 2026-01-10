@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import MessageFilterSettings from '@/components/organisms/MessageFilterSettings';
 
@@ -12,8 +12,51 @@ export default function OverlayIndexPage() {
   const [copiedField, setCopiedField] = useState(null);
   const [hoveredField, setHoveredField] = useState(null);
   const [isHover, setIsHover] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!username) {
+  // Check auth on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Silakan login terlebih dahulu', { id: 'auth-required' });
+      router.replace('/login');
+      return;
+    }
+
+    try {
+      // Check if token is expired
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      if (payload.exp && payload.exp < currentTime) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', { id: 'session-expired' });
+        router.replace('/login');
+        return;
+      }
+
+      setIsAuthenticated(true);
+    } catch (error) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      toast.error('Token tidak valid. Silakan login kembali.', { id: 'invalid-token' });
+      router.replace('/login');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  if (!username || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b8a492]"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 
