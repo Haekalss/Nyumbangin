@@ -41,13 +41,6 @@ export default function DonatePage() {
     }
   }, [username]);
 
-  // Auto-enable media share on desktop if creator has it enabled
-  useEffect(() => {
-    if (isMediaShareEnabled && typeof window !== 'undefined' && window.innerWidth >= 1024) {
-      setEnableMediaShare(true);
-    }
-  }, [isMediaShareEnabled]);
-
   const fetchCreatorData = async () => {
     try {
       const response = await axios.get(`/api/donate/${username}`);
