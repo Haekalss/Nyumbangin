@@ -16,6 +16,85 @@ jest.mock('bson', () => {
   return actualBson;
 });
 
+// Mock mongodb module (some mongoose versions import from 'mongodb/src/bson')
+jest.mock('mongodb', () => {
+  return {
+    // Minimal stub to satisfy mongoose/bson usage in tests
+    BSON: {},
+    NumberUtils: {},
+    ObjectId: function(id) {
+      return {
+        toString: () => id || '507f1f77bcf86cd799439011',
+        toHexString: () => id || '507f1f77bcf86cd799439011',
+        equals: (other) => other?.toString && other.toString() === (id || '507f1f77bcf86cd799439011')
+      }
+    }
+  }
+})
+
+// Also mock the internal bson module path used by some mongodb builds
+jest.mock('mongodb/src/bson', () => ({
+  ObjectId: function(id) {
+    return {
+      toString: () => id || '507f1f77bcf86cd799439011',
+      toHexString: () => id || '507f1f77bcf86cd799439011',
+      equals: (other) => other?.toString && other.toString() === (id || '507f1f77bcf86cd799439011')
+    }
+  },
+  NumberUtils: {},
+  BSON: {},
+}));
+
+// Some builds import the file with .ts suffix
+jest.mock('mongodb/src/bson.ts', () => ({
+  ObjectId: function(id) {
+    return {
+      toString: () => id || '507f1f77bcf86cd799439011',
+      toHexString: () => id || '507f1f77bcf86cd799439011',
+      equals: (other) => other?.toString && other.toString() === (id || '507f1f77bcf86cd799439011')
+    }
+  },
+  NumberUtils: {},
+  BSON: {},
+}));
+
+// Mock mongoose to avoid loading native driver internals during unit tests
+jest.mock('mongoose', () => {
+  const ObjectId = function(id) { return id || '507f1f77bcf86cd799439011' }
+  const _models = {}
+  const model = (name, schema) => {
+    if (_models[name]) return _models[name]
+    function MockModel(doc) { if (doc) Object.assign(this, doc) }
+    MockModel.modelName = name
+    MockModel.schema = schema
+    MockModel.find = jest.fn().mockResolvedValue([])
+    MockModel.findOne = jest.fn().mockResolvedValue(null)
+    MockModel.create = jest.fn().mockImplementation((d) => Promise.resolve(d))
+    MockModel.deleteOne = jest.fn().mockResolvedValue({ deletedCount: 0 })
+    _models[name] = MockModel
+    return MockModel
+  }
+  const Schema = function(def) { this.obj = def }
+  Schema.Types = { ObjectId }
+  Schema.prototype.index = function() { return this }
+  Schema.prototype.set = function() { return this }
+  Schema.prototype.virtual = function() { return { get: () => {}, set: () => {} } }
+  Schema.prototype.pre = function() { return this }
+  Schema.prototype.post = function() { return this }
+  Schema.prototype.methods = {}
+  Schema.prototype.statics = {}
+  return {
+    Schema,
+    model,
+    models: _models,
+    Types: { ObjectId },
+    connect: jest.fn().mockResolvedValue(true),
+    connection: { close: jest.fn().mockResolvedValue(true) },
+    set: jest.fn(),
+    disconnect: jest.fn().mockResolvedValue(true),
+  }
+})
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter() {

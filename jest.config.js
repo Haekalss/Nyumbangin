@@ -11,6 +11,10 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^mongodb$': '<rootDir>/__mocks__/mongodb.js',
+    '^mongodb/(.*)$': '<rootDir>/__mocks__/mongodb.js',
+    '^bson$': '<rootDir>/__mocks__/mongodb.js',
+    '^@mongodb/(.*)$': '<rootDir>/__mocks__/mongodb.js',
   },
   collectCoverageFrom: [
     'src/**/*.{js,jsx}',

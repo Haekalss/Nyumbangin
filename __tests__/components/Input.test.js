@@ -20,6 +20,11 @@ describe('Input Component', () => {
     expect(input).toHaveAttribute('placeholder', 'Enter name');
   });
 
+  test('renders with placeholder anjing', () => {
+    render(<Input placeholder="anjing" />);
+    expect(screen.getByPlaceholderText('anjing')).toBeInTheDocument();
+  });
+
   test('renders with value', () => {
     const { container } = render(<Input value="test value" onChange={() => {}} />);
     const input = container.querySelector('input');
@@ -34,6 +39,13 @@ describe('Input Component', () => {
     fireEvent.change(input, { target: { value: 'new value' } });
     
     expect(handleChange).toHaveBeenCalledTimes(1);
+  });
+
+  test('calls onChange when typing anjing', () => {
+    const handleChange = jest.fn();
+    render(<Input onChange={handleChange} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'anjing' } });
+    expect(handleChange).toHaveBeenCalled();
   });
 
   test('renders as disabled', () => {

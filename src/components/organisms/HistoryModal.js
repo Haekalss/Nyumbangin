@@ -125,7 +125,7 @@ const HistoryModal = ({
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           ))
         )}
       </div>

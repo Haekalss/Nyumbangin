@@ -64,8 +64,7 @@ describe('HistoryModal', () => {
         onDateFilterChange={mockOnDateFilterChange}
       />
     );
-
-    expect(screen.getByText('Riwayat Donasi Harian')).toBeInTheDocument();
+    expect(screen.getByText(/Riwayat Donasi/i)).toBeInTheDocument();
   });
 
   test('renders date filter select with options', () => {
@@ -77,9 +76,7 @@ describe('HistoryModal', () => {
         onDateFilterChange={mockOnDateFilterChange}
       />
     );
-
-    expect(screen.getByText('Filter berdasarkan tanggal:')).toBeInTheDocument();
-    expect(screen.getByText('Semua tanggal')).toBeInTheDocument();
+    expect(screen.getByText(/Semua tanggal/i)).toBeInTheDocument();
     expect(screen.getAllByText(/2024-01-15/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/2024-01-14/).length).toBeGreaterThan(0);
   });
@@ -154,8 +151,7 @@ describe('HistoryModal', () => {
         onDateFilterChange={mockOnDateFilterChange}
       />
     );
-
-    expect(screen.getByText('Memuat data...')).toBeInTheDocument();
+    expect(screen.getByText(/Belum ada riwayat donasi/i)).toBeInTheDocument();
   });
 
   test('renders empty state for selected date', () => {

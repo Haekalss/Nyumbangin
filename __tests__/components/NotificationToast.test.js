@@ -66,8 +66,7 @@ describe('NotificationToast', () => {
         progress={60}
       />
     );
-
-    const progressBar = container.querySelector('.h-1.bg-\\[\\#2d2d2d\\]');
+    const progressBar = container.querySelector('.h-2.bg-\\[\\#2d2d2d\\]');
     expect(progressBar).toHaveStyle({ width: '60%' });
   });
 
@@ -79,8 +78,7 @@ describe('NotificationToast', () => {
         progress={0}
       />
     );
-
-    const progressBar = container.querySelector('.h-1.bg-\\[\\#2d2d2d\\]');
+    const progressBar = container.querySelector('.h-2.bg-\\[\\#2d2d2d\\]');
     expect(progressBar).toHaveStyle({ width: '0%' });
   });
 
@@ -92,8 +90,7 @@ describe('NotificationToast', () => {
         progress={100}
       />
     );
-
-    const progressBar = container.querySelector('.h-1.bg-\\[\\#2d2d2d\\]');
+    const progressBar = container.querySelector('.h-2.bg-\\[\\#2d2d2d\\]');
     expect(progressBar).toHaveStyle({ width: '100%' });
   });
 

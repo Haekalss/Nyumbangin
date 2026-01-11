@@ -39,44 +39,33 @@ describe('Header', () => {
 
   test('renders all buttons', () => {
     const user = { displayName: 'Test User', username: 'testuser' };
-    
     render(<Header user={user} openProfile={mockOpenProfile} />);
-    
-    expect(screen.getByText('🎥 Live Widget')).toBeInTheDocument();
-    expect(screen.getByText('💰 Payout')).toBeInTheDocument();
-    expect(screen.getByText('👤 Profil')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Pengaturan Overlay/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Pencairan Dana/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Profil/i })).toBeInTheDocument();
   });
 
   test('calls router.push with overlay URL when Live Widget button clicked', () => {
     const user = { displayName: 'Test User', username: 'testuser' };
-    
     render(<Header user={user} openProfile={mockOpenProfile} />);
-    
-    const liveWidgetButton = screen.getByText('🎥 Live Widget');
+    const liveWidgetButton = screen.getByRole('button', { name: /Pengaturan Overlay/i });
     fireEvent.click(liveWidgetButton);
-    
-    expect(mockPush).toHaveBeenCalledWith('/overlay/testuser');
+    expect(mockPush).toHaveBeenCalledWith(`/overlay/${user.username}`);
   });
 
   test('calls router.push with payout URL when Payout button clicked', () => {
     const user = { displayName: 'Test User', username: 'testuser' };
-    
     render(<Header user={user} openProfile={mockOpenProfile} />);
-    
-    const payoutButton = screen.getByText('💰 Payout');
+    const payoutButton = screen.getByRole('button', { name: /Pencairan Dana/i });
     fireEvent.click(payoutButton);
-    
     expect(mockPush).toHaveBeenCalledWith('/dashboard/payout');
   });
 
   test('calls openProfile when Profil button clicked', () => {
     const user = { displayName: 'Test User', username: 'testuser' };
-    
     render(<Header user={user} openProfile={mockOpenProfile} />);
-    
-    const profileButton = screen.getByText('👤 Profil');
+    const profileButton = screen.getByRole('button', { name: /Profil/i });
     fireEvent.click(profileButton);
-    
     expect(mockOpenProfile).toHaveBeenCalled();
   });
 

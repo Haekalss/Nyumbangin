@@ -28,6 +28,7 @@ export default function DonatePage() {
   const [completedDonationId, setCompletedDonationId] = useState(null);
   const [todayShares, setTodayShares] = useState(0);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [enableMediaShare, setEnableMediaShare] = useState(false);
   const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
   // Check if media share is enabled for this creator
