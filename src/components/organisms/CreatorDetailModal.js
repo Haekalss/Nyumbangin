@@ -1,4 +1,5 @@
 import React from "react";
+import Card from '../atoms/Card';
 
 export default function CreatorDetailModal({ creator, onClose }) {
   if (!creator) return null;
@@ -9,8 +10,8 @@ export default function CreatorDetailModal({ creator, onClose }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 w-full max-w-md max-h-full overflow-hidden shadow-xl relative font-mono"
+      <Card
+        className="p-6 w-full max-w-md max-h-full overflow-hidden shadow-xl relative font-mono"
         onClick={e => e.stopPropagation()}
       >
         <h3 className="text-2xl font-extrabold text-[#b8a492] mb-2 font-mono text-center">Detail Creator</h3>
@@ -31,7 +32,7 @@ export default function CreatorDetailModal({ creator, onClose }) {
           <div><span className="font-bold text-[#b8a492]">Payout Type:</span> <span className="text-white">{creator.payoutSettings?.type || <span className='text-red-400'>-</span>}</span></div>
           <div><span className="font-bold text-[#b8a492]">Tanggal Daftar:</span> <span className="text-white">{creator.createdAt ? new Date(creator.createdAt).toLocaleString() : '-'}</span></div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

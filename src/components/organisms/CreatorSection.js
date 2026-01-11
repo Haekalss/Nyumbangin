@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import StatusBadge from '../atoms/StatusBadge';
+import Card from '../atoms/Card';
 
 export default function CreatorSection({ 
   creators, 
@@ -19,7 +20,7 @@ export default function CreatorSection({
   }, [creatorsArray, search]);
 
   return (
-    <div id="creator" className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl overflow-hidden">
+    <Card as="section" id="creator" className="sm:rounded-xl overflow-hidden">
       <div className="px-4 py-5 sm:px-6 border-b border-[#00fff7]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h3 className="text-2xl leading-6 font-extrabold text-[#b8a492] tracking-wide font-mono">Daftar Creator</h3>

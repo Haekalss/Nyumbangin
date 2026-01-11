@@ -6,6 +6,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSessionManager } from '@/utils/sessionManager';
 import { formatRupiah } from '@/utils/format';
+import Card from '@/components/atoms/Card';
 
 export default function PayoutPage() {
   const [payouts, setPayouts] = useState([]);
@@ -197,7 +198,7 @@ export default function PayoutPage() {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <section className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl mb-8 p-6">
+        <Card as="section" className="sm:rounded-xl mb-8 p-6">
           <h2 className="text-xl font-bold text-[#b8a492] mb-2">Saldo & Pencairan Dana</h2>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
@@ -258,7 +259,7 @@ export default function PayoutPage() {
             </table>
           </div>
           {payoutError && <div className="text-red-500 mt-2 text-sm">{payoutError}</div>}
-        </section>
+        </Card>
       </main>
 
       <footer className="w-full py-6 text-center text-[#b8a492] bg-[#2d2d2d] text-sm mt-8 flex flex-col items-center gap-2">

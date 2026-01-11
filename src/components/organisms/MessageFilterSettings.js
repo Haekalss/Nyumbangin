@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
+import Card from '../atoms/Card';
 
 export default function MessageFilterSettings() {
   const router = useRouter();
@@ -94,14 +95,14 @@ export default function MessageFilterSettings() {
 
   if (loading) {
     return (
-      <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6">
+      <Card className="p-6">
         <div className="text-center text-[#b8a492]">Memuat...</div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6">
+    <Card className="p-6">
       <div className="mb-6">
         <h3 className="text-xl font-bold text-[#b8a492] mb-2 font-mono">Filter Pesan Donasi</h3>
         <p className="text-sm text-[#b8a492]/70 font-mono">
@@ -201,6 +202,6 @@ export default function MessageFilterSettings() {
           Contoh: filter "anjing" tidak akan mempengaruhi kata "anjingga".
         </p>
       </div>
-    </div>
+    </Card>
   );
 }

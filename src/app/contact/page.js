@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Card from '@/components/atoms/Card';
 
 export default function ContactPage() {
   const router = useRouter();  const [formData, setFormData] = useState({
@@ -151,7 +152,7 @@ export default function ContactPage() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl p-6 sm:p-8">
+        <Card className="p-6 sm:p-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-[#b8a492] mb-4">Kirim Pesan kepada Tim Nyumbangin</h2>
             <p className="text-[#b8a492]/80 font-mono text-sm">
@@ -296,7 +297,7 @@ export default function ContactPage() {
               <li>• Kami akan merespons melalui email dalam 1x24 jam</li>
             </ul>
           </div>
-        </div>
+        </Card>
       </main>
 
       {/* Footer */}

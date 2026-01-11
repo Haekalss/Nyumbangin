@@ -1,3 +1,5 @@
+import Card from '../atoms/Card';
+
 export default function PayoutSection({ 
   payouts, 
   loading, 
@@ -7,7 +9,7 @@ export default function PayoutSection({
   const payoutsArray = Array.isArray(payouts) ? payouts : [];
 
   return (
-    <div id="payout" className="bg-[#2d2d2d] border-4 border-[#b8a492] sm:rounded-xl overflow-hidden mb-8">
+    <Card as="section" id="payout" className="sm:rounded-xl overflow-hidden mb-8">
       <div className="px-4 py-5 sm:px-6 border-b border-[#00fff7]/20">
         <h3 className="text-2xl leading-6 font-extrabold text-[#b8a492] tracking-wide font-mono">
           Riwayat Pengajuan Payout Creator

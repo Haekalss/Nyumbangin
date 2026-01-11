@@ -1,4 +1,5 @@
 import React from 'react';
+import Card from './Card';
 
 /**
  * Generic Modal atom responsible only for layout, backdrop and container.
@@ -11,10 +12,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = 'max-w-2xl
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={onClose}
     >
-      <div 
-        className={`bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 w-full ${maxWidth} max-h-full overflow-hidden shadow-xl relative`}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <Card className={`p-6 w-full ${maxWidth} max-h-full overflow-hidden shadow-xl relative`} onClick={(e) => e.stopPropagation()}>
         {title && (
           <h3 className="text-2xl font-extrabold text-[#b8a492] mb-2 font-mono text-center">{title}</h3>
         )}
@@ -33,7 +31,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = 'max-w-2xl
             {footer}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 };

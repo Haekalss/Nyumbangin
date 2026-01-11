@@ -1,3 +1,5 @@
+import Card from '../atoms/Card';
+
 export default function PayoutNotesModal({ 
   isOpen, 
   type, 
@@ -10,7 +12,7 @@ export default function PayoutNotesModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-      <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 w-full max-w-md shadow-xl">
+      <Card className="p-6 w-full max-w-md shadow-xl">
         <h2 className="text-xl font-extrabold text-[#b8a492] mb-2">
           {type === 'PROCESSED' ? 'Proses Payout' : 'Tolak Payout'}
         </h2>
@@ -38,7 +40,7 @@ export default function PayoutNotesModal({
             Simpan & {type === 'PROCESSED' ? 'Proses' : 'Tolak'}
           </button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

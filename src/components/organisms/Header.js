@@ -23,7 +23,7 @@ const Header = ({ user, openProfile }) => {
               onClick={() => router.push(`/overlay/${user?.username}`)}
               title="Pengaturan Overlay & Filter"
             >
-              ⚙️ Settings
+              ⚙️ Pengaturan Overlay
             </Button>
             <Button
               variant="secondary"
@@ -31,7 +31,7 @@ const Header = ({ user, openProfile }) => {
               onClick={() => router.push('/dashboard/payout')}
               title="Kelola Pencairan Dana"
             >
-              💰 Payout
+              💰 Pencairan Dana
             </Button>
             <Button
               variant="secondary"

@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatRupiah } from '@/utils/format';
 import Modal from '../atoms/Modal';
+import Card from '../atoms/Card';
 
 const HistoryModal = ({ 
   onClose, 
@@ -16,7 +17,7 @@ const HistoryModal = ({
     <Modal isOpen={true} onClose={onClose} title="📜 Riwayat Donasi" maxWidth="max-w-4xl">
       {/* Stats Summary */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-4">
+        <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#333399] to-[#00fff7] flex items-center justify-center shadow-neon">
               <span className="text-lg">🎁</span>
@@ -26,8 +27,8 @@ const HistoryModal = ({
               <div className="text-xl font-extrabold text-[#b8a492] font-mono">{totalDonations}</div>
             </div>
           </div>
-        </div>
-        <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-4">
+        </Card>
+        <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff00cc] to-[#333399] flex items-center justify-center shadow-neon">
               <span className="text-lg">💰</span>
@@ -37,7 +38,7 @@ const HistoryModal = ({
               <div className="text-xl font-extrabold text-[#b8a492] font-mono">{formatRupiah(totalAmount)}</div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Date Filter */}
@@ -64,15 +65,15 @@ const HistoryModal = ({
       {/* Donation List */}
       <div className="max-h-[calc(100vh-24rem)] overflow-y-auto space-y-4 pr-1">
         {historyData.length === 0 ? (
-          <div className="text-center py-12 bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492]">
+          <Card className="text-center py-12">
             <div className="text-4xl mb-3">📭</div>
             <div className="text-[#b8a492] font-bold font-mono">
               {selectedDate ? 'Tidak ada donasi pada tanggal tersebut' : 'Belum ada riwayat donasi'}
             </div>
-          </div>
+          </Card>
         ) : (
           historyData.map((day, idx) => (
-            <div key={idx} className="bg-[#2d2d2d] rounded-xl overflow-hidden border-4 border-[#b8a492]">
+            <Card key={idx} className="overflow-hidden">
               {/* Date Header */}
               <div className="bg-[#b8a492]/10 px-4 py-3 flex justify-between items-center border-b-2 border-[#b8a492]">
                 <div className="flex items-center gap-2">

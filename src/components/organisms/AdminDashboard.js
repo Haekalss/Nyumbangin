@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { Chart, registerables } from 'chart.js';
-import StatsCard from '../StatsCard';
+import StatsCard from '../molecules/StatsCard';
 
 Chart.register(...registerables);
 

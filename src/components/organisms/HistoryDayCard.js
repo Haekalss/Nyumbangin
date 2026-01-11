@@ -1,13 +1,14 @@
 import React from 'react';
 import HistoryDonationItem from '../molecules/HistoryDonationItem';
 import { formatRupiah } from '@/utils/format';
+import Card from '../atoms/Card';
 
 const HistoryDayCard = ({ 
   dayData, 
   className = '' 
 }) => {
   return (
-    <div className={`bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl overflow-hidden ${className}`}>
+    <Card className={`overflow-hidden ${className}`}>
       {/* Date Header */}
       <div className="bg-[#b8a492]/10 px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b-2 border-[#b8a492]">
         <div className="flex items-center gap-3">
@@ -68,7 +69,7 @@ const HistoryDayCard = ({
           ));
         })()}
       </div>
-    </div>
+    </Card>
   );
 };
 

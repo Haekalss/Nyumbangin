@@ -7,7 +7,7 @@ import { signIn, useSession } from "next-auth/react";
 import axios from "axios";
 import Link from "next/link";
 import toast from 'react-hot-toast';
-import MobileBlocker from '@/components/MobileBlocker';
+import MobileBlocker from '@/components/organisms/MobileBlocker';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

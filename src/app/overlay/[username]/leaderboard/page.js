@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import { formatRupiah } from '@/utils/format';
+import Card from '@/components/atoms/Card';
 
 export default function LeaderboardOverlay() {
   const params = useParams();
@@ -103,7 +104,7 @@ export default function LeaderboardOverlay() {
       {/* Leaderboard */}
       {overlayConfig.showLeaderboard && leaderboardData.length > 0 && (
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-          <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
+          <Card className="p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
             <div className="text-center text-[#b8a492] font-mono font-bold mb-4 text-lg">
               🏆 Sultan Bulan Ini
             </div>
@@ -120,21 +121,21 @@ export default function LeaderboardOverlay() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {/* Show placeholder when no data */}
       {(!leaderboardData.length && overlayConfig.showLeaderboard) && (
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-          <div className="bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
+          <Card className="p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
             <div className="text-center text-[#b8a492] font-mono font-bold mb-4 text-lg">
               🏆 Sultan Bulan Ini
             </div>
             <div className="text-center text-[#b8a492] font-mono text-base opacity-70 py-4">
               Belum ada donasi bulan ini
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>
