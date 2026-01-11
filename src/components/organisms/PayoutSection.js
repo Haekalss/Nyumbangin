@@ -81,6 +81,6 @@ export default function PayoutSection({
         </table>
         {error && <div className="text-red-500 mt-2 text-sm px-4 py-2">{error}</div>}
       </div>
-    </div>
+    </Card>
   );
 }

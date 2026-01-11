@@ -96,6 +96,6 @@ export default function CreatorSection({
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
