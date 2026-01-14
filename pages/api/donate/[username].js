@@ -129,14 +129,15 @@ export default async function handler(req, res) {
         });
       }
 
-  const { name, amount, message = '', mediaShare } = req.body;
+  const { name, amount, message = '', mediaShare, payment_method } = req.body;
 
-      if (!name || !amount) {
+      if (!name || amount === undefined || amount === null) {
         return res.status(400).json({ error: 'Nama dan jumlah donasi wajib diisi' });
       }
 
-      if (amount < 1000) {
-        return res.status(400).json({ error: 'Minimal donasi Rp 1.000' });
+      const numericAmount = parseInt(amount);
+      if (isNaN(numericAmount) || numericAmount < 1) {
+        return res.status(400).json({ error: 'Minimal donasi Rp 1' });
       }
 
   // Filter message untuk kata-kata kasar
@@ -167,7 +168,34 @@ export default async function handler(req, res) {
         };
       }
 
-      const donation = await Donation.create(donationData);
+      // If payment_method is gopay-merchant, do not initiate Midtrans.
+      // Instead return a static QR image and keep donation in PENDING state.
+      let donation = null;
+      if (payment_method === 'gopay-merchant') {
+        donationData.paymentMethod = 'gopay-merchant';
+        donationData.status = 'PENDING';
+        donation = await Donation.create(donationData);
+
+        return res.status(201).json({
+          success: true,
+          message: 'Donasi dibuat. Silakan scan QR untuk membayar.',
+          donation: {
+            _id: donation._id,
+            id: donation._id,
+            name: donation.name,
+            amount: donation.amount,
+            message: donation.message,
+            merchant_ref: donation.merchant_ref,
+            createdAt: donation.createdAt,
+            status: donation.status
+          },
+          payment: {
+            qr_image: '/qris/nyumbangin.png'
+          }
+        });
+      }
+
+      donation = await Donation.create(donationData);
 
       // Inisiasi transaksi Midtrans Snap
       let snapToken = null;

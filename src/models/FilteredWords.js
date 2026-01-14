@@ -23,7 +23,7 @@ const FilteredWordsSchema = new mongoose.Schema({
 });
 
 // Index untuk query cepat
-FilteredWordsSchema.index({ creatorId: 1 });
+// creatorId sudah didefinisikan dengan `unique: true` di field, tidak perlu index lagi
 
 // Method untuk add word
 FilteredWordsSchema.methods.addWord = function(word) {

@@ -33,6 +33,21 @@ export default async function handler(req, res) {
       });
     }
 
+    // If donation was created for GoPay Merchant (QRIS), skip Midtrans API call
+    if (donation.paymentMethod === 'gopay-merchant') {
+      return res.json({
+        success: true,
+        status: donation.status,
+        message: 'GoPay Merchant donation - status from DB',
+        donation: {
+          id: donation._id,
+          merchant_ref: donation.merchant_ref,
+          name: donation.name,
+          amount: donation.amount,
+          status: donation.status
+        }
+      });
+    }
     // If already PAID, return success
     if (donation.status === 'PAID') {
       return res.json({

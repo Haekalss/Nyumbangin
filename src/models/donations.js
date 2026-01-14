@@ -17,7 +17,7 @@ const DonationSchema = new mongoose.Schema({
   amount: { 
     type: Number, 
     required: true,
-    min: 1000, // Min Rp 1k
+    min: 1, // Min Rp 1 (allow for testing / MVP)
     max: 10000000 // Max Rp 10jt
   },
   message: { 

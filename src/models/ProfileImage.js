@@ -46,7 +46,6 @@ const ProfileImageSchema = new mongoose.Schema({
 });
 
 // Index untuk efficient query
-ProfileImageSchema.index({ creatorId: 1 });
 ProfileImageSchema.index({ isActive: 1 });
 
 // Static method untuk get atau create default

@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import ShareModal from '@/components/organisms/ShareModal';
+import Modal from '@/components/atoms/Modal';
 
 
 export default function DonatePage() {
@@ -20,6 +21,9 @@ export default function DonatePage() {
   const [formData, setFormData] = useState({ name: '', amount: '', message: '' });
   const [donating, setDonating] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('midtrans');
+  const [qrImage, setQrImage] = useState(null);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [mediaDuration, setMediaDuration] = useState(30);
@@ -138,6 +142,50 @@ export default function DonatePage() {
     }
   }, [formData.amount, youtubeUrl]);
 
+  // When a pendingRef is present (GoPay flow), poll status until PAID
+  useEffect(() => {
+    if (!pendingRef) return;
+
+    let stopped = false;
+    const check = async () => {
+      try {
+        const statusCheck = await axios.post('/api/check-payment-status', { merchant_ref: pendingRef });
+        if (statusCheck.data.status === 'PAID') {
+          if (!stopped) {
+            handlePaymentSuccess(completedDonationId);
+          }
+        }
+      } catch (err) {
+        // ignore transient errors
+        console.error('Polling error:', err?.message || err);
+      }
+    };
+
+    const interval = setInterval(check, 3000);
+    // run immediately once
+    check();
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+    };
+  }, [pendingRef]);
+
+  const handlePaymentSuccess = (donationId) => {
+    toast.success('Pembayaran berhasil!');
+    fetchShareStats(); // refresh share count
+    setSuccess(true);
+    setCompletedDonationId(donationId);
+    setShowShareModal(true);
+    setFormData({ name: '', amount: '', message: '' });
+    setAgreedToTerms(false);
+    setEnableMediaShare(false);
+    setYoutubeUrl('');
+    setMediaDuration(30);
+    setPendingRef(null);
+    setQrImage(null);
+  };
+
   const loadSnapScript = () => {
     return new Promise((resolve, reject) => {
       if (document.getElementById('midtrans-snap')) return resolve();
@@ -171,8 +219,8 @@ export default function DonatePage() {
     }
 
     const amount = parseInt(formData.amount);
-    if (isNaN(amount) || amount < 1000) {
-      toast.error('Minimal donasi adalah Rp 1.000!');
+    if (isNaN(amount) || amount < 1) {
+      toast.error('Minimal donasi adalah Rp 1!');
       setDonating(false);
       return;
     }
@@ -215,7 +263,8 @@ export default function DonatePage() {
     try {
       // Prepare donation data
       const donationData = {
-        ...formData
+        ...formData,
+        payment_method: paymentMethod
       };
 
       // Add media share request if URL provided
@@ -227,11 +276,22 @@ export default function DonatePage() {
         };
       }
 
-  const response = await axios.post(`/api/donate/${username}`, donationData);
+      const response = await axios.post(`/api/donate/${username}`, donationData);
       if (response.data.success) {
         const token = response.data.payment?.token;
         const merchantRef = response.data.donation.merchant_ref;
         const donationId = response.data.donation._id;
+        const qr = response.data.payment?.qr_image;
+        if (qr && paymentMethod === 'gopay-merchant') {
+          // Show small inline QR and open modal for larger view; start polling
+          setQrImage(qr);
+          setShowQrModal(true);
+          setPendingRef(merchantRef);
+          setCompletedDonationId(donationId);
+          setDonating(false);
+          // Start polling handled in useEffect below
+          return;
+        }
         
         await loadSnapScript();
     if (window.snap && token) {
@@ -574,8 +634,34 @@ export default function DonatePage() {
               )}
             </div>
 
-            {/* Checkbox dan Button - Full Width */}
+            {/* Payment method selector, then Checkbox dan Button - Full Width */}
             <div className="mt-6 space-y-4">
+              <div className="mb-3">
+                <label className="block text-xs font-bold text-[#b8a492] font-mono mb-2">Metode Pembayaran</label>
+                <div className="flex gap-3 items-center">
+                  <label className={`px-3 py-2 rounded-lg border ${paymentMethod === 'midtrans' ? 'bg-[#b8a492] text-[#2d2d2d]' : 'bg-[#2d2d2d] text-[#b8a492]' } cursor-pointer`}>
+                    <input type="radio" name="payment" value="midtrans" checked={paymentMethod === 'midtrans'} onChange={() => setPaymentMethod('midtrans')} className="mr-2" /> Midtrans (Simulator)
+                  </label>
+                  <label className={`px-3 py-2 rounded-lg border ${paymentMethod === 'gopay-merchant' ? 'bg-[#b8a492] text-[#2d2d2d]' : 'bg-[#2d2d2d] text-[#b8a492]' } cursor-pointer`}>
+                    <input type="radio" name="payment" value="gopay-merchant" checked={paymentMethod === 'gopay-merchant'} onChange={() => setPaymentMethod('gopay-merchant')} className="mr-2" /> GoPay Merchant (QRIS)
+                  </label>
+                </div>
+
+                {paymentMethod === 'gopay-merchant' && qrImage && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="w-20 h-20 p-1 rounded-md bg-white border-2 border-[#b8a492] cursor-pointer" onClick={() => setShowQrModal(true)}>
+                      <img src={qrImage} alt="QRIS GoPay Merchant" className="w-full h-full object-contain" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#b8a492] mb-1">Scan QR ini dengan aplikasi GoPay</p>
+                      <p className="text-sm text-[#b8a492]">Status: <span className="font-bold">Menunggu pembayaran...</span></p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            {/* Checkbox dan Button - Full Width */}
+            <div>
               {/* Checkbox Persetujuan */}
               <div className="flex items-start gap-3">
                 <input
@@ -599,9 +685,19 @@ export default function DonatePage() {
                 {donating ? 'Mengirim...' : `Donasi ${formatRupiah(formData.amount ? parseInt(formData.amount) : 0)}`}
               </button>
             </div>
+            </div>
           </form>
         </div>
       </div>
+      {/* QR Modal for GoPay */}
+      {showQrModal && qrImage && (
+        <Modal isOpen={true} onClose={() => setShowQrModal(false)} title="Scan QR untuk membayar">
+          <div className="text-center">
+            <img src={qrImage} alt="QRIS GoPay Merchant" className="mx-auto w-64 h-64 object-contain" />
+            <p className="text-xs text-[#b8a492] mt-4">Scan dengan GoPay untuk menyelesaikan pembayaran.</p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
