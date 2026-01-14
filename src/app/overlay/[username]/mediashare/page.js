@@ -19,6 +19,7 @@ export default function MediaShareOverlay() {
 
   const [remaining, setRemaining] = useState(0);
   const [, forceRender] = useState(0);
+  const [transparentMode, setTransparentMode] = useState(false);
 
   /* ================= LOAD YT API (OBS SAFE) ================= */
   useEffect(() => {
@@ -145,6 +146,13 @@ export default function MediaShareOverlay() {
   /* ================= POLLING ================= */
   useEffect(() => {
     if (!username) return;
+    // Detect transparent mode via query param `?transparent=1` (for TikTok Studio)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('transparent') === '1' || params.get('tiktok') === '1') {
+        setTransparentMode(true);
+      }
+    } catch (e) {}
 
     fetchQueue();
     pollRef.current = setInterval(fetchQueue, 5000);
@@ -249,22 +257,22 @@ export default function MediaShareOverlay() {
     >
       <div className="w-full flex justify-center px-6">
         <div style={{ width: 'min(90vw, 880px)' }}>
-          <div className="bg-[#e9e9e9] border-4 border-[#b8a492] rounded-xl overflow-hidden">
-            {/* Video area (white) - constrained to 16:9 and not too wide */}
+          <div className={`${transparentMode ? 'bg-transparent border-0' : 'bg-[#e9e9e9] border-4 border-[#b8a492]'} rounded-xl overflow-hidden`}>
+            {/* Video area (can be transparent for TikTok Studio) */}
             <div
-              className="bg-white w-full flex items-center justify-center"
+              className={`${transparentMode ? 'bg-transparent' : 'bg-white'} w-full flex items-center justify-center`}
               style={{ aspectRatio: '16/9', width: '100%' }}
             >
               <div id="yt-player" className="w-full h-full" />
             </div>
 
-          {/* Info area (dark) */}
+          {/* Info area */}
           {video && (
-            <div className="bg-[#b8a492] p-6 border-t-2 border-[#2d2d2d] text-[#2d2d2d]">
+            <div className={`${transparentMode ? 'bg-transparent' : 'bg-[#b8a492]'} p-6 ${transparentMode ? '' : 'border-t-2 border-[#2d2d2d]'} ${transparentMode ? 'text-white' : 'text-[#2d2d2d]'}`}>
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                  <p className="text-[#2d2d2d] text-2xl font-extrabold font-mono">{video.donorName}</p>
-                  <p className="text-[#2d2d2d] text-lg font-mono mt-1">
+                  <p className={`${transparentMode ? 'text-white' : 'text-[#2d2d2d]'} text-2xl font-extrabold font-mono`}>{video.donorName}</p>
+                  <p className={`${transparentMode ? 'text-white' : 'text-[#2d2d2d]'} text-lg font-mono mt-1`}>
                     {new Intl.NumberFormat("id-ID", {
                       style: "currency",
                       currency: "IDR",
@@ -274,7 +282,7 @@ export default function MediaShareOverlay() {
                 </div>
 
                 {video.message ? (
-                  <div className="text-[#2d2d2d]/80 text-sm md:text-base font-mono">
+                  <div className={`${transparentMode ? 'text-white/80' : 'text-[#2d2d2d]/80'} text-sm md:text-base font-mono`}>
                     <div className="italic">{video.message}</div>
                   </div>
                 ) : null}
