@@ -30,6 +30,8 @@ export default async function handler(req, res) {
     let payment_method = payload.payment_method || payload.paymentMethod || null;
     const completion_source = payload.completion_source || payload.completionSource || null;
     const rawText = payload.rawText || payload.raw_text || payload.text || '';
+    // Accept explicit creator username sent by MacroDroid (safer than parsing rawText)
+    const creatorUsername = payload.creator_username || payload.createdByUsername || payload.created_by_username || null;
     const receivedAt = payload.receivedAt || payload.received_at || new Date().toISOString();
 
     console.log('=== GOPAY INCOMING ===');
@@ -112,13 +114,57 @@ export default async function handler(req, res) {
     }
 
     if (!donation) {
-      console.log('Searching donation by amount match:', amount);
-      donation = await Donation.findOne({
-        paymentMethod: 'gopay-merchant',
-        amount: parseInt(amount),
-        status: 'PENDING',
-        createdAt: { $gte: since }
-      }).sort({ createdAt: -1 });
+      console.log('Searching donation by amount match:', amount, 'creatorUsername:', creatorUsername);
+
+      // If creatorUsername explicitly provided, try to match that first
+      if (creatorUsername) {
+        donation = await Donation.findOne({
+          createdByUsername: creatorUsername,
+          paymentMethod: 'gopay-merchant',
+          amount: parseInt(amount),
+          status: 'PENDING',
+          createdAt: { $gte: since }
+        }).sort({ createdAt: -1 });
+
+        // If exact amount match not found but fallback allowed, try most recent for that creator
+        if (!donation && amountDefaulted && allowFallback) {
+          donation = await Donation.findOne({
+            createdByUsername: creatorUsername,
+            paymentMethod: 'gopay-merchant',
+            status: 'PENDING',
+            createdAt: { $gte: since }
+          }).sort({ createdAt: -1 });
+        }
+      }
+
+      if (!donation) {
+        const candidates = await Donation.find({
+          paymentMethod: 'gopay-merchant',
+          amount: parseInt(amount),
+          status: 'PENDING',
+          createdAt: { $gte: since }
+        }).sort({ createdAt: -1 }).limit(10);
+
+        if (candidates && candidates.length === 1) {
+          donation = candidates[0];
+        } else if (candidates && candidates.length > 1) {
+          // Prefer candidate matching explicit creatorUsername
+          if (creatorUsername) {
+            donation = candidates.find(c => c.createdByUsername && c.createdByUsername.toLowerCase() === creatorUsername.toLowerCase());
+          }
+
+          // If still not found, try to prefer one whose createdByUsername appears in the notification text.
+          if (!donation) {
+            const rt = (rawText || '').toLowerCase();
+            donation = candidates.find(c => c.createdByUsername && rt.includes(c.createdByUsername.toLowerCase()));
+          }
+
+          if (!donation) {
+            // No username match — fall back to the most recent candidate
+            donation = candidates[0];
+          }
+        }
+      }
     }
 
     // If still not found, and amount was defaulted (test placeholders),
@@ -170,7 +216,11 @@ export default async function handler(req, res) {
       } else {
         // Media share: create MediaShare entry
         if (!freshDonation.mediaShareRequest.processed) {
-          const videoId = MediaShare.extractVideoId(freshDonation.mediaShareRequest.youtubeUrl);
+          const yUrl = (freshDonation.mediaShareRequest.youtubeUrl || '').trim();
+          console.log('MediaShare requested. YouTube URL:', yUrl);
+          const videoId = MediaShare.extractVideoId(yUrl);
+          console.log('Extracted videoId:', videoId);
+
           if (videoId) {
             const lastInQueue = await MediaShare.findOne({
               createdByUsername: freshDonation.createdByUsername,
@@ -179,26 +229,31 @@ export default async function handler(req, res) {
 
             const queuePosition = lastInQueue ? lastInQueue.queuePosition + 1 : 1;
 
-            await MediaShare.create({
-              donationId: freshDonation._id,
-              createdBy: freshDonation.createdBy,
-              createdByUsername: freshDonation.createdByUsername,
-              donorName: freshDonation.name,
-              donorEmail: freshDonation.email || 'anonymous@nyumbangin.com',
-              amount: freshDonation.amount,
-              youtubeUrl: freshDonation.mediaShareRequest.youtubeUrl,
-              videoId,
-              requestedDuration: freshDonation.mediaShareRequest.duration,
-              message: freshDonation.message || '',
-              merchant_ref: freshDonation.merchant_ref,
-              queuePosition,
-              isApproved: true
-            });
+            try {
+              const ms = await MediaShare.create({
+                donationId: freshDonation._id,
+                createdBy: freshDonation.createdBy,
+                createdByUsername: freshDonation.createdByUsername,
+                donorName: freshDonation.name,
+                donorEmail: freshDonation.email || 'anonymous@nyumbangin.com',
+                amount: freshDonation.amount,
+                youtubeUrl: yUrl,
+                videoId,
+                requestedDuration: freshDonation.mediaShareRequest.duration,
+                message: freshDonation.message || '',
+                merchant_ref: freshDonation.merchant_ref,
+                queuePosition,
+                isApproved: true
+              });
+              console.log('MediaShare created:', ms._id);
 
-            freshDonation.mediaShareRequest.processed = true;
-            await freshDonation.save();
+              freshDonation.mediaShareRequest.processed = true;
+              await freshDonation.save();
+            } catch (msErr) {
+              console.error('Failed to create MediaShare:', msErr && msErr.message ? msErr.message : msErr);
+            }
           } else {
-            console.error('Invalid YouTube URL for media share:', freshDonation.mediaShareRequest.youtubeUrl);
+            console.error('Invalid YouTube URL for media share:', yUrl);
           }
         }
       }
