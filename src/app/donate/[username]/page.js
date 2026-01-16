@@ -653,7 +653,7 @@ export default function DonatePage() {
                       <img src={qrImage} alt="QRIS GoPay Merchant" className="w-full h-full object-contain" />
                     </div>
                     <div>
-                      <p className="text-xs text-[#b8a492] mb-1">Scan QR ini dengan aplikasi GoPay</p>
+                      <p className="text-xs text-[#b8a492] mb-1">Scan QR ini</p>
                       <p className="text-sm text-[#b8a492]">Status: <span className="font-bold">Menunggu pembayaran...</span></p>
                     </div>
                   </div>
@@ -691,9 +691,40 @@ export default function DonatePage() {
       </div>
       {/* QR Modal for GoPay */}
       {showQrModal && qrImage && (
-        <Modal isOpen={true} onClose={() => setShowQrModal(false)} title="Scan QR untuk membayar">
+        <Modal
+          isOpen={true}
+          onClose={() => setShowQrModal(false)}
+          title="Scan QR untuk membayar"
+          maxWidth="max-w-none"
+          showCloseButton={false}
+        >
           <div className="text-center">
-            <img src={qrImage} alt="QRIS GoPay Merchant" className="mx-auto w-64 h-64 object-contain" />
+            <div className="relative inline-block">
+              <img src={qrImage} alt="QRIS GoPay Merchant" className="mx-auto max-w-[60vw] max-h-[60vh] object-contain" />
+              <button
+                type="button"
+                aria-label="Download QR"
+                onClick={() => {
+                  try {
+                    const link = document.createElement('a');
+                    link.href = qrImage;
+                    const name = (creator && creator.username) ? `${creator.username}-qris.png` : 'qris.png';
+                    link.download = name;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                  } catch (err) {
+                    console.error('Download failed', err);
+                  }
+                }}
+                className="absolute bottom-3 right-3 w-9 h-9 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] hover:bg-[#d6c6b9] shadow-sm border-2 border-[#2d2d2d] opacity-70 hover:opacity-100 transition-opacity duration-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                  <path d="M12 3v10.586l3.293-3.293 1.414 1.414L12 17.414l-4.707-4.707 1.414-1.414L11 13.586V3h1z" />
+                  <path d="M5 19h14v2H5z" />
+                </svg>
+              </button>
+            </div>
             <p className="text-xs text-[#b8a492] mt-4">Scan dengan GoPay untuk menyelesaikan pembayaran.</p>
           </div>
         </Modal>
