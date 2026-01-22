@@ -21,22 +21,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
-    // Generate token
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = Date.now() + 1000 * 60 * 60; // 1 hour
+    // Generate 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 1000 * 60 * 15; // 15 minutes
 
-    creator.resetPasswordToken = token;
+    creator.resetPasswordToken = otp;
     creator.resetPasswordExpires = new Date(expires);
     await creator.save();
-
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:3000`;
-    const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-
-    const subject = 'Reset Password - Nyumbangin';
+    const subject = 'Kode OTP Reset Password - Nyumbangin';
     const html = `
       <p>Halo,</p>
-      <p>Kami menerima permintaan untuk mereset password akun Anda. Klik tombol di bawah untuk mengganti password. Link akan kedaluwarsa dalam 1 jam.</p>
-      <p style="text-align:center; margin:24px 0;"><a href="${resetUrl}" style="background:#b8a492;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;">Reset Password</a></p>
+      <p>Kami menerima permintaan untuk mereset password akun Anda. Gunakan kode OTP berikut untuk mengganti password. Kode berlaku 15 menit.</p>
+      <div style="text-align:center; margin:18px 0; font-size:22px; font-weight:700;">${otp}</div>
       <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
       <p>Salam,<br/>Tim Nyumbangin</p>
     `;
