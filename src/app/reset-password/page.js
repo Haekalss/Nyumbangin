@@ -81,30 +81,13 @@ export default function ResetPasswordPage() {
         </div>
 
         {email && (
-          <div className="bg-gradient-to-r from-[#b8a492]/5 to-[#d6c6b9]/5 border-2 border-[#b8a492]/20 rounded-xl p-5 shadow-lg backdrop-blur-sm">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-[#b8a492]/10 rounded-full flex items-center justify-center border border-[#b8a492]/20">
-                  <svg className="h-6 w-6 text-[#b8a492]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-1">
-                  <h3 className="text-sm font-semibold text-[#b8a492] font-mono uppercase tracking-wide">
-                    Email Tujuan Reset
-                  </h3>
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                </div>
-                <p className="text-lg font-bold text-[#b8a492] font-mono break-all leading-tight">
-                  {email}
-                </p>
-                <p className="text-xs text-[#b8a492]/60 font-mono mt-1">
-                  Kode OTP akan dikirim ke alamat email ini
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 bg-[#23201c] border border-[#b8a492]/30 rounded-md px-3 py-2 mb-2">
+            <svg className="h-5 w-5 text-[#b8a492] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs font-semibold text-[#b8a492] font-mono uppercase tracking-wide">Email Tujuan Reset:</span>
+            <span className="text-sm font-mono text-[#b8a492] break-all">{email}</span>
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse ml-1"></span>
           </div>
         )}
 

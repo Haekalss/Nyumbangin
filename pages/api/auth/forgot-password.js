@@ -30,11 +30,22 @@ export default async function handler(req, res) {
     await creator.save();
     const subject = 'Kode OTP Reset Password - Nyumbangin';
     const html = `
-      <p>Halo,</p>
-      <p>Kami menerima permintaan untuk mereset password akun Anda. Gunakan kode OTP berikut untuk mengganti password. Kode berlaku 15 menit.</p>
-      <div style="text-align:center; margin:18px 0; font-size:22px; font-weight:700;">${otp}</div>
-      <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
-      <p>Salam,<br/>Tim Nyumbangin</p>
+      <div style="max-width:420px;margin:32px auto;padding:32px 24px;background:#fff;border-radius:16px;border:1px solid #eee;box-shadow:0 2px 12px 0 #0001;font-family:Segoe UI,Arial,sans-serif;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+          <img src="https://nyumbangin.web.id/logo.png" alt="Nyumbangin" style="width:40px;height:40px;border-radius:8px;border:1px solid #b8a492;background:#f5e9da;object-fit:cover;">
+          <div>
+            <div style="font-size:18px;font-weight:600;color:#2d2d2d;">Nyumbangin</div>
+            <div style="font-size:12px;color:#b8a492;">Reset Password</div>
+          </div>
+        </div>
+        <p style="font-size:15px;color:#222;margin:0 0 12px 0;">Halo,</p>
+        <p style="font-size:14px;color:#444;margin:0 0 18px 0;">Kami menerima permintaan untuk mereset password akun Anda.<br>Gunakan kode OTP berikut untuk mengganti password. Kode berlaku <b>15 menit</b>.</p>
+        <div style="text-align:center;margin:28px 0;">
+          <span style="display:inline-block;font-size:32px;font-weight:700;letter-spacing:6px;color:#2d2d2d;background:#f5e9da;border-radius:8px;padding:16px 32px;border:1px solid #b8a492;">${otp}</span>
+        </div>
+        <p style="font-size:13px;color:#888;margin:0 0 18px 0;">Jika Anda tidak meminta reset password, abaikan email ini.</p>
+        <div style="font-size:13px;color:#b8a492;">Salam,<br>Tim Nyumbangin</div>
+      </div>
     `;
 
     // Prefer Resend if key is set, otherwise fallback to SMTP via existing helper
