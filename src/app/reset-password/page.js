@@ -54,6 +54,20 @@ export default function ResetPasswordPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="text-sm text-[#b8a492]">
+            {email ? (
+              <p>Reset untuk: <strong className="font-mono">{email}</strong></p>
+            ) : (
+              <p>Masukkan kode OTP yang dikirim ke email Anda.</p>
+            )}
+          </div>
+
+          { !token && (
+            <div>
+              <label className="block text-sm font-medium text-[#b8a492] font-mono mb-2">Kode OTP</label>
+              <input type="text" value={token} onChange={(e) => setToken(e.target.value)} required className="w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492]/50 text-[#b8a492] bg-[#2d2d2d] rounded-md" />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-[#b8a492] font-mono mb-2">Password Baru</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-3 py-2 sm:py-3 border border-[#b8a492] placeholder-[#b8a492]/50 text-[#b8a492] bg-[#2d2d2d] rounded-md" />

@@ -28,7 +28,8 @@ export default function ForgotPasswordPage() {
     try {
       await axios.post('/api/auth/forgot-password', { email });
       toast.success('Kode OTP telah dikirim ke email Anda');
-      setStep('verify');
+      // Redirect user to the reset page where they can enter OTP + new password
+      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch (err) {
       const errorMessage = err.response?.data?.error || 'Gagal mengirim kode OTP';
       toast.error(errorMessage);
