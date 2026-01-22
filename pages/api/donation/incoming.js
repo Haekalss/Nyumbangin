@@ -41,8 +41,15 @@ export default async function handler(req, res) {
     // SECURITY: require incoming secret header when configured for production
     const configuredSecret = process.env.GOPAY_INCOMING_SECRET || process.env.INCOMING_SECRET;
     const receivedSecret = req.headers['x-incoming-secret'] || req.headers['x-gopay-incoming-secret'];
+    const bodySecret = payload.incoming_secret || payload.incomingSecret || payload.secret || null;
+
     if (configuredSecret) {
-      if (!receivedSecret || receivedSecret !== configuredSecret) {
+      // Accept header secret first; if header missing accept body secret as fallback (eg. MacroDroid limitation)
+      if (receivedSecret && receivedSecret === configuredSecret) {
+        // OK via header
+      } else if (bodySecret && bodySecret === configuredSecret) {
+        console.warn('Incoming secret provided in body and matched (body fallback)');
+      } else {
         console.warn('Incoming secret missing or invalid');
         return res.status(401).json({ error: 'unauthorized' });
       }
