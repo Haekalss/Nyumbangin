@@ -26,7 +26,7 @@ const ProfileModal = ({
   const payoutSectionRef = useRef(null);
   const basicSectionRef = useRef(null);
   const socialSectionRef = useRef(null);
-  const passwordSectionRef = useRef(null);
+  
 
   // Auto scroll to section when modal opens
   useEffect(() => {
@@ -43,9 +43,7 @@ const ProfileModal = ({
           case 'social':
             targetRef = socialSectionRef;
             break;
-          case 'password':
-            targetRef = passwordSectionRef;
-            break;
+        
         }
         
         if (targetRef?.current) {
@@ -225,51 +223,6 @@ const ProfileModal = ({
                   socialLinks: { ...profileFormData.socialLinks, tiktok: e.target.value }
                 })}
                 placeholder="https://tiktok.com/@username"
-              />
-            </div>
-            <div>
-              <Text variant="small" weight="bold" className="mb-1 flex items-center gap-2">
-                <span className="text-blue-400">🐦</span> Twitter / X
-              </Text>
-              <Input
-                value={profileFormData.socialLinks?.twitter || ''}
-                onChange={(e) => onFormDataChange({ 
-                  ...profileFormData, 
-                  socialLinks: { ...profileFormData.socialLinks, twitter: e.target.value }
-                })}
-                placeholder="https://twitter.com/username"
-              />
-            </div>
-          </div>
-        </SectionBox>
-
-        <SectionBox title="Ubah Password" description="Kosongkan jika tidak ingin mengubah password" ref={passwordSectionRef}>
-          <div className="space-y-3">
-            <div>
-              <Text variant="small" weight="bold" className="mb-1 block">Password Saat Ini</Text>
-              <Input
-                type="password"
-                value={profileFormData.currentPassword}
-                onChange={(e) => onFormDataChange({ ...profileFormData, currentPassword: e.target.value })}
-                placeholder="Masukkan password lama"
-              />
-            </div>
-            <div>
-              <Text variant="small" weight="bold" className="mb-1 block">Password Baru</Text>
-              <Input
-                type="password"
-                value={profileFormData.newPassword}
-                onChange={(e) => onFormDataChange({ ...profileFormData, newPassword: e.target.value })}
-                placeholder="Masukkan password baru"
-              />
-            </div>
-            <div>
-              <Text variant="small" weight="bold" className="mb-1 block">Konfirmasi Password Baru</Text>
-              <Input
-                type="password"
-                value={profileFormData.confirmPassword}
-                onChange={(e) => onFormDataChange({ ...profileFormData, confirmPassword: e.target.value })}
-                placeholder="Ulangi password baru"
               />
             </div>
           </div>

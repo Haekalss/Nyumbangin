@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -24,12 +25,11 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // Simulate API call (you need to create this API endpoint)
-      // const res = await axios.post('/api/auth/forgot-password', { email });
-      
+      const res = await axios.post('/api/auth/forgot-password', { email });
+
       toast.success('Link reset password telah dikirim ke email Anda!');
       setSuccess(true);
-      
+
       setTimeout(() => {
         router.push('/login');
       }, 3000);

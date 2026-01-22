@@ -101,7 +101,10 @@ const CreatorSchema = new mongoose.Schema({
   // Login tracking
   lastLogin: { type: Date, default: Date.now },
   loginCount: { type: Number, default: 0 }
-  
+  ,
+  // Password reset token
+  resetPasswordToken: { type: String, default: null },
+  resetPasswordExpires: { type: Date, default: null }
 }, { 
   timestamps: true,
   toJSON: { virtuals: true },

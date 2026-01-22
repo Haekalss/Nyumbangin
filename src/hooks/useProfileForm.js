@@ -19,9 +19,7 @@ export function useProfileForm(initialUser, onSuccess) {
       tiktok: initialUser?.socialLinks?.tiktok || '',
       twitter: initialUser?.socialLinks?.twitter || ''
     },
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    
     payoutBankName: initialUser?.payoutBankName || '',
     payoutAccountNumber: initialUser?.payoutAccountNumber || '',
     payoutAccountHolder: initialUser?.payoutAccountHolder || ''
@@ -68,12 +66,7 @@ export function useProfileForm(initialUser, onSuccess) {
       toast.error('Username hanya boleh berisi huruf, angka, underscore, dan dash!');
       return false;
     }
-    if (formData.newPassword || formData.currentPassword || formData.confirmPassword) {
-      if (!formData.currentPassword) { toast.error('Password lama wajib diisi'); return false; }
-      if (!formData.newPassword) { toast.error('Password baru wajib diisi'); return false; }
-      if (formData.newPassword.length < 6) { toast.error('Password baru minimal 6 karakter'); return false; }
-      if (formData.newPassword !== formData.confirmPassword) { toast.error('Password baru dan konfirmasi tidak sama'); return false; }
-    }
+    
     return true;
   };
 
@@ -103,16 +96,10 @@ export function useProfileForm(initialUser, onSuccess) {
       
       const response = await axios.put('/api/user/profile', profileUpdate, config);
       
-      if (formData.newPassword && formData.currentPassword) {
-        await axios.put('/api/user/password', { currentPassword: formData.currentPassword, newPassword: formData.newPassword }, config);
-        toast.success('Profil dan password berhasil diupdate');
-      } else {
-        toast.success('Profil berhasil diupdate');
-      }
-      
+      toast.success('Profil berhasil diupdate');
+
       const updatedUser = { ...user, ...response.data.user };
       onSuccess && onSuccess(updatedUser);
-      setFormData({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (e) {
       toast.error(e.response?.data?.message || 'Gagal mengupdate profil');
     } finally {
