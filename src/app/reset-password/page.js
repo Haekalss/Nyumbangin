@@ -22,23 +22,31 @@ export default function ResetPasswordPage() {
       const e = p.get('email') || '';
       setToken(t);
       setEmail(e);
-      if (t) setStep('password'); // If token is in URL, go directly to password step
+      if (t && e) {
+        setStep('password'); // If both token and email are in URL, go directly to password step
+      } else if (!e) {
+        // If no email in URL, redirect to forgot-password
+        toast.error('Email tidak ditemukan. Silakan mulai dari forgot password.');
+        router.push('/forgot-password');
+      }
     } catch (err) {
       // ignore
     }
-  }, []);
+  }, [router]);
 
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     if (!token.trim()) return toast.error('Masukkan kode OTP');
-    
+    if (!email) return toast.error('Email tidak ditemukan');
+
     setLoading(true);
     try {
-      // Verify OTP by making a test request or just proceed to password step
-      // For now, we'll just proceed since the actual verification happens on password submit
+      const res = await axios.post('/api/auth/verify-otp', { email, token });
+      toast.success('Kode OTP valid! Silakan masukkan password baru.');
       setStep('password');
     } catch (err) {
-      toast.error('Kode OTP tidak valid');
+      const msg = err.response?.data?.error || 'Kode OTP tidak valid';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
