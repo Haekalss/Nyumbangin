@@ -1,25 +1,31 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const token = params.get('token') || '';
-  const email = params.get('email') || '';
+  const [token, setToken] = useState('');
+  const [email, setEmail] = useState('');
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!token || !email) {
-      // If missing token/email, redirect to forgot-password
+    // Read token/email from URL on client-side to avoid SSR hooks
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const t = p.get('token') || '';
+      const e = p.get('email') || '';
+      setToken(t);
+      setEmail(e);
+    } catch (err) {
+      // ignore
     }
-  }, [token, email]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
