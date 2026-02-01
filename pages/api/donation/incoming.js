@@ -114,6 +114,9 @@ export default async function handler(req, res) {
     const lookbackMinutes = 60; // only consider donations within last hour
     const since = new Date(Date.now() - lookbackMinutes * 60 * 1000);
 
+    // Whether we are allowed to fall back to the most-recent PENDING donation when payloads lack useful data
+    const allowFallback = (process.env.ALLOW_INCOMING_FALLBACK || 'false').toLowerCase() === 'true';
+
     let donation = null;
     if (merchant_ref) {
       console.log('Searching donation by merchant_ref (pending only):', merchant_ref);
@@ -125,6 +128,7 @@ export default async function handler(req, res) {
 
       // If creatorUsername explicitly provided, try to match that first
       if (creatorUsername) {
+        // First try exact amount match for that creator
         donation = await Donation.findOne({
           createdByUsername: creatorUsername,
           paymentMethod: 'gopay-merchant',
@@ -133,8 +137,9 @@ export default async function handler(req, res) {
           createdAt: { $gte: since }
         }).sort({ createdAt: -1 });
 
-        // If exact amount match not found but fallback allowed, try most recent for that creator
-        if (!donation && amountDefaulted && allowFallback) {
+        // If exact amount not found, prefer any recent pending donation for that creator
+        // because the incoming payload explicitly identified the creator
+        if (!donation) {
           donation = await Donation.findOne({
             createdByUsername: creatorUsername,
             paymentMethod: 'gopay-merchant',
@@ -151,6 +156,16 @@ export default async function handler(req, res) {
           status: 'PENDING',
           createdAt: { $gte: since }
         }).sort({ createdAt: -1 }).limit(10);
+
+        // Diagnostic logging: show short summary of candidates
+        if (candidates && candidates.length) {
+          console.log('Found candidates:', candidates.map(c => ({
+            id: c._id.toString(),
+            createdByUsername: c.createdByUsername,
+            merchant_ref: c.merchant_ref,
+            createdAt: c.createdAt
+          })));
+        }
 
         if (candidates && candidates.length === 1) {
           donation = candidates[0];
@@ -176,7 +191,6 @@ export default async function handler(req, res) {
 
     // If still not found, and amount was defaulted (test placeholders),
     // fallback to the most recent PENDING GoPay donation within lookback window ONLY when explicitly allowed.
-    const allowFallback = (process.env.ALLOW_INCOMING_FALLBACK || 'false').toLowerCase() === 'true';
     if (!donation && amountDefaulted) {
       if (allowFallback) {
         console.log('Amount was defaulted — attempting fallback to most recent pending GoPay donation (fallback enabled)');
