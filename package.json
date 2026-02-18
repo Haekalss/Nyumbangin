@@ -11,6 +11,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "openapi:generate": "node dev-tools/generate-openapi.js",
     "archive": "node dev-tools/archive-old-donations.js",
     "test:notif": "node dev-tools/test-notifications.js"
   },
