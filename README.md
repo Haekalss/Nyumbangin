@@ -1,201 +1,181 @@
-# Nyumbangin
+# Nyumbangin — Digital Donation & Real-Time Stream Overlay Platform
 
-Platform donasi digital untuk content creator dan live streamer Indonesia.
+Nyumbangin adalah platform donasi digital modern dan agregator stream overlay interaktif berbasis full-stack (Next.js, TypeScript, dan MongoDB). Platform ini memungkinkan penerimaan donasi instan, pemrosesan pembayaran otomatis via payment gateway, serta integrasi alert real-time ke perangkat lunak penyiaran seperti OBS Studio dan Streamlabs.
 
----
+## Apa & Untuk Apa Repositori Ini?
 
-## 🎯 What (Apa itu Nyumbangin?)
+Repositori ini berisi seluruh kode sumber (source code) sistem Nyumbangin yang berfungsi sebagai pusat pengembangan untuk tiga domain utama:
 
-**Nyumbangin** adalah platform donasi yang memungkinkan content creator menerima dukungan finansial dari audience mereka. Platform ini dilengkapi dengan notifikasi real-time yang bisa ditampilkan langsung di live streaming.
+- **Monetisasi Kreator**: Menyediakan antarmuka transaksi bagi pendukung untuk memberikan donasi ke streamer menggunakan payment gateway (Midtrans) dengan dukungan pembayaran lokal (QRIS, E-Wallet, Virtual Account).
 
-### Fitur Utama:
-- 💰 **Link Donasi Personal** - Setiap creator punya link unik untuk menerima donasi
-- 🎮 **Overlay Streaming** - Notifikasi donasi dan leaderboard yang bisa ditampilkan di OBS
-- 📊 **Dashboard Creator** - Kelola donasi, lihat statistik, dan track performa
-- 🔔 **Real-time Notification** - Donasi langsung muncul di stream dengan efek suara
-- 🏆 **Leaderboard Donatur** - Top donatur bulanan untuk meningkatkan engagement
+- **Notifikasi Interaktif Real-Time**: Menyediakan widget browser source untuk OBS Studio/Streamlabs yang memicu notifikasi visual, pesan pendukung, progress goal, dan efek suara (audio alert) secara instan saat transaksi terverifikasi.
 
----
+- **Manajemen & Penarikan Dana**: Menyediakan dashboard bagi creator untuk memantau pendapatan, mengelola target kampanye, dan mengajukan penarikan saldo (payout/withdrawal) secara transparan.
 
-## 💡 Why (Kenapa Pakai Nyumbangin?)
+## Executive Summary (5W + 1H)
 
-### Untuk Creator:
-- ✅ **Mudah Digunakan** - Setup cepat, langsung bisa terima donasi
-- ✅ **Profesional** - Tampilan overlay yang menarik untuk streaming
-- ✅ **Engagement Tinggi** - Leaderboard memotivasi audience untuk support lebih
-- ✅ **Aman** - Sistem payment gateway terintegrasi dengan Midtrans
-- ✅ **Gratis** - Tidak ada biaya bulanan untuk menggunakan platform
+| Aspek | Penjelasan |
+|-------|-----------|
+| **What** | Platform monetisasi dan notifikasi donasi interaktif berbasis web untuk streamer dan content creator. |
+| **Why** | Memangkas kompleksitas integrasi pembayaran lokal dan memberikan pengalaman apresiasi audiens secara instan dan transparan. |
+| **Who** | Ditujukan bagi Streamers/Creators (penerima donasi), Supporters/Donators (pendukung), serta Admins (pengelola sistem & verifikasi payout). |
+| **Where** | Aplikasi web terdistribusi dengan browser source widget yang kompatibel dengan OBS Studio, Streamlabs, dan vMix. |
+| **When** | Beroperasi 24/7 dengan arsitektur pemrosesan transaksi real-time berbasis webhooks dan websockets. |
+| **How** | Transaksi diinisiasi pendukung → Divalidasi oleh Midtrans Payment Gateway → Server memicu event Socket.io → Overlay di layar stream memperbarui tampilan secara real-time. |
 
-### Untuk Donatur:
-- ✅ **Praktis** - Donasi via QRIS, Virtual Account, atau metode payment lainnya
-- ✅ **Minimal Rp 1.000** - Bisa support creator dengan nominal kecil
-- ✅ **Pesan Personal** - Bisa kirim pesan yang ditampilkan di stream
-- ✅ **Transparansi** - Nama dan jumlah donasi langsung terlihat
+## Fitur Utama
 
----
+### Streamer & Creator Features
 
-## 👥 Who (Untuk Siapa?)
+- **Live Overlay Alerts**: Widget customizable (pesan, gambar, animasi, dan audio trigger) untuk OBS/Streamlabs via WebSocket.
+- **Campaign & Milestone Goals**: Lacak target penggalangan dana secara visual (progress bar dinamis).
+- **Payout Management**: Sistem pengajuan penarikan saldo donasi (withdrawal) ke rekening bank lokal maupun e-wallet.
+- **Transaction History & Analytics**: Dashboard rinci untuk memantau ringkasan pendapatan dan daftar pendukung.
 
-### Content Creator & Streamer:
-- 🎮 **Gamers** - Streamer game di YouTube, Twitch, TikTok Live
-- 🎤 **Podcaster** - Content creator audio/video
-- 🎨 **Artist** - Digital artist, ilustrator yang live drawing
-- 📚 **Educator** - Pengajar online, tutor
-- 🎭 **Entertainer** - Comedian, performer, MC
+### Donator Features
 
-### Audience/Donatur:
-- Siapa saja yang ingin mendukung creator favorit mereka
-- Penggemar setia yang ingin masuk leaderboard
-- Komunitas yang ingin apresiasi konten berkualitas
+- **Multi-Payment Gateway Integration**: Memproses transaksi via QRIS, GoPay, OVO, ShopeePay, Virtual Account, dan Transfer Bank.
+- **Interactive Media Messages**: Mendukung pengiriman pesan khusus, Text-to-Speech (TTS), dan lampiran media saat berdonasi.
+- **Guest & Anonymous Mode**: Kemudahan berdonasi tanpa kewajiban pendaftaran akun.
 
----
+### Administrative & System Features
 
-## ⏰ When (Kapan Digunakan?)
+- **Role-Based Access Control (RBAC)**: Pembagian hak akses yang ketat antara Admin, Creator, dan User.
+- **Payout Audit & Verification**: Panel validasi manual/otomatis untuk setiap pengajuan pencairan dana.
+- **Audit Logging**: Pencatatan histori transaksi dan webhook events untuk keamanan audit keuangan.
 
-### Saat Live Streaming:
-- Tampilkan notifikasi donasi real-time di layar
-- Motivasi audience dengan leaderboard donatur
-- Berterima kasih langsung saat ada donasi masuk
+## Arsitektur & Webhook Flow
 
-### Setiap Hari:
-- Share link donasi di bio social media
-- Post donasi goal di Instagram Story
-- Promosikan support link di video YouTube
+### Data Flow Diagram
 
-### Event Khusus:
-- Fundraising untuk project baru
-- Charity stream untuk sosial
-- Anniversary atau milestone celebration
-
----
-
-## 🌐 Where (Dimana Bisa Diakses?)
-
-### Website:
-**https://nyumbangin.web.id**
-
-### Halaman Penting:
-- **Homepage**: `https://nyumbangin.web.id`
-- **Registrasi**: `https://nyumbangin.web.id/creator/register`
-- **Login**: `https://nyumbangin.web.id/login`
-- **Link Donasi**: `https://nyumbangin.web.id/donate/[username]`
-
-### Kompatibilitas:
-- ✅ Desktop (untuk dashboard dan setup overlay)
-- ✅ Mobile (untuk halaman donasi)
-- ✅ OBS Studio (untuk streaming overlay)
-- ✅ TikTok Live Studio
-- ✅ Streamlabs OBS
-
----
-
-## 🚀 How (Bagaimana Cara Menggunakannya?)
-
-### 🔧 Setup Development:
-
-#### 1️⃣ **Clone Repository**
-```bash
-git clone https://github.com/yourusername/nyumbangin.git
-cd nyumbangin
+```
+[ Donator ] ──( 1. Buat Donasi )──> [ Next.js Frontend ]
+                                        │
+                                        ▼ ( 2. Request Transaction )
+                                [ Midtrans Gateway ]
+                                        │
+                                        ▼ ( 3. Pembayaran Sukses )
+                              [ Webhook Handler API ]
+                                        │
+                        ┌───────────────────────┬───────────────────────┐
+                        ▼                       ▼
+         [ Save Transaction DB ]     [ Emit Socket.io Event ]
+                                                │
+                                                ▼
+                                        [ OBS / Streamlabs ]
 ```
 
-#### 2️⃣ **Install Dependencies**
+### Payment Webhook Contract (POST /api/webhooks/midtrans)
+
+Menerima callback otomatis dari Midtrans untuk pembaruan status transaksi.
+
+- **Headers**: `Content-Type: application/json`
+
+**Trigger Process**:
+1. Validasi signature_key berbasis SHA-512.
+2. Jika status settlement atau capture, ubah status donasi di DB menjadi PAID.
+3. Emit pesan ke namespace Socket.io `/overlay` untuk memicu alert di OBS.
+
+## Keamanan & Moderasi Konten
+
+- **Profanity & Bad Word Filter**: Penyaringan otomatis terhadap kata-kata kasar atau sensitif pada pesan donasi dan Text-to-Speech (TTS) sebelum ditampilkan di stream overlay.
+
+- **Signature Verification**: Validasi keamanan berbasis hashing pada setiap payload webhook untuk mencegah manipulasi data transaksi.
+
+- **Rate Limiting**: Proteksi endpoint formulir donasi dari serangan DDoS dan transaksi buatan (spam).
+
+- **RBAC Protection**: Pembatasan akses berbasis peran (ADMIN, CREATOR, USER) pada endpoint sensitif seperti pencairan dana.
+
+## Struktur Direktori Proyek
+
+```
+Nyumbangin/
+├── public/                 # Aset statis (logo, audio alerts, gambar)
+├── src/
+│   ├── components/         # UI Components (UI Kit, Modals, Forms)
+│   ├── config/             # Konfigurasi Midtrans, Database, & Auth
+│   ├── lib/                # Helper functions, DB connection, & Utilities
+│   ├── models/             # Schema Mongoose (User, Donation, Campaign, Payout)
+│   ├── pages/              # Next.js Pages & API Routes
+│   │   ├── api/            # REST API & Webhook Handlers
+│   │   ├── dashboard/      # Panel kontrol Creator & Admin
+│   │   └── overlay/        # Browser Source Widgets untuk OBS
+│   ├── styles/             # Global CSS & Tailwind Configuration
+│   └── types/              # TypeScript Interfaces & Definitions
+├── .env.example            # Template Environment Variables
+├── package.json
+└── README.md
+```
+
+## Panduan Memulai (Getting Started)
+
+### Prasyarat
+
+- **Node.js**: v18.x atau lebih baru
+- **Package Manager**: npm atau pnpm
+- **Database**: MongoDB (Lokal atau MongoDB Atlas)
+- **Payment Gateway**: Akun Sandbox/Production Midtrans
+
+### 1. Cloning Repositori
+
+```bash
+git clone https://github.com/Haekalss/Nyumbangin.git
+cd Nyumbangin
+```
+
+### 2. Instalasi Dependensi
+
 ```bash
 npm install
 ```
 
-#### 3️⃣ **Setup Environment Variables**
-```bash
-# Copy template
-cp .env.example .env.local
+### 3. Konfigurasi Environment Variables
 
-# Edit .env.local dengan credentials kamu
+Buat file `.env.local` berdasarkan templat `.env.example`:
+
+```bash
+cp .env.example .env.local
 ```
 
-📚 **Panduan Lengkap Dapat Credentials**
+Isi variabel berikut sesuai lingkungan pengembangan Anda:
 
-Minimal yang perlu diisi:
-- `MONGODB_URI` - Database connection
-- `JWT_SECRET` - Generate: `node generate-secret.js`
-- `MIDTRANS_*` - Payment gateway (sandbox)
-- `SMTP_*` - Email service (opsional)
+| Variabel | Deskripsi | Contoh |
+|----------|-----------|--------|
+| `NEXT_PUBLIC_APP_URL` | Base URL aplikasi | `http://localhost:3000` |
+| `MONGODB_URI` | Connection string MongoDB | `mongodb+srv://user:pass@cluster.mongodb.net/nyumbangin` |
+| `NEXTAUTH_SECRET` | Secret key untuk autentikasi | `super-secret-key-32-chars` |
+| `MIDTRANS_SERVER_KEY` | Server Key dari Dashboard Midtrans | `SB-Mid-server-XXXXX` |
+| `MIDTRANS_CLIENT_KEY` | Client Key dari Dashboard Midtrans | `SB-Mid-client-XXXXX` |
+| `NEXT_PUBLIC_SOCKET_URL` | Endpoint Server WebSocket | `http://localhost:3000` |
 
-#### 4️⃣ **Run Development Server**
+### 4. Menjalankan Mode Pengembangan
+
 ```bash
 npm run dev
 ```
-Buka: http://localhost:3000
 
----
+Aplikasi dapat diakses melalui `http://localhost:3000`.
 
-### Untuk Creator:
+## Troubleshooting & FAQ
 
-#### 1️⃣ **Registrasi**
-1. Kunjungi `https://nyumbangin.web.id/creator/register`
-2. Pilih username unik (akan jadi link donasi kamu)
-3. Isi data diri dan buat password
-4. Verifikasi dan akun siap digunakan
+### Q: Mengapa Overlay di OBS tidak muncul saat ada donasi di mode Sandbox?
 
-#### 2️⃣ **Setup Dashboard**
-1. Login di `https://nyumbangin.web.id/login`
-2. Lihat statistik donasi, total pemasukan, jumlah donatur
-3. Kelola donasi yang masuk
-4. Download QR code untuk share di media sosial
+**Solusi**: Pastikan URL WebSockets di `.env.local` (`NEXT_PUBLIC_SOCKET_URL`) dapat diakses oleh browser OBS, dan pastikan konfigurasi Midtrans di server lokal sudah terhubung dengan ngrok atau webhook URL yang valid.
 
-#### 3️⃣ **Pasang Overlay di OBS**
-1. Buka OBS Studio
-2. Tambah **Browser Source**
-3. Copy paste URL overlay dari dashboard:
-   - Notifikasi: `/overlay/[username]/notifications`
-   - Leaderboard: `/overlay/[username]/leaderboard`
-4. Atur posisi dan ukuran sesuai layout stream
+### Q: Mengapa Audio Alert tidak terdengar di OBS Studio?
 
-#### 4️⃣ **Promosikan Link Donasi**
-1. Share link donasi: `https://nyumbangin.web.id/donate/[username]`
-2. Pasang di bio Instagram, TikTok, YouTube
-3. Promosikan saat live streaming
-4. Post QR code di Instagram Story
+**Solusi**: Pada OBS Studio, klik kanan pada Source Browser Overlay → Properties → Centang opsi "Control audio via OBS" atau sesuaikan preferensi audio output pada Audio Mixer.
 
-### Untuk Donatur:
+## Kontribusi
 
-#### 1️⃣ **Buka Link Donasi**
-- Klik link dari bio creator atau dari chat stream
-- Format: `https://nyumbangin.web.id/donate/[username-creator]`
+Kontribusi selalu terbuka! Silakan ikuti alur berikut:
 
-#### 2️⃣ **Isi Form Donasi**
-- Masukkan nama (akan ditampilkan di stream)
-- Pilih nominal atau input jumlah custom (min. Rp 1.000)
-- Tulis pesan untuk creator (opsional)
+1. Fork repositori ini.
+2. Buat feature branch baru (`git checkout -b feature/AmazingFeature`).
+3. Commit perubahan Anda (`git commit -m 'Add some AmazingFeature'`).
+4. Push ke branch tersebut (`git push origin feature/AmazingFeature`).
+5. Buat Pull Request.
 
-#### 3️⃣ **Pilih Metode Pembayaran**
-- QRIS (scan dengan e-wallet apapun)
-- Virtual Account (Bank Transfer)
-- E-wallet langsung
-- Kartu Kredit/Debit
+## Lisensi
 
-#### 4️⃣ **Selesaikan Pembayaran**
-- Ikuti instruksi pembayaran
-- Setelah sukses, donasi langsung muncul di stream creator
-- Nama kamu masuk leaderboard (jika donasi cukup besar)
-
----
-
-## � Email Notifications
-
-Platform ini dilengkapi dengan sistem notifikasi email otomatis untuk payout:
-
-### Fitur Email:
-- ✅ **Auto-send saat payout approved** - Creator langsung dapat notifikasi via email
-- ✅ **Auto-send saat payout rejected** - Dengan alasan penolakan yang jelas
-- ✅ **Beautiful HTML template** - Email profesional dengan design menarik
-- ✅ **Detail lengkap** - Jumlah, referensi, dan informasi bank
-
----
-## �📞 Contact & Support
-
-**Email**: nyumbangin8@gmail.com
-
----
-
-**Nyumbangin** - Empowering Indonesian Content Creators 🇮🇩
-
+Proyek ini dilindungi di bawah lisensi MIT. Lihat file LICENSE untuk informasi lebih lanjut.
