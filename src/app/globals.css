@@ -12,6 +12,36 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ============================================
+   Nyumbangin Design Tokens (Landing "Dark Premium")
+   ============================================ */
+@theme {
+  /* Charcoal surface scale */
+  --color-ink-950: #121212;
+  --color-ink-900: #1a1a1a;
+  --color-ink-850: #202020;
+  --color-ink-800: #252525;
+  --color-ink-700: #2d2d2d;
+  --color-ink-600: #3a3a3a;
+
+  /* Beige / sand brand scale */
+  --color-sand-100: #f5e9da;
+  --color-sand-200: #e7dacb;
+  --color-sand-300: #d6c6b9;
+  --color-sand-400: #b8a492;
+  --color-sand-500: #9c8a77;
+  --color-sand-600: #7d6e5f;
+
+  /* Accents (dipakai hemat, untuk highlight node UI) */
+  --color-gold-400: #d9b26a;
+  --color-teal-400: #5eead4;
+  --color-violet-400: #a78bfa;
+  --color-rose-400: #fb7185;
+  --color-sky-400: #7dd3fc;
+
+  --radius-4xl: 2rem;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -174,3 +204,415 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Offset anchor agar tidak tertutup nav pill fixed */
+section[id] {
+  scroll-margin-top: 90px;
+}
+
+/* ============================================
+   Landing Page ("Dark Premium") utilities
+   ============================================ */
+
+/* Background: subtle radial glow + grid */
+.nb-bg {
+  background-color: #121212;
+  background-image:
+    radial-gradient(900px 520px at 50% -10%, rgba(184, 164, 146, 0.16), transparent 70%),
+    radial-gradient(700px 420px at 88% 8%, rgba(167, 139, 250, 0.10), transparent 65%),
+    radial-gradient(600px 400px at 6% 30%, rgba(94, 234, 212, 0.07), transparent 60%);
+}
+
+.nb-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Glass panel */
+.nb-glass {
+  background: rgba(37, 37, 37, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.nb-panel {
+  background: linear-gradient(160deg, rgba(42, 42, 42, 0.9) 0%, rgba(26, 26, 26, 0.9) 100%);
+  border: 1px solid rgba(184, 164, 146, 0.16);
+}
+
+.nb-panel-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease, box-shadow 0.35s ease, background-color 0.35s ease;
+}
+
+.nb-panel-hover:hover {
+  transform: translateY(-6px);
+  border-color: rgba(184, 164, 146, 0.45);
+  box-shadow: 0 18px 50px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(184, 164, 146, 0.08);
+}
+
+/* Gradient text */
+.nb-gradient-text {
+  background: linear-gradient(100deg, #f5e9da 0%, #d6c6b9 38%, #b8a492 62%, #e7dacb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nb-gradient-btn {
+  background: linear-gradient(120deg, #d6c6b9 0%, #b8a492 55%, #9c8a77 100%);
+  color: #161616;
+}
+
+.nb-gradient-btn:hover {
+  background: linear-gradient(120deg, #f5e9da 0%, #d6c6b9 55%, #b8a492 100%);
+}
+
+/* Floating nodes (hero orbit) */
+@keyframes nb-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+.nb-float { animation: nb-float 6s ease-in-out infinite; }
+.nb-float-1 { animation-delay: -1s; }
+.nb-float-2 { animation-delay: -2s; }
+.nb-float-3 { animation-delay: -3s; }
+.nb-float-4 { animation-delay: -4s; }
+.nb-float-5 { animation-delay: -5s; }
+
+@keyframes nb-pulse-ring {
+  0% { transform: scale(0.92); opacity: 0.7; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+.nb-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(184, 164, 146, 0.5);
+  animation: nb-pulse-ring 3s ease-out infinite;
+}
+
+@keyframes nb-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.nb-spin-slow { animation: nb-spin-slow 42s linear infinite; }
+
+/* Marquee (creator strip / logo strip) */
+@keyframes nb-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.nb-marquee-track {
+  animation: nb-marquee 40s linear infinite;
+  will-change: transform;
+}
+
+.nb-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* Gradient sweep border on CTA */
+@keyframes nb-sweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.nb-sweep {
+  background-size: 200% 200%;
+  animation: nb-sweep 6s ease infinite;
+}
+
+/* Scroll reveal */
+.nb-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nb-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   Landing Animations (Entrance / Micro / Ambient)
+   Semua animasi hanya memakai transform + opacity
+   ============================================ */
+
+/* --- Entrance: naik + fade (dipakai untuk hero & section) --- */
+@keyframes nb-enter-up {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nb-enter-left {
+  from { opacity: 0; transform: translate3d(-18px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nb-enter-down {
+  from { opacity: 0; transform: translate3d(0, -18px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nb-enter-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes nb-enter-pop {
+  0%   { opacity: 0; transform: scale(0.55); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes nb-enter-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes nb-enter-slide-left {
+  from { opacity: 0; transform: translate3d(-24px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.nb-anim-up       { animation: nb-enter-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.nb-anim-left     { animation: nb-enter-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.nb-anim-down     { animation: nb-enter-down 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.nb-anim-scale    { animation: nb-enter-scale 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.nb-anim-pop      { animation: nb-enter-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.nb-anim-fade     { animation: nb-enter-fade 0.6s ease both; }
+.nb-anim-slide-l  { animation: nb-enter-slide-left 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* H1 per kata */
+@keyframes nb-split-in {
+  from { opacity: 0; transform: translate3d(0, 105%, 0) rotate(2deg); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+.nb-split-word {
+  animation: nb-split-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+/* Baris utuh (aman untuk background-clip: text) */
+@keyframes nb-split-line-in {
+  from { opacity: 0; transform: translate3d(0, 105%, 0) rotate(1.5deg); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+.nb-split-line {
+  animation: nb-split-line-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+/* --- Micro-interaction --- */
+
+/* Garis bawah nav yang "gambar" dari kiri */
+@keyframes nb-underline-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.nb-underline {
+  position: relative;
+}
+
+.nb-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nb-underline:hover::after,
+.nb-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Glow sweep di border kartu (pseudo-element, transform only) */
+.nb-sweep-border {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.nb-sweep-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(245, 233, 218, 0.55) 48%,
+    transparent 66%
+  );
+  background-size: 250% 250%;
+  background-position: 150% 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition:
+    opacity 0.4s ease,
+    background-position 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.nb-sweep-border:hover::before {
+  opacity: 1;
+  background-position: -50% 0;
+}
+
+/* Ikon kartu berputar saat hover */
+.nb-icon-tilt {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.group:hover .nb-icon-tilt {
+  transform: rotate(7deg) scale(1.1);
+}
+
+/* --- Ambient --- */
+
+/* Progress bar scroll */
+.nb-progress {
+  transform-origin: left center;
+  transform: scaleX(var(--nb-progress, 0));
+}
+
+/* Parallax */
+.nb-parallax {
+  transform: translate3d(0, var(--parallax-y, 0px), 0);
+  will-change: transform;
+}
+
+/* Drift glow orb */
+@keyframes nb-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(26px, -22px, 0) scale(1.08); }
+}
+
+@keyframes nb-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-30px, 20px, 0) scale(1.12); }
+}
+
+.nb-drift-a { animation: nb-drift-a 14s ease-in-out infinite; }
+.nb-drift-b { animation: nb-drift-b 19s ease-in-out infinite; }
+
+/* --- Skeleton shimmer (transform only, tanpa repaint) --- */
+.nb-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.045);
+}
+
+.nb-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 100%
+  );
+  animation: nb-shimmer 1.6s infinite;
+  pointer-events: none;
+}
+
+@keyframes nb-shimmer {
+  to { transform: translateX(100%); }
+}
+
+.nb-skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.nb-skeleton-block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 100%
+  );
+  animation: nb-shimmer 1.6s infinite;
+  pointer-events: none;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nb-float,
+  .nb-spin-slow,
+  .nb-marquee-track,
+  .nb-pulse-ring::after,
+  .nb-sweep,
+  .nb-anim-up,
+  .nb-anim-left,
+  .nb-anim-down,
+  .nb-anim-scale,
+  .nb-anim-pop,
+  .nb-anim-fade,
+  .nb-anim-slide-l,
+  .nb-split-word,
+  .nb-split-line,
+  .nb-drift-a,
+  .nb-drift-b,
+  .nb-skeleton::after,
+  .nb-skeleton-block::after {
+    animation: none !important;
+  }
+  .nb-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .nb-parallax {
+    transform: none !important;
+  }
+  .nb-skeleton::after,
+  .nb-skeleton-block::after {
+    display: none;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* Hide scrollbar for horizontal strips */
+.nb-no-scrollbar::-webkit-scrollbar { display: none; }
+.nb-no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
