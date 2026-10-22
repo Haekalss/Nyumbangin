@@ -1,17 +1,17 @@
 import React, { forwardRef } from 'react';
 import Text from '../atoms/Text';
 
-// Reusable SectionBox molecule used for grouping related form fields with a title & optional description.
+// Reusable SectionBox molecule with warm neo-brutalist styling
 const SectionBox = forwardRef(({ title, description, children, tone = 'default', className = '' }, ref) => {
   const toneMap = {
-    default: 'bg-[#b8a492]/10 border-[#b8a492]/30',
-    danger: 'bg-red-500/10 border-red-500/30',
-    success: 'bg-green-500/10 border-green-500/30'
+    default: 'bg-[#f5e9da]/40 border-2 border-[#2d2d2d]/20',
+    danger: 'bg-red-50 border-2 border-red-300',
+    success: 'bg-emerald-50 border-2 border-emerald-300'
   };
   return (
-    <div ref={ref} className={`p-4 rounded-lg border ${toneMap[tone]} ${className}`}>
-      {title && <Text variant="h4" className="mb-3" weight="bold">{title}</Text>}
-      {description && <Text variant="xs" color="secondary" className="mb-3">{description}</Text>}
+    <div ref={ref} className={`p-4 sm:p-5 rounded-2xl ${toneMap[tone] || toneMap.default} ${className}`}>
+      {title && <Text variant="h4" className="mb-1 text-[#2d2d2d]" weight="bold">{title}</Text>}
+      {description && <Text variant="xs" color="secondary" className="mb-3 text-[#696057]">{description}</Text>}
       {children}
     </div>
   );

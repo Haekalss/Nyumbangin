@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import HistoryFilters from '@/components/organisms/HistoryFilters';
 import HistoryList from '@/components/organisms/HistoryList';
-import MobileBlocker from '@/components/MobileBlocker';
+import CreatorAppLayout from '@/components/dashboard/CreatorAppLayout';
+import Link from 'next/link';
+import { formatRupiah } from '@/utils/format';
 
 export default function HistoryPage() {
   const router = useRouter();
@@ -42,12 +44,14 @@ export default function HistoryPage() {
       const response = await axios.get('/api/dashboard/donations?limit=1000', config);
       const allDonations = response.data.data || [];
       
-      // Filter only PAID donations
       const paidDonations = allDonations.filter(d => d.status === 'PAID');
       
-      // Group by date
       const grouped = paidDonations.reduce((acc, donation) => {
-        const date = new Date(donation.createdAt).toLocaleDateString('id-ID');
+        const date = new Date(donation.createdAt).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
         if (!acc[date]) {
           acc[date] = { date, total: 0, count: 0, donations: [] };
         }
@@ -90,12 +94,11 @@ export default function HistoryPage() {
     const filtered = historyData.map(day => ({
       ...day,
       donations: day.donations.filter(d => 
-        d.name.toLowerCase().includes(searchLower) ||
+        (d.name && d.name.toLowerCase().includes(searchLower)) ||
         (d.message && d.message.toLowerCase().includes(searchLower))
       )
     })).filter(day => day.donations.length > 0);
 
-    // Recalculate totals
     filtered.forEach(day => {
       day.total = day.donations.reduce((sum, d) => sum + d.amount, 0);
       day.count = day.donations.length;
@@ -104,69 +107,71 @@ export default function HistoryPage() {
     setFilteredData(filtered);
   };
 
-  // Calculate total donations for display
   const totalDonations = filteredData.reduce((sum, day) => sum + day.count, 0);
+  const totalAmount = filteredData.reduce((sum, day) => sum + day.total, 0);
 
-  // Prepare date options for dropdown
   const dateOptions = historyData.map(day => ({
     value: day.date,
-    label: `${day.date} • ${day.count} donasi`
+    label: `${day.date} (${day.count} donasi)`
   }));
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#b8a492]"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#f7f4f0]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#2d2d2d] border-t-transparent mx-auto mb-3"></div>
+          <p className="text-xs font-medium text-[#8c8276]">Memuat riwayat...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <MobileBlocker />
-      <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
-        {/* Header khusus Riwayat */}
-        <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#333399] to-[#00fff7] flex items-center justify-center shadow-neon">
-                  <span className="text-3xl">📜</span>
-                </div>
-                <div>
-                  <h1 className="text-4xl font-extrabold text-[#b8a492] tracking-wide font-mono">Riwayat</h1>
-                  <p className="text-[#b8a492] text-lg mt-2 font-mono">Semua donasi yang telah kamu terima</p>
-                </div>
-              </div>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="flex items-center gap-2 px-4 py-2 bg-[#b8a492] hover:bg-[#d6c6b9] text-[#2d2d2d] rounded-lg border-2 border-[#b8a492] font-bold font-mono transition-all"
-              >
-                ← Dashboard
-              </button>
-            </div>
-          </div>
-        </header>
+    <CreatorAppLayout user={user}>
+      {/* Page Header */}
+      <div>
+        <div className="flex items-center gap-2 text-xs font-bold text-[#8f857b] mb-1">
+          <Link href="/dashboard" className="hover:text-[#2d2d2d] transition">Dashboard</Link>
+          <span>/</span>
+          <span className="text-[#2d2d2d] font-extrabold">Riwayat</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-[#2d2d2d] tracking-tight">Riwayat Donasi</h1>
+        <p className="text-sm font-medium text-[#696057] mt-0.5">Seluruh apresiasi yang berhasil diterima.</p>
+      </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Filters */}
-          <HistoryFilters
-            searchQuery={searchQuery}
-            onSearchChange={handleSearch}
-            selectedDate={selectedDate}
-            onDateChange={handleDateFilter}
-            dateOptions={dateOptions}
-            className="mb-6"
-          />
-
-          {/* Donation List */}
-          <HistoryList
-            data={filteredData}
-            searchQuery={searchQuery}
-            totalDonations={totalDonations}
-          />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="rounded-2xl border-2 border-[#2d2d2d] bg-[#fffdf9] p-5 shadow-[4px_4px_0px_#2d2d2d]">
+          <span className="text-xs font-extrabold uppercase tracking-wider text-[#8f857b] block">Total Transaksi</span>
+          <span className="text-2xl font-black text-[#2d2d2d] mt-1 block">{totalDonations} donasi</span>
+        </div>
+        <div className="rounded-2xl border-2 border-[#2d2d2d] bg-[#2d2d2d] p-5 shadow-[4px_4px_0px_#b8a492] text-white">
+          <span className="text-xs font-extrabold uppercase tracking-wider text-[#b8a492] block">Total Nominal</span>
+          <span className="text-2xl font-black text-white mt-1 block">{formatRupiah(totalAmount)}</span>
+        </div>
+        <div className="rounded-2xl border-2 border-[#2d2d2d] bg-[#fffdf9] p-5 shadow-[4px_4px_0px_#2d2d2d]">
+          <span className="text-xs font-extrabold uppercase tracking-wider text-[#8f857b] block">Periode Aktif</span>
+          <span className="text-2xl font-black text-[#2d2d2d] mt-1 block">{filteredData.length} hari</span>
         </div>
       </div>
-    </>
+
+      {/* Filters */}
+      <div className="rounded-2xl bg-[#fffdf9] border-2 border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-5">
+        <HistoryFilters
+          searchQuery={searchQuery}
+          onSearchChange={handleSearch}
+          selectedDate={selectedDate}
+          onDateChange={handleDateFilter}
+          dateOptions={dateOptions}
+        />
+      </div>
+
+      {/* List */}
+      <HistoryList
+        data={filteredData}
+        searchQuery={searchQuery}
+        totalDonations={totalDonations}
+      />
+    </CreatorAppLayout>
   );
 }

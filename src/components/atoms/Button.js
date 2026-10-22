@@ -10,24 +10,25 @@ const Button = ({
   className = '',
   ...props 
 }) => {
-  const baseClasses = 'font-bold font-mono transition-all rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'font-extrabold transition-all rounded-xl border-2 cursor-pointer inline-flex items-center justify-center gap-2 select-none active:translate-y-0.5';
   
   const variants = {
-    primary: 'bg-[#b8a492] text-[#2d2d2d] border-[#2d2d2d] hover:bg-[#d6c6b9] focus:ring-[#b8a492]',
-    secondary: 'bg-transparent text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492]/10 focus:ring-[#b8a492]',
-    danger: 'bg-red-500 text-white border-red-600 hover:bg-red-600 focus:ring-red-500',
-    success: 'bg-green-500 text-white border-green-600 hover:bg-green-600 focus:ring-green-500'
+    primary: 'bg-[#2d2d2d] text-[#fbf8f3] border-[#2d2d2d] shadow-[3px_3px_0px_#b8a492] hover:translate-x-[1px] hover:translate-y-[1px]',
+    secondary: 'bg-white text-[#2d2d2d] border-[#2d2d2d] shadow-[3px_3px_0px_#2d2d2d] hover:bg-[#fbf8f3] hover:translate-x-[1px] hover:translate-y-[1px]',
+    accent: 'bg-[#b8a492] text-[#2d2d2d] border-[#2d2d2d] shadow-[3px_3px_0px_#2d2d2d] hover:bg-[#cabaa9] hover:translate-x-[1px] hover:translate-y-[1px]',
+    danger: 'bg-red-500 text-white border-[#2d2d2d] shadow-[3px_3px_0px_#2d2d2d] hover:bg-red-600',
+    success: 'bg-emerald-600 text-white border-[#2d2d2d] shadow-[3px_3px_0px_#2d2d2d] hover:bg-emerald-700'
   };
   
   const sizes = {
-    small: 'px-3 py-1 text-sm',
-    medium: 'px-4 py-2 text-base',
-    large: 'px-6 py-3 text-lg'
+    small: 'px-3 py-1.5 text-xs',
+    medium: 'px-4 py-2 text-sm',
+    large: 'px-5 py-2.5 text-base'
   };
   
-  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed pointer-events-none shadow-none' : '';
   
-  const buttonClasses = `${baseClasses} ${variants[variant]} ${sizes[size]} ${disabledClasses} ${className}`;
+  const buttonClasses = `${baseClasses} ${variants[variant] || variants.primary} ${sizes[size] || sizes.medium} ${disabledClasses} ${className}`;
   
   return (
     <button

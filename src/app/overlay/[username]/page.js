@@ -4,45 +4,46 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import MessageFilterSettings from '@/components/organisms/MessageFilterSettings';
-import Card from '@/components/atoms/Card';
+import CreatorAppLayout from '@/components/dashboard/CreatorAppLayout';
+import Link from 'next/link';
 
 export default function OverlayIndexPage() {
   const router = useRouter();
   const params = useParams();
   const username = params?.username;
-  const [copiedField, setCopiedField] = useState(null);
-  const [hoveredField, setHoveredField] = useState(null);
-  const [isHover, setIsHover] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(null);
+  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check auth on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Silakan login terlebih dahulu', { id: 'auth-required' });
+    const userData = localStorage.getItem('user');
+
+    if (!token || !userData) {
+      toast.error('Silakan login terlebih dahulu');
       router.replace('/login');
       return;
     }
 
     try {
-      // Check if token is expired
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000);
       
       if (payload.exp && payload.exp < currentTime) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', { id: 'session-expired' });
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.');
         router.replace('/login');
         return;
       }
 
+      setUser(JSON.parse(userData));
       setIsAuthenticated(true);
-    } catch (error) {
+    } catch {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      toast.error('Token tidak valid. Silakan login kembali.', { id: 'invalid-token' });
       router.replace('/login');
     } finally {
       setIsLoading(false);
@@ -51,8 +52,11 @@ export default function OverlayIndexPage() {
 
   if (!username || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b8a492]"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#f7f4f0]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#2d2d2d] border-t-transparent mx-auto mb-3"></div>
+          <p className="text-xs font-medium text-[#8c8276]">Memuat overlay...</p>
+        </div>
       </div>
     );
   }
@@ -61,140 +65,168 @@ export default function OverlayIndexPage() {
     return null;
   }
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://nyumbangin.web.id';
 
-  const handleCopyWithFeedback = (text, field) => {
+  const handleCopy = (text, key) => {
     if (navigator?.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
-        setCopiedField(field);
-        toast.success('Link berhasil disalin!');
-        setTimeout(() => setCopiedField(null), 2000);
+        setCopiedKey(key);
+        toast.success('Tautan disalin!');
+        setTimeout(() => setCopiedKey(null), 2000);
       });
     }
   };
 
-  // Using LinkBox molecule for consistent layout
+  const overlayLinks = [
+    {
+      key: 'notifications',
+      title: 'Notifikasi Saweran',
+      description: 'Popup animasi & bunyi saat ada saweran masuk.',
+      size: '800 x 600 px',
+      url: `${baseUrl}/overlay/${username}/notifications`
+    },
+    {
+      key: 'mediashare',
+      title: 'Media Share (YouTube)',
+      description: 'Tampilkan video kiriman donatur secara otomatis.',
+      size: '1920 x 1080 px',
+      url: `${baseUrl}/overlay/${username}/mediashare`
+    },
+    {
+      key: 'leaderboard',
+      title: 'Leaderboard',
+      description: 'Daftar donatur tertinggi bulan ini.',
+      size: '400 x 600 px',
+      url: `${baseUrl}/overlay/${username}/leaderboard`
+    },
+    {
+      key: 'qr-donate',
+      title: 'QR Code Donasi',
+      description: 'QR agar penonton bisa scan dari layar.',
+      size: '400 x 400 px',
+      url: `${baseUrl}/overlay/${username}/qr-donate`
+    }
+  ];
+
+  const mediaDurations = [
+    { amount: 'Rp 10.000', duration: '30 detik' },
+    { amount: 'Rp 20.000', duration: '1 menit' },
+    { amount: 'Rp 50.000', duration: '2 menit' },
+    { amount: 'Rp 100.000+', duration: 'Maks. 5 menit' }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono overflow-y-auto">
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 space-y-6">
-        {/* Header */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Kembali ke Dashboard"
-                title="Kembali ke Dashboard"
-                onClick={() => router.push('/dashboard')}
-                className="w-10 h-10 flex items-center justify-center bg-[#b8a492] text-[#2d2d2d] rounded-full border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-transform transform hover:-translate-x-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b8a492]"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex-1 flex items-center justify-center gap-3">
-              <img src="/logo.png" alt="Nyumbangin Logo" className="w-12 h-12" />
-              <div className="text-center sm:text-left">
-                <h1 className="text-2xl sm:text-4xl font-bold text-[#b8a492]">Pengaturan Overlay</h1>
-                <p className="text-sm text-[#b8a492]/70 mt-1">Pengaturan overlay untuk streaming dan filter pesan donasi</p>
-              </div>
-            </div>
-
-            <div className="w-10" />
+    <CreatorAppLayout user={user}>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-bold text-[#8f857b] mb-1">
+            <Link href="/dashboard" className="hover:text-[#2d2d2d] transition">Dashboard</Link>
+            <span>/</span>
+            <span className="text-[#2d2d2d] font-extrabold">Overlay & OBS</span>
           </div>
-        </Card>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#2d2d2d] tracking-tight">Widget & Sensor Pesan</h1>
+          <p className="text-sm font-medium text-[#696057] mt-0.5">Salin tautan browser source untuk OBS dan kelola sensor kata.</p>
+        </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Overlay Links */}
-          <div className="space-y-6">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold text-[#b8a492] mb-2 flex items-center gap-2">
-                <span>🎥</span> Tautan Widget Overlay
-              </h2>
-              <p className="text-sm text-[#b8a492]/70">Kelola tautan dan widget overlay yang dapat digunakan untuk streaming.</p>
-            </Card>
+        <button
+          type="button"
+          onClick={() => {
+            const testNotification = {
+              message: 'Tes Notifikasi Nyumbangin',
+              detail: 'Semangat terus live-nya!',
+              time: new Date().toLocaleTimeString('id-ID'),
+              timestamp: Date.now()
+            };
+            localStorage.setItem('overlay-notification-trigger', JSON.stringify(testNotification));
+            window.dispatchEvent(new StorageEvent('storage', {
+              key: 'overlay-notification-trigger',
+              newValue: JSON.stringify(testNotification)
+            }));
+            toast.success('Notifikasi tes dikirim!');
+          }}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] text-white text-xs font-extrabold shadow-[2px_2px_0px_#b8a492] hover:bg-black transition cursor-pointer shrink-0 active:translate-y-0.5"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          Uji Overlay
+        </button>
+      </div>
 
-            <Card className="p-4">
-              <div className="flex flex-col divide-y divide-[#b8a492]/10">
-                {[
-                  { key: 'donate', title: 'Link Donasi', icon: '💰', url: `${baseUrl}/donate/${username}`, description: 'Link untuk menerima donasi' },
-                  { key: 'qr-donate', title: 'QR Code Donasi', icon: '📱', url: `${baseUrl}/overlay/${username}/qr-donate`, description: 'Tampilkan QR code untuk scan & donate' },
-                  { key: 'notifications', title: 'Notifikasi Donasi', icon: '🔔', url: `${baseUrl}/overlay/${username}/notifications`, description: 'Notifikasi donasi real-time' },
-                  { key: 'leaderboard', title: 'Papan Peringkat', icon: '🏆', url: `${baseUrl}/overlay/${username}/leaderboard`, description: 'Papan peringkat donatur bulanan' },
-                  { key: 'mediashare', title: 'Bagikan Media', icon: '🎥', url: `${baseUrl}/overlay/${username}/mediashare`, description: 'Video YouTube dari donatur (1920x1080)' }
-                ].map(link => (
-                  <div key={link.key} className="py-3 flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#b8a492] text-[#2d2d2d] flex items-center justify-center font-bold shrink-0">{link.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="truncate">
-                          <div className="text-sm font-bold text-[#b8a492]">{link.title}</div>
-                          <div className="text-xs text-[#b8a492]/70 truncate">{link.description}</div>
-                        </div>
-                        <div className="flex-shrink-0 flex items-center gap-2">
-                          <a href={link.url} target="_blank" rel="noreferrer" className="text-sm text-[#b8a492] hover:underline">Buka</a>
-                          <button
-                            onClick={() => handleCopyWithFeedback(link.url, link.key)}
-                            className="text-sm px-3 py-1 bg-[#2d2d2d] border-2 border-[#b8a492] rounded text-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]"
-                          >
-                            Salin
-                          </button>
-                        </div>
-                      </div>
-                      <input readOnly value={link.url} className="w-full bg-transparent text-xs text-[#b8a492] truncate mt-2" onClick={e => e.target.select()} />
-                    </div>
+      {/* How-to Tip */}
+      <div className="rounded-xl border-2 border-[#2d2d2d] bg-[#f2e4d4] px-4 py-3 text-xs font-medium text-[#2d2d2d] shadow-[3px_3px_0px_#2d2d2d]">
+        <span className="font-black text-[#2d2d2d]">Cara pasang:</span> OBS Studio &rarr; Sources &rarr; tambah Browser &rarr; paste URL widget di bawah.
+      </div>
+
+      {/* 2-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Widget Links */}
+        <div className="lg:col-span-7 space-y-4">
+          {overlayLinks.map((link) => (
+            <div key={link.key} className="rounded-2xl bg-[#fffdf9] border-2 border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-base text-[#2d2d2d]">{link.title}</h3>
+                    {link.size && (
+                      <span className="text-[10px] font-extrabold text-[#2d2d2d] bg-[#fbf8f3] border border-[#2d2d2d] px-2 py-0.5 rounded-md shadow-[1px_1px_0px_#2d2d2d]">
+                        {link.size}
+                      </span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </Card>
+                  <p className="text-xs font-medium text-[#696057] mt-1">{link.description}</p>
+                </div>
 
-            <Card className="p-4">
-              <div className="space-y-4">
-                <button
-                  type="button"
-                  className="w-full bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded text-sm font-bold hover:bg-[#d6c6b9] transition"
-                  onClick={() => {
-                    const testNotification = {
-                      message: 'Tes Notifikasi Donasi',
-                      detail: 'Ini adalah pesan tes.',
-                      time: new Date().toLocaleTimeString('id-ID'),
-                      timestamp: Date.now()
-                    };
-                    localStorage.setItem('overlay-notification-trigger', JSON.stringify(testNotification));
-                    window.dispatchEvent(new StorageEvent('storage', {
-                      key: 'overlay-notification-trigger',
-                      newValue: JSON.stringify(testNotification)
-                    }));
-                    toast.success('Notifikasi tes dikirim ke overlay!');
-                  }}
-                >
-                  🛠️ Kirim Notifikasi Tes
-                </button>
-
-                <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <h4 className="text-xs font-bold text-[#b8a492] mb-1">ℹ️ Info Media Share</h4>
-                  <div className="text-xs text-[#b8a492]/70 space-y-0.5">
-                    <p>• Rp 10.000 = 30 detik</p>
-                    <p>• Rp 20.000 = 1 menit</p>
-                    <p>• Rp 50.000 = 2 menit</p>
-                    <p>• Rp 100.000+ = 5 menit</p>
-                    <p>• Format: YouTube videos only</p>
-                  </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-1.5 text-xs font-extrabold rounded-xl border-2 border-[#2d2d2d] bg-[#fffdf9] text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] hover:bg-[#f2e4d4] transition active:translate-y-0.5"
+                  >
+                    Buka
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(link.url, link.key)}
+                    className="px-4 py-1.5 text-xs font-extrabold rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] text-white shadow-[2px_2px_0px_#b8a492] hover:bg-black transition cursor-pointer active:translate-y-0.5"
+                  >
+                    {copiedKey === link.key ? 'Tersalin' : 'Salin'}
+                  </button>
                 </div>
               </div>
-            </Card>
-          </div>
 
-          {/* Right Column - Message Filter */}
-          <div>
-            <MessageFilterSettings />
+              {/* URL Display */}
+              <div className="mt-3 px-3.5 py-2 rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] font-mono text-xs font-bold text-[#2d2d2d] select-all truncate">
+                {link.url}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right Column */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* Message Filter */}
+          <MessageFilterSettings />
+
+          {/* Media Share Durations */}
+          <div className="rounded-2xl bg-[#fffdf9] border-2 border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-5 sm:p-6">
+            <h4 className="font-black text-sm text-[#2d2d2d] mb-3 border-b-2 border-[#2d2d2d]/10 pb-2">Durasi Media Share</h4>
+            <div className="space-y-0">
+              {mediaDurations.map((item, idx) => (
+                <div key={idx} className="flex justify-between py-2 border-b-2 border-[#2d2d2d]/10 last:border-0 text-xs">
+                  <span className="font-bold text-[#696057]">{item.amount}</span>
+                  <span className="font-black text-[#2d2d2d]">{item.duration}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] font-bold text-[#8f857b] mt-3">
+              Hanya video YouTube publik. Video privat otomatis dilewati.
+            </p>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </CreatorAppLayout>
   );
 }

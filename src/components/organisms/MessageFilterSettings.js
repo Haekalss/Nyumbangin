@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
-import Card from '../atoms/Card';
 
 export default function MessageFilterSettings() {
-  const router = useRouter();
   const [filteredWords, setFilteredWords] = useState([]);
   const [newWord, setNewWord] = useState('');
   const [loading, setLoading] = useState(true);
@@ -24,7 +21,6 @@ export default function MessageFilterSettings() {
       setFilteredWords(res.data.filteredWords || []);
     } catch (error) {
       console.error('Error fetching filtered words:', error);
-      // 401 will be handled by axios interceptor
       if (error.response?.status !== 401) {
         toast.error('Gagal memuat data filter');
       }
@@ -67,10 +63,8 @@ export default function MessageFilterSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
       await api.put('/api/creator/filtered-words', { filteredWords });
-
-      toast.success('Filter kata berhasil disimpan');
+      toast.success('Filter kata berhasil disimpan!');
     } catch (error) {
       console.error('Error saving filtered words:', error);
       if (error.response?.status !== 401) {
@@ -83,125 +77,110 @@ export default function MessageFilterSettings() {
 
   const getFilteredPreview = (message) => {
     if (!message) return '';
-    
     let filtered = message;
     filteredWords.forEach(word => {
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
       filtered = filtered.replace(regex, (match) => '*'.repeat(match.length));
     });
-    
     return filtered;
   };
 
   if (loading) {
     return (
-      <Card className="p-6">
-        <div className="text-center text-[#b8a492]">Memuat...</div>
-      </Card>
+      <div className="rounded-2xl bg-[#fffdf9] border-2 border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-5">
+        <div className="text-center text-xs font-bold text-[#8f857b]">Memuat filter...</div>
+      </div>
     );
   }
 
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-bold text-[#b8a492] mb-2 font-mono">Filter Pesan Donasi</h3>
-        <p className="text-sm text-[#b8a492]/70 font-mono">
-          Tambahkan kata-kata yang ingin difilter dari pesan donasi. Kata yang difilter akan diganti dengan *** (bintang).
+    <div className="rounded-2xl bg-[#fffdf9] border-2 border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-5 sm:p-6 space-y-4">
+      <div className="border-b-2 border-[#2d2d2d]/10 pb-3">
+        <h3 className="font-black text-sm text-[#2d2d2d]">Sensor Kata</h3>
+        <p className="text-xs font-medium text-[#696057] mt-0.5">
+          Kata yang disensor akan diganti bintang (***) di overlay.
         </p>
       </div>
 
-      {/* Add Word Input */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-[#b8a492] mb-2 font-mono">
-          Tambah Kata Filter
-        </label>
+      {/* Input */}
+      <div>
         <div className="flex gap-2">
           <input
             type="text"
             value={newWord}
             onChange={(e) => setNewWord(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddWord()}
-            placeholder="Ketik kata yang ingin difilter..."
-            className="flex-1 px-3 py-2 bg-[#1a1a1a] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm"
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddWord())}
+            placeholder="Ketik kata..."
+            className="flex-1 px-3.5 py-2 rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] text-sm font-bold text-[#2d2d2d] placeholder:text-[#8f857b] outline-none focus:bg-white transition"
           />
           <button
+            type="button"
             onClick={handleAddWord}
-            className="px-4 py-2 bg-[#b8a492] text-[#2d2d2d] rounded-lg font-bold hover:bg-[#d6c6b9] transition-colors font-mono text-sm"
+            className="px-4 py-2 rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] text-white text-xs font-extrabold shadow-[2px_2px_0px_#b8a492] hover:bg-black transition cursor-pointer active:translate-y-0.5"
           >
-            + Tambah
+            Tambah
           </button>
         </div>
-        <p className="text-xs text-[#b8a492]/50 mt-1 font-mono">
-          {filteredWords.length}/100 kata
-        </p>
+        <p className="text-[11px] font-bold text-[#8f857b] mt-1.5">{filteredWords.length}/100 kata terdaftar</p>
       </div>
 
-      {/* Filtered Words List */}
-      {filteredWords.length > 0 && (
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-[#b8a492] mb-2 font-mono">
-            Daftar Kata yang Difilter ({filteredWords.length})
-          </label>
-          <div className="bg-[#1a1a1a] border-2 border-[#b8a492]/30 rounded-lg p-3 max-h-48 overflow-y-auto">
-            <div className="flex flex-wrap gap-2">
-              {filteredWords.map((word, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-[#2d2d2d] border border-[#b8a492]/50 rounded px-3 py-1"
+      {/* Word List */}
+      {filteredWords.length > 0 ? (
+        <div className="bg-[#fbf8f3] rounded-xl border-2 border-[#2d2d2d] p-3 max-h-40 overflow-y-auto">
+          <div className="flex flex-wrap gap-2">
+            {filteredWords.map((word, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-1.5 bg-[#fffdf9] border-2 border-[#2d2d2d] rounded-lg px-2.5 py-1 text-xs font-extrabold text-[#2d2d2d] shadow-[1px_1px_0px_#2d2d2d]"
+              >
+                <span>{word}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveWord(word)}
+                  className="text-red-500 hover:text-red-700 cursor-pointer font-black ml-0.5"
+                  title="Hapus"
                 >
-                  <span className="text-sm text-[#b8a492] font-mono">{word}</span>
-                  <button
-                    onClick={() => handleRemoveWord(word)}
-                    className="text-red-400 hover:text-red-300 font-bold"
-                    title="Hapus kata"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+                  ×
+                </button>
+              </div>
+            ))}
           </div>
+        </div>
+      ) : (
+        <div className="py-4 rounded-xl border-2 border-dashed border-[#2d2d2d]/30 text-center text-xs font-bold text-[#8f857b]">
+          Belum ada kata yang disensor.
         </div>
       )}
 
-      {/* Test Preview */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-[#b8a492] mb-2 font-mono">
-          Test Preview Filter
-        </label>
+      {/* Test */}
+      <div>
         <textarea
           value={testMessage}
           onChange={(e) => setTestMessage(e.target.value)}
-          placeholder="Ketik pesan untuk test filter..."
-          rows="3"
-          className="w-full px-3 py-2 bg-[#1a1a1a] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/50 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono text-sm resize-none"
+          placeholder="Tes ketik pesan di sini..."
+          rows="2"
+          className="w-full px-3.5 py-2.5 rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] text-sm font-medium text-[#2d2d2d] placeholder:text-[#8f857b] outline-none focus:bg-white resize-none transition"
         />
         {testMessage && (
-          <div className="mt-2 p-3 bg-[#1a1a1a] border-2 border-green-500/30 rounded-lg">
-            <p className="text-xs text-[#b8a492]/70 mb-1 font-mono">Hasil filter:</p>
-            <p className="text-sm text-[#b8a492] font-mono">{getFilteredPreview(testMessage)}</p>
+          <div className="mt-2 p-3 rounded-xl border-2 border-[#2d2d2d] bg-emerald-100 text-xs shadow-[2px_2px_0px_#2d2d2d]">
+            <span className="font-extrabold text-emerald-900 block mb-0.5">Hasil Preview:</span>
+            <span className="text-emerald-950 font-medium">{getFilteredPreview(testMessage)}</span>
           </div>
         )}
       </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end gap-3">
+      {/* Save */}
+      <div className="pt-3 flex items-center justify-between border-t-2 border-[#2d2d2d]/10">
+        <span className="text-[11px] font-bold text-[#8f857b]">Sensor kata utuh.</span>
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2 bg-[#b8a492] text-[#2d2d2d] rounded-lg font-bold hover:bg-[#d6c6b9] transition-colors disabled:opacity-50 font-mono"
+          className="px-5 py-2 rounded-xl border-2 border-[#2d2d2d] bg-[#b8a492] text-[#2d2d2d] text-xs font-extrabold shadow-[2px_2px_0px_#2d2d2d] hover:bg-[#cabaa9] transition cursor-pointer disabled:opacity-50 active:translate-y-0.5"
         >
-          {saving ? 'Menyimpan...' : 'Simpan Filter'}
+          {saving ? 'Menyimpan...' : 'Simpan'}
         </button>
       </div>
-
-      {/* Info */}
-      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-        <p className="text-xs text-[#b8a492]/70 font-mono">
-          💡 <span className="font-bold">Tips:</span> Filter bekerja pada kata utuh (whole word). 
-          Contoh: filter "anjing" tidak akan mempengaruhi kata "anjingga".
-        </p>
-      </div>
-    </Card>
+    </div>
   );
 }

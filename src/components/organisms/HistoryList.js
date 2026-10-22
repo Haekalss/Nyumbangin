@@ -9,13 +9,19 @@ const HistoryList = ({
 }) => {
   if (data.length === 0) {
     return (
-      <div className="text-center py-16 bg-[#2d2d2d] rounded-xl border-4 border-[#b8a492]">
-        <div className="text-6xl mb-4">📭</div>
-        <div className="text-xl text-[#b8a492] font-bold font-mono">
+      <div className="text-center py-16 bg-[#fffdf9] rounded-2xl border-2 border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-8">
+        <img
+          src="/Logo2.png"
+          alt="Maskot Nyumbangin"
+          className="h-16 w-16 object-contain select-none opacity-60 mx-auto mb-3"
+        />
+        <div className="text-sm text-[#2d2d2d] font-black">
           {searchQuery ? 'Tidak ada hasil pencarian' : 'Belum ada riwayat donasi'}
         </div>
-        <p className="text-[#b8a492]/70 mt-2 font-mono">
-          {searchQuery ? 'Coba kata kunci lain' : 'Donasi yang kamu terima akan muncul di sini'}
+        <p className="text-xs font-medium text-[#696057] mt-1 max-w-sm mx-auto">
+          {searchQuery 
+            ? 'Coba gunakan kata kunci pencarian yang berbeda.' 
+            : 'Donasi yang berhasil masuk akan tercatat dan dikelompokkan per hari di sini.'}
         </p>
       </div>
     );
@@ -23,15 +29,10 @@ const HistoryList = ({
 
   return (
     <div className={className}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {data.map((day, idx) => (
           <HistoryDayCard key={idx} dayData={day} />
         ))}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-8 text-center text-[#b8a492]/60 text-sm font-mono">
-        Menampilkan {totalDonations} donasi dari {data.length} hari
       </div>
     </div>
   );

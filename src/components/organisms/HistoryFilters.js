@@ -17,7 +17,7 @@ const HistoryFilters = ({
         <SearchInput
           value={searchQuery}
           onChange={onSearchChange}
-          placeholder="🔍 Cari nama atau pesan donatur..."
+          placeholder="Cari nama atau pesan donatur..."
         />
       </div>
       
@@ -26,7 +26,7 @@ const HistoryFilters = ({
         value={selectedDate}
         onChange={onDateChange}
         options={dateOptions}
-        placeholder="📅 Semua tanggal"
+        placeholder="Semua tanggal"
         className="md:w-72"
       />
     </div>

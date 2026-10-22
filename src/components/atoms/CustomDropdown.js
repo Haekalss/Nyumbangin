@@ -20,29 +20,45 @@ const CustomDropdown = ({ value, onChange, options = [], placeholder = 'Pilih...
     <div ref={ref} className={`relative ${className}`} tabIndex={0}>
       <button
         type="button"
-        className="w-full px-4 py-2.5 bg-[#2d2d2d] border-4 border-[#b8a492] rounded-xl text-[#b8a492] font-mono flex items-center focus:outline-none focus:ring-2 focus:ring-[#b8a492] transition-all"
+        className="w-full px-4 py-2.5 bg-white border-2 border-[#2d2d2d] rounded-xl text-[#2d2d2d] text-sm font-semibold flex items-center justify-between outline-none shadow-[2px_2px_0px_#2d2d2d] transition-all cursor-pointer"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="mr-3 text-xl">📅</span>
-        <span className={selectedLabel ? '' : 'opacity-60'}>
-          {selectedLabel || 'Semua tanggal'}
+        <span className="flex items-center gap-2 truncate">
+          <svg className="w-4 h-4 text-[#8c8276] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span className={selectedLabel ? 'font-bold' : 'text-[#8c8276]'}>
+            {selectedLabel || placeholder || 'Semua tanggal'}
+          </span>
         </span>
-        <span className="ml-auto text-[#b8a492] text-xl">▼</span>
+        <svg className={`w-3.5 h-3.5 text-[#696057] transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
       {open && (
         <ul
-          className="absolute z-20 mt-2 w-full bg-[#232323] border-2 border-[#b8a492] rounded-xl shadow-lg max-h-60 overflow-auto animate-fadein"
+          className="absolute z-30 mt-1.5 w-full bg-[#fffdf9] border-2 border-[#2d2d2d] rounded-xl shadow-[4px_4px_0px_#2d2d2d] max-h-60 overflow-auto divide-y divide-[#2d2d2d]/10"
           role="listbox"
         >
-          {options.length === 0 && (
-            <li className="px-4 py-2 text-[#b8a492]/60 font-mono">Tidak ada opsi</li>
-          )}
-          {options.map((option, idx) => (
+          <li
+            className={`px-4 py-2.5 cursor-pointer text-xs font-bold transition-colors ${
+              !value ? 'bg-[#f5e9da] text-[#2d2d2d]' : 'text-[#696057] hover:bg-[#fbf8f3]'
+            }`}
+            onClick={() => {
+              onChange('');
+              setOpen(false);
+            }}
+          >
+            Semua tanggal
+          </li>
+          {options.map((option) => (
             <li
               key={option.value}
-              className={`px-4 py-2 cursor-pointer font-mono text-[#b8a492] hover:bg-[#333399]/30 transition-colors ${value === option.value ? 'bg-[#b8a492]/10 font-bold' : ''}`}
+              className={`px-4 py-2.5 cursor-pointer text-xs font-semibold transition-colors ${
+                value === option.value ? 'bg-[#f5e9da] font-extrabold text-[#2d2d2d]' : 'text-[#2d2d2d] hover:bg-[#fbf8f3]'
+              }`}
               onClick={() => {
                 onChange(option.value);
                 setOpen(false);
@@ -55,15 +71,6 @@ const CustomDropdown = ({ value, onChange, options = [], placeholder = 'Pilih...
           ))}
         </ul>
       )}
-      <style jsx>{`
-        .animate-fadein {
-          animation: fadein 0.15s;
-        }
-        @keyframes fadein {
-          from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 };
