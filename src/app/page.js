@@ -135,7 +135,7 @@ export default function Home() {
               className="mt-7 flex max-w-md flex-col gap-2 rounded-2xl border-2 border-[#2d2d2d] bg-white p-2 shadow-[4px_4px_0px_#2d2d2d] sm:flex-row sm:items-center"
             >
               <div className="flex flex-1 items-center px-3 py-1 font-mono text-sm">
-                <span className="font-bold text-[#8f857b]">nyumbangin.id/</span>
+                <span className="font-bold text-[#8f857b]">nyumbangin.web.id/</span>
                 <input
                   type="text"
                   value={usernameInput}
@@ -179,7 +179,7 @@ export default function Home() {
                   <span className="h-3 w-3 rounded-full bg-[#27c93f] border border-[#2d2d2d]" />
                 </div>
                 <span className="font-mono text-xs font-bold text-[#696057]">
-                  nyumbangin.id/{previewName}
+                  nyumbangin.web.id/{previewName}
                 </span>
               </div>
 
