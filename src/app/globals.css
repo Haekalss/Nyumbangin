@@ -32,19 +32,24 @@ body {
   width: 100%;
 }
 
-@keyframes slide-left-seamless {
+@keyframes marquee-scroll {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(calc(-100% / 3));
+    transform: translateX(-50%);
   }
 }
 
-.carousel-track-seamless {
-  animation: slide-left-seamless 80s linear infinite;
-  width: fit-content;
+.carousel-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 80s linear infinite;
   will-change: transform;
+}
+
+.carousel-marquee:hover {
+  animation-play-state: paused;
 }
 
 /* Line clamp utility */

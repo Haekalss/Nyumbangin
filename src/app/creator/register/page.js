@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -21,6 +21,21 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const initialUsername = params.get('username') || params.get('u');
+      if (initialUsername) {
+        const clean = initialUsername.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        setFormData(prev => ({
+          ...prev,
+          username: clean,
+          displayName: clean.charAt(0).toUpperCase() + clean.slice(1)
+        }));
+      }
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({

@@ -1,28 +1,55 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [creators, setCreators] = useState([]);
-  const [isPaused, setIsPaused] = useState(false);
   const router = useRouter();
+  const [creators, setCreators] = useState([]);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [selectedAmount, setSelectedAmount] = useState('Rp25.000');
+  const [demoAlertActive, setDemoAlertActive] = useState(false);
 
-  // Check if device is mobile
-  const isMobile = () => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth <= 768;
-  };
+  // Auto redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+
+    if (token && userData) {
+      try {
+        JSON.parse(userData);
+        router.replace('/dashboard');
+        return;
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+
+    let cancelled = false;
+
+    async function loadCreators() {
+      try {
+        const response = await fetch('/api/creators/list');
+        const data = await response.json();
+        if (!cancelled && data.success && Array.isArray(data.creators)) {
+          setCreators(data.creators);
+        }
+      } catch (error) {
+        console.error('Gagal memuat daftar kreator:', error);
+      }
+    }
+
+    loadCreators();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const handleLoginClick = () => {
-    if (isMobile()) {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
       toast.error('Dashboard hanya bisa diakses melalui desktop. Silakan buka website ini di komputer/laptop.', {
         duration: 5000,
         icon: '🖥️',
@@ -32,421 +59,310 @@ export default function Home() {
     router.push('/login');
   };
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      setLoading(false);
-      return;
-    }
-    
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        // If already logged in, redirect to dashboard
-        router.push('/dashboard');
-        return;
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    }
-    setLoading(false);
-    
-    // Fetch creators list
-    fetchCreators();
-  }, [router]);
-
-  const fetchCreators = async () => {
-    try {
-      const response = await fetch('/api/creators/list');
-      const data = await response.json();
-      if (data.success && data.creators.length > 0) {
-        setCreators(data.creators);
-      }
-    } catch (error) {
-      console.error('Error fetching creators:', error);
+  const handleClaimSubmit = (e) => {
+    e.preventDefault();
+    const clean = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    if (clean) {
+      router.push(`/creator/register?username=${encodeURIComponent(clean)}`);
+    } else {
+      router.push('/creator/register');
     }
   };
 
-  // Hitung gap dinamis berdasarkan jumlah creator
-  const getGapClass = () => {
-    const count = creators.length;
-    if (count <= 2) return 'gap-12';
-    if (count <= 5) return 'gap-8';
-    if (count <= 10) return 'gap-6';
-    return 'gap-4';
+  const handleTestDonation = () => {
+    setDemoAlertActive(true);
+    setTimeout(() => {
+      setDemoAlertActive(false);
+    }, 4000);
   };
 
-  const scrollToCreators = () => {
-    const creatorSection = document.getElementById('creator-section');
-    if (creatorSection) {
-      const targetPosition = creatorSection.getBoundingClientRect().top + window.pageYOffset - 100;
-      const startPosition = window.pageYOffset;
-      const distance = targetPosition - startPosition;
-      const duration = 1500; // 1.5 detik
-      let start = null;
+  const previewName = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'namamu';
 
-      const animation = (currentTime) => {
-        if (start === null) start = currentTime;
-        const timeElapsed = currentTime - start;
-        const progress = Math.min(timeElapsed / duration, 1);
-        
-        // Easing function untuk smooth animation
-        const ease = progress < 0.5
-          ? 4 * progress * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-        
-        window.scrollTo(0, startPosition + distance * ease);
-        
-        if (timeElapsed < duration) {
-          requestAnimationFrame(animation);
-        }
-      };
-
-      requestAnimationFrame(animation);
-    }
-  };
-
-  const handleLogout = () => {
-    toast((t) => (
-      <div className="flex flex-col space-y-2">
-        <span className="font-medium">Yakin ingin keluar?</span>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              setUser(null);
-              toast.success('Berhasil logout!');
-            }}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
-          >
-            Ya, Keluar
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm font-medium"
-          >
-            Batal
-          </button>
-        </div>
-      </div>
-    ));
-  };
+  // Multiply creators list to guarantee a smooth, seamless infinite marquee
+  const marqueeCreators = creators.length > 0 ? [...creators, ...creators, ...creators] : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
-      {/* Header */}
-      <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <Link href="/" className="text-3xl font-extrabold text-[#b8a492] tracking-wide hover:text-[#d6c6b9] transition-colors cursor-pointer">
-              Nyumbangin
+    <main className="min-h-screen bg-[#fbf8f3] text-[#2d2d2d] font-sans antialiased selection:bg-[#b8a492] selection:text-[#2d2d2d]">
+      {/* Navbar */}
+      <header className="border-b-2 border-[#2d2d2d] bg-[#fbf8f3] sticky top-0 z-40">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
+          <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-90">
+            <img src="/logo.png" alt="Nyumbangin" className="h-9 w-9 object-contain" />
+            <span className="text-xl font-extrabold tracking-tight text-[#2d2d2d]">nyumbangin</span>
+          </Link>
+
+          <nav className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={handleLoginClick}
+              className="rounded-xl px-4 py-2 text-sm font-bold text-[#2d2d2d] transition hover:bg-[#ede3d3]"
+            >
+              Masuk
+            </button>
+            <Link
+              href="/creator/register"
+              className="rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] px-4 py-2 text-sm font-bold text-[#fbf8f3] shadow-[3px_3px_0px_#b8a492] transition hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#b8a492]"
+            >
+              Daftar
             </Link>
-            <nav className="flex items-center gap-3">
-            {user ? (
-              <>
-                {(user.userType === 'admin' || user.role === 'admin') && (
-                  <Link href="/dashboard" className="bg-[#b8a492] text-[#2d2d2d] px-4 py-2 rounded-lg font-bold border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] transition-all">
-                    Dashboard
-                  </Link>
-                )}
-                <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold border-2 border-red-700 hover:bg-red-700 transition-all">
-                  Logout
-                </button>
-              </>
-            ) : (
-              <button onClick={handleLoginClick} className="bg-[#2d2d2d] text-[#b8a492] px-4 py-2 rounded-lg font-bold border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all">
-                Login
-              </button>
-            )}
           </nav>
-          </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-5xl mx-auto text-center py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-center mb-6 md:mb-8">
-          <img src="/logo.png" alt="Nyumbangin Logo" className="w-24 h-24 md:w-32 md:h-32 animate-bounce" />
-        </div>
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#2d2d2d]">Buat Halaman Donasi Pribadi Anda</h2>
-        <p className="mt-3 md:mt-4 text-base md:text-lg text-[#2d2d2d] max-w-2xl mx-auto">
-          Nyumbangin adalah platform donasi digital yang memudahkan kreator menerima dukungan dari fans dan followers dengan aman, cepat, dan transparan.
-        </p>
-        <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-          <Link href="/creator/register" className="bg-[#b8a492] text-[#2d2d2d] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9]">
-            Mulai Sebagai Creator
-          </Link>
-          <Link href="/coming-soon" className="bg-[#2d2d2d] text-[#b8a492] px-6 py-3 md:px-8 md:py-4 rounded-xl font-extrabold text-base md:text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d]">
-            Lihat Creator
-          </Link>
-        </div>
-      </section>
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-18 md:py-20">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+          {/* Kolom Kiri: Headline & Input Klaim */}
+          <div>
+            <div className="inline-flex items-center rounded-full border-2 border-[#2d2d2d] bg-[#f2e4d4] px-3.5 py-1 text-xs font-extrabold text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d]">
+              Platform Saweran & Apresiasi Kreator
+            </div>
 
-      {/* Creator Carousel */}
-      <section id="creator-section" className="bg-[#2d2d2d] border-t-4 border-[#b8a492] py-6 md:py-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-[#b8a492]">
-          <h3 className="text-2xl font-bold text-center mb-6">Siapa Saja yang Sudah Bergabung?</h3>
-          
-          {creators.length > 0 ? (
-            <div className="relative carousel-wrapper">
-              <div 
-                className={`flex ${getGapClass()} carousel-track-seamless`}
-                style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
-              >
-                {/* Render 3x untuk truly seamless loop */}
-                {[...creators, ...creators, ...creators].map((creator, index) => (
-                  <div
-                    key={`${creator.username}-${index}`}
-                    className="creator-card flex-shrink-0 w-48 bg-[#b8a492] text-[#2d2d2d] rounded-lg p-4 border-2 border-[#2d2d2d] hover:scale-105 transition-transform duration-300"
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                  >
-                    <div className="flex flex-col items-center text-center">
-                      <Link href={creator.donationUrl}>
-                        <img 
-                          src={creator.profileImage} 
-                          alt={creator.displayName}
-                          className="w-20 h-20 rounded-full object-cover mb-3 border-2 border-[#2d2d2d] cursor-pointer"
-                          onError={(e) => e.target.src = '/default-avatar.png'}
-                        />
-                      </Link>
-                      <Link href={creator.donationUrl}>
-                        <h4 className="text-lg font-bold mb-1 hover:underline cursor-pointer">{creator.displayName}</h4>
-                      </Link>
-                      <p className="text-xs opacity-80 mb-2">@{creator.username}</p>
-                      
-                      {/* Social Media Icons */}
-                      {(creator.socialLinks?.twitch || creator.socialLinks?.youtube || 
-                        creator.socialLinks?.instagram || creator.socialLinks?.tiktok || 
-                        creator.socialLinks?.twitter) && (
-                        <div className="flex gap-2 mb-2">
-                          {creator.socialLinks?.twitch && (
-                            <a
-                              href={creator.socialLinks.twitch.startsWith('http') ? creator.socialLinks.twitch : `https://twitch.tv/${creator.socialLinks.twitch}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-6 h-6 hover:scale-110 transition-transform"
-                              title="Twitch"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <svg viewBox="0 0 24 24" fill="#2d2d2d" className="w-full h-full">
-                                <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
-                              </svg>
-                            </a>
-                          )}
-                          {creator.socialLinks?.youtube && (
-                            <a
-                              href={creator.socialLinks.youtube.startsWith('http') ? creator.socialLinks.youtube : `https://youtube.com/@${creator.socialLinks.youtube}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-6 h-6 hover:scale-110 transition-transform"
-                              title="YouTube"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <svg viewBox="0 0 24 24" fill="#2d2d2d" className="w-full h-full">
-                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                              </svg>
-                            </a>
-                          )}
-                          {creator.socialLinks?.instagram && (
-                            <a
-                              href={creator.socialLinks.instagram.startsWith('http') ? creator.socialLinks.instagram : `https://instagram.com/${creator.socialLinks.instagram}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-6 h-6 hover:scale-110 transition-transform"
-                              title="Instagram"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <svg viewBox="0 0 24 24" fill="#2d2d2d" className="w-full h-full">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                              </svg>
-                            </a>
-                          )}
-                          {creator.socialLinks?.tiktok && (
-                            <a
-                              href={creator.socialLinks.tiktok.startsWith('http') ? creator.socialLinks.tiktok : `https://tiktok.com/@${creator.socialLinks.tiktok}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-6 h-6 hover:scale-110 transition-transform"
-                              title="TikTok"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <svg viewBox="0 0 24 24" fill="#2d2d2d" className="w-full h-full">
-                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                              </svg>
-                            </a>
-                          )}
-                          {creator.socialLinks?.twitter && (
-                            <a
-                              href={creator.socialLinks.twitter.startsWith('http') ? creator.socialLinks.twitter : `https://twitter.com/${creator.socialLinks.twitter}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-6 h-6 hover:scale-110 transition-transform"
-                              title="Twitter"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <svg viewBox="0 0 24 24" fill="#2d2d2d" className="w-full h-full">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                              </svg>
-                            </a>
-                          )}
-                        </div>
-                      )}
-                      
-                      {creator.bio && (
-                        <p className="text-xs line-clamp-2 mt-1">{creator.bio}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-[#2d2d2d] sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
+              Bikin karya. <br />
+              <span className="underline decoration-[#b8a492] decoration-wavy decoration-2">
+                Biar mereka dukung.
+              </span>
+            </h1>
+
+            <p className="mt-5 max-w-md text-base font-medium leading-relaxed text-[#5c544d]">
+              Satu tautan praktis untuk menerima saweran dan apresiasi langsung dari penikmat karya atau siaranmu.
+            </p>
+
+            {/* Input Klaim Username (The Hook) */}
+            <form
+              onSubmit={handleClaimSubmit}
+              className="mt-7 flex max-w-md flex-col gap-2 rounded-2xl border-2 border-[#2d2d2d] bg-white p-2 shadow-[4px_4px_0px_#2d2d2d] sm:flex-row sm:items-center"
+            >
+              <div className="flex flex-1 items-center px-3 py-1 font-mono text-sm">
+                <span className="font-bold text-[#8f857b]">nyumbangin.id/</span>
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                  placeholder="namamu"
+                  maxLength={30}
+                  className="w-full bg-transparent font-bold text-[#2d2d2d] outline-none placeholder:text-[#c4b9ad]"
+                  aria-label="Nama pengguna"
+                />
               </div>
+              <button
+                type="submit"
+                className="rounded-xl border-2 border-[#2d2d2d] bg-[#b8a492] px-5 py-2.5 text-sm font-extrabold text-[#2d2d2d] transition hover:bg-[#cabaa9] active:translate-y-0.5"
+              >
+                Buat Halaman
+              </button>
+            </form>
+
+            {/* Micro Points */}
+            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs font-bold text-[#696057]">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2d2d2d]" /> Gratis digunakan
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2d2d2d]" /> Pembayaran instan
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2d2d2d]" /> Langsung siap pakai
+              </span>
             </div>
-          ) : (
-            <div className="text-center text-[#b8a492]">
-              <p className="text-sm">Memuat creator...</p>
+          </div>
+
+          {/* Kolom Kanan: Pratinjau Interaktif dengan Hook Notifikasi */}
+          <div className="relative mx-auto w-full max-w-[390px]">
+            {/* Kartu Halaman Kreator */}
+            <div className="relative rounded-2xl border-2 border-[#2d2d2d] bg-[#fffdf9] p-5 shadow-[6px_6px_0px_#2d2d2d]">
+              <div className="flex items-center justify-between border-b-2 border-[#2d2d2d] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-[#ff5f56] border border-[#2d2d2d]" />
+                  <span className="h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#2d2d2d]" />
+                  <span className="h-3 w-3 rounded-full bg-[#27c93f] border border-[#2d2d2d]" />
+                </div>
+                <span className="font-mono text-xs font-bold text-[#696057]">
+                  nyumbangin.id/{previewName}
+                </span>
+              </div>
+
+              {/* Profil Kreator */}
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#2d2d2d] bg-[#b8a492] text-sm font-extrabold uppercase text-[#2d2d2d]">
+                  {previewName.slice(0, 2)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-extrabold capitalize text-[#2d2d2d]">
+                    {previewName}
+                  </p>
+                  <p className="truncate font-mono text-xs text-[#7d7369]">
+                    @{previewName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Simulasi Interaktif: Pop-up Notifikasi Alert */}
+              {demoAlertActive ? (
+                <div className="mt-4 rounded-xl border-2 border-[#2d2d2d] bg-[#b8a492] p-3.5 transition-all">
+                  <div className="flex items-center justify-between font-mono text-xs font-extrabold">
+                    <span>Saweran Masuk!</span>
+                    <span className="rounded bg-[#2d2d2d] px-2 py-0.5 text-white">
+                      {selectedAmount}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs font-bold text-[#2d2d2d]">
+                    Budi <span className="font-normal">mendukung</span> @{previewName}
+                  </p>
+                  <div className="mt-1.5 rounded-lg border border-[#2d2d2d]/30 bg-white/70 p-2 text-xs italic text-[#2d2d2d]">
+                    "Semangat terus ngontennya bang, ditunggu karya berikutnya!"
+                  </div>
+                </div>
+              ) : (
+                /* Pilihan Nominal Biasa */
+                <div className="mt-4">
+                  <p className="text-xs font-bold text-[#5c544d]">Pilih nominal dukungan</p>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {['Rp10.000', 'Rp25.000', 'Rp50.000'].map((amount) => (
+                      <button
+                        key={amount}
+                        type="button"
+                        onClick={() => setSelectedAmount(amount)}
+                        className={`rounded-xl border-2 py-2 text-center text-xs font-bold transition ${
+                          selectedAmount === amount
+                            ? 'border-[#2d2d2d] bg-[#b8a492] text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d]'
+                            : 'border-[#2d2d2d] bg-white text-[#5c544d] hover:bg-[#f5e9da]'
+                        }`}
+                      >
+                        {amount}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleTestDonation}
+                    className="mt-3 w-full rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] py-2.5 text-center text-xs font-extrabold text-[#fbf8f3] shadow-[2px_2px_0px_#b8a492] transition hover:translate-x-[1px] hover:translate-y-[1px]"
+                  >
+                    Coba Kirim {selectedAmount}
+                  </button>
+                </div>
+              )}
+
+              <p className="mt-2 text-center text-[11px] font-medium text-[#8f857b]">
+                {demoAlertActive ? 'Notifikasi otomatis tampil saat ada dukungan' : 'Klik tombol untuk melihat simulasi notifikasi'}
+              </p>
             </div>
-          )}
+
+            {/* Maskot Karakter Nyumbangin */}
+            <div className="absolute -bottom-8 -right-6 pointer-events-none w-28 sm:w-36 drop-shadow-md">
+              <img
+                src="/Logo2.png"
+                alt="Maskot Nyumbangin"
+                className="w-full object-contain"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Keunggulan */}
-<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12 border-t-4 border-[#b8a492]">
-  <h3 className="text-2xl md:text-3xl font-extrabold text-center text-[#2d2d2d] mb-3">
-    Kenapa Pilih Nyumbangin?
-  </h3>
-  <p className="text-center text-[#2d2d2d] text-base mb-8 max-w-2xl mx-auto">
-    Platform donasi terpercaya dengan fitur lengkap untuk mendukung kreator favorit Anda
-  </p>
-  
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-    <div className="feature-card bg-gradient-to-br from-[#b8a492] to-[#d6c6b9] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-      <div className="text-5xl mb-4 group-hover:animate-bounce">🎨</div>
-      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Desain Modern</h4>
-      <p className="text-[#2d2d2d]">Tampilan responsif dan keren di semua perangkat, dari mobile hingga desktop</p>
-    </div>
-    
-    <div className="feature-card bg-gradient-to-br from-[#d6c6b9] to-[#b8a492] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-      <div className="text-5xl mb-4 group-hover:animate-bounce">🔒</div>
-      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Aman & Terpercaya</h4>
-      <p className="text-[#2d2d2d]">Pembayaran terenkripsi melalui Midtrans dengan keamanan tingkat bank</p>
-    </div>
-    
-    <div className="feature-card bg-gradient-to-br from-[#b8a492] to-[#d6c6b9] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-      <div className="text-5xl mb-4 group-hover:animate-bounce">⚡</div>
-      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Real-Time</h4>
-      <p className="text-[#2d2d2d]">Notifikasi instan saat donasi masuk, langsung tampil di overlay stream</p>
-    </div>
-    
-    <div className="feature-card bg-gradient-to-br from-[#d6c6b9] to-[#b8a492] p-6 rounded-xl border-2 border-[#2d2d2d] hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-      <div className="text-5xl mb-4 group-hover:animate-bounce">💰</div>
-      <h4 className="text-xl font-bold text-[#2d2d2d] mb-2">Mudah Dicairkan</h4>
-      <p className="text-[#2d2d2d]">Proses payout cepat dan transparan, dana langsung ke rekening Anda</p>
-    </div>
-  </div>
-</section>
-
-      {/* How It Works */}
-<section className="bg-[#2d2d2d] py-10 md:py-12 border-t-4 border-[#b8a492]">
-  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h3 className="text-2xl md:text-3xl font-extrabold text-center text-[#b8a492] mb-3">
-      Cara Kerjanya Mudah!
-    </h3>
-    <p className="text-center text-[#b8a492] text-base mb-8">
-      Hanya 3 langkah untuk mulai menerima donasi
-    </p>
-    
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-      <div className="text-center step-card">
-        <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
-          1
+      {/* Ticker Kategori Kreator */}
+      <section className="border-y-2 border-[#2d2d2d] bg-[#f4ebd9] py-3.5">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-5 text-xs font-bold text-[#2d2d2d] sm:px-8 sm:gap-6">
+          <span className="text-[#696057]">Untuk kamu yang:</span>
+          <span className="rounded-lg border-2 border-[#2d2d2d] bg-white px-3 py-1 shadow-[2px_2px_0px_#2d2d2d]">
+            Live Streaming
+          </span>
+          <span className="rounded-lg border-2 border-[#2d2d2d] bg-white px-3 py-1 shadow-[2px_2px_0px_#2d2d2d]">
+            Bikin Komik & Ilustrasi
+          </span>
+          <span className="rounded-lg border-2 border-[#2d2d2d] bg-white px-3 py-1 shadow-[2px_2px_0px_#2d2d2d]">
+            Rekam Podcast
+          </span>
+          <span className="rounded-lg border-2 border-[#2d2d2d] bg-white px-3 py-1 shadow-[2px_2px_0px_#2d2d2d]">
+            Bikin Musik
+          </span>
+          <span className="rounded-lg border-2 border-[#2d2d2d] bg-white px-3 py-1 shadow-[2px_2px_0px_#2d2d2d]">
+            Bangun Komunitas
+          </span>
         </div>
-        <h4 className="text-xl font-bold text-[#b8a492] mb-3">Daftar Gratis</h4>
-        <p className="text-[#d6c6b9] text-base">
-          Buat akun creator dan atur profil Anda dengan mudah dalam hitungan menit
-        </p>
-      </div>
-      
-      <div className="text-center step-card">
-        <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
-          2
+      </section>
+
+      {/* Auto-scrolling Marquee Kreator (Dengan margin kontainer sejajar) */}
+      {creators.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14 overflow-hidden">
+          <div className="mb-6">
+            <h2 className="text-lg font-extrabold text-[#2d2d2d]">Kreator di Nyumbangin</h2>
+          </div>
+
+          <div className="carousel-wrapper py-3 [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]">
+            <div className="carousel-marquee gap-6">
+              {marqueeCreators.map((creator, index) => (
+                <Link
+                  key={`${creator.username}-${index}`}
+                  href={creator.donationUrl || `/donate/${creator.username}`}
+                  className="flex min-w-[220px] items-center gap-3.5 rounded-xl border-2 border-[#2d2d2d] bg-white p-3.5 shadow-[3px_3px_0px_#2d2d2d] transition hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#2d2d2d]"
+                >
+                  <img
+                    src={creator.profileImage || '/default-avatar.png'}
+                    alt={creator.displayName || creator.username}
+                    onError={(e) => {
+                      e.currentTarget.src = '/default-avatar.png';
+                    }}
+                    className="h-11 w-11 shrink-0 rounded-full border border-[#2d2d2d] object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-[#2d2d2d]">
+                      {creator.displayName || creator.username}
+                    </p>
+                    <p className="truncate font-mono text-xs text-[#82786e]">@{creator.username}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Manifesto Singkat dengan Maskot */}
+      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-18">
+        <div className="relative overflow-hidden rounded-3xl border-2 border-[#2d2d2d] bg-[#f5e9da] p-8 sm:p-12 shadow-[6px_6px_0px_#2d2d2d]">
+          <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
+            <div className="max-w-xl text-center md:text-left">
+              <span className="inline-block rounded-md border border-[#2d2d2d] bg-white px-2.5 py-0.5 font-mono text-xs font-bold text-[#2d2d2d]">
+                Manifesto Nyumbangin
+              </span>
+              <p className="mt-4 text-2xl font-extrabold tracking-tight text-[#2d2d2d] sm:text-3xl leading-snug">
+                "Karya dan siaranmu selalu punya tempat di hati orang yang tepat."
+              </p>
+              <p className="mt-3 text-sm font-medium leading-relaxed text-[#5c544d]">
+                Dukungan dari komunitas adalah bahan bakar terbesar untuk terus berkarya. Kami hadir agar apresiasi itu bisa sampai kepadamu dengan cara yang paling menyenangkan.
+              </p>
+            </div>
+
+            {/* Maskot Nyumbangin */}
+            <div className="shrink-0 w-32 sm:w-44 drop-shadow-md">
+              <img
+                src="/maskot.png"
+                alt="Maskot Nyumbangin"
+                className="w-full object-contain"
+              />
+            </div>
+          </div>
         </div>
-        <h4 className="text-xl font-bold text-[#b8a492] mb-3">Bagikan Link</h4>
-        <p className="text-[#d6c6b9] text-base">
-          Share halaman donasi Anda di social media, bio, atau stream overlay
-        </p>
-      </div>
-      
-      <div className="text-center step-card">
-        <div className="w-20 h-20 bg-[#b8a492] rounded-full flex items-center justify-center text-[#2d2d2d] text-4xl font-extrabold mx-auto mb-4 border-4 border-[#d6c6b9] hover:scale-110 transition-transform duration-300">
-          3
-        </div>
-        <h4 className="text-xl font-bold text-[#b8a492] mb-3">Terima Donasi</h4>
-        <p className="text-[#d6c6b9] text-base">
-          Fans bisa donasi dengan mudah, Anda langsung dapat notifikasi dan dana masuk
-        </p>
-      </div>
-    </div>
-    
-    <div className="text-center mt-12">
-      <p className="text-[#d6c6b9] text-lg mb-4">Punya pertanyaan? Cek panduan lengkap kami</p>
-      <Link href="/faq" className="inline-block bg-transparent text-[#b8a492] px-8 py-3 rounded-xl font-bold text-lg border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all duration-300">
-        Lihat FAQ & Bantuan
-      </Link>
-    </div>
-  </div>
-</section>
-
-      {/* CTA Section with Mascot */}
-<section className="py-10 md:py-12 border-t-4 border-[#b8a492]">
-  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-  <div className="bg-gradient-to-r from-[#2d2d2d] to-[#4a4a4a] rounded-2xl border-4 border-[#b8a492] p-6 md:p-8 lg:p-12">
-    <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
-      <div className="flex-1 text-center md:text-left">
-        <h3 className="text-2xl md:text-3xl font-extrabold text-[#b8a492] mb-3">
-          Siap Mulai Perjalanan Anda?
-        </h3>
-        <p className="text-[#d6c6b9] text-sm md:text-base mb-5">
-          Daftar sekarang dan mulai terima donasi dari supporters Anda dengan mudah dan aman.
-        </p>
-        <Link href="/creator/register" className="inline-block bg-[#b8a492] text-[#2d2d2d] px-8 py-3 md:px-10 md:py-4 rounded-xl font-extrabold text-lg md:text-xl border-2 border-[#d6c6b9] hover:bg-[#d6c6b9] hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
-          🚀 Mulai Sekarang - Gratis!
-        </Link>
-      </div>
-      <div className="flex-shrink-0">
-        <img 
-          src="/maskot.png" 
-          alt="Maskot Nyumbangin" 
-          className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain animate-bounce-slow"
-        />
-      </div>
-    </div>
-  </div>
-  </div>
-</section>
-
-
+      </section>
 
       {/* Footer */}
-      <footer className="bg-[#2d2d2d] border-t-4 border-[#b8a492] text-[#b8a492] text-center py-6">
-        <footer className="w-full py-6 text-center text-[#b8a492] bg-[#2d2d2d] text-sm flex flex-col items-center gap-2">
-          <div>
-            <a href="/privacy" className="underline hover:text-[#fff] transition-colors">Kebijakan Privasi</a>
-            <span className="mx-2">|</span>
-            <a href="/terms" className="underline hover:text-[#fff] transition-colors">Syarat & Ketentuan</a>
-            <span className="mx-2">|</span>
-            <a href="/faq" className="underline hover:text-[#fff] transition-colors">FAQ & Bantuan</a>
-            <span className="mx-2">|</span>
-            <a href="/contact" className="underline hover:text-[#fff] transition-colors">Hubungi kami</a>
+      <footer className="border-t-2 border-[#2d2d2d] bg-[#fbf8f3] py-8 text-xs font-semibold text-[#696057]">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="" className="h-5 w-5 object-contain" />
+            <span>© {new Date().getFullYear()} Nyumbangin</span>
           </div>
-          <div>
-            &copy; {new Date().getFullYear()} Nyumbangin.
-          </div>
-        </footer>
+          <nav className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link href="/privacy" className="transition hover:text-[#2d2d2d]">Privasi</Link>
+            <Link href="/terms" className="transition hover:text-[#2d2d2d]">Syarat & Ketentuan</Link>
+            <Link href="/faq" className="transition hover:text-[#2d2d2d]">FAQ</Link>
+            <Link href="/contact" className="transition hover:text-[#2d2d2d]">Kontak</Link>
+          </nav>
+        </div>
       </footer>
-    </div>
+    </main>
   );
 }
