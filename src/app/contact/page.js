@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import Card from '@/components/atoms/Card';
+
+export const dynamic = 'force-dynamic';
 
 export default function ContactPage() {
-  const router = useRouter();  const [formData, setFormData] = useState({
+  const router = useRouter();
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
@@ -17,18 +20,18 @@ export default function ContactPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userType, setUserType] = useState(null); // 'creator' or 'admin'
+  const [userType, setUserType] = useState(null);
 
-  // Check login status on mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
-    
+
     if (token && user) {
       setIsLoggedIn(true);
       try {
         const userData = JSON.parse(user);
-        // Detect user type from user data
         if (userData.role === 'admin' || userData.isAdmin) {
           setUserType('admin');
         } else {
@@ -42,30 +45,27 @@ export default function ContactPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error('File harus berupa gambar');
         return;
       }
-      
-      // Validate file size (max 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
         toast.error('Ukuran gambar maksimal 5MB');
         return;
       }
 
       setSelectedImage(file);
-      
-      // Create preview
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -79,36 +79,30 @@ export default function ContactPage() {
     setImagePreview(null);
   };
 
-  // Handle back navigation based on user status
   const handleBack = () => {
     if (!isLoggedIn) {
-      // Not logged in -> go to landing page
       router.push('/');
     } else if (userType === 'admin') {
-      // Admin -> go to admin dashboard
       router.push('/admin');
     } else {
-      // Creator -> go to creator dashboard
       router.push('/dashboard');
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const submitData = { ...formData };
-      
-      // Add image if selected
       if (imagePreview) {
         submitData.image = imagePreview;
       }
 
       const response = await axios.post('/api/contact', submitData);
-      
+
       if (response.data.success) {
         toast.success('Pesan berhasil dikirim!');
-        // Reset form
         setFormData({
           name: '',
           email: '',
@@ -127,46 +121,43 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] font-mono">
-      
-      {/* Header */}
-      <header className="bg-[#2d2d2d] border-b-4 border-[#b8a492] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="Nyumbangin Logo" className="w-16 h-16" />
-              <div>
-                <h1 className="text-4xl font-extrabold text-[#b8a492] tracking-wide font-mono">Hubungi Kami</h1>
-                <p className="text-[#b8a492] text-lg mt-2 font-mono">Kami siap membantu Anda</p>
-              </div>
-            </div>
-            <button
-              onClick={handleBack}
-              className="px-4 py-2 text-base font-bold font-mono transition-all rounded-lg border-2 bg-transparent text-[#b8a492] border-[#b8a492] hover:bg-[#b8a492]/10"
-            >
-              ← Kembali ke {isLoggedIn ? 'Dashboard' : 'Beranda'}
-            </button>
-          </div>
+    <div className="min-h-screen bg-[#fbf8f3] text-[#2d2d2d] font-sans antialiased selection:bg-[#b8a492] selection:text-[#2d2d2d]">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+        {/* Top bar */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-90">
+            <img src="/logo.png" alt="Nyumbangin" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-black tracking-tight text-[#2d2d2d]">nyumbangin</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 rounded-xl border-2 border-[#2d2d2d] bg-[#f2e4d4] px-4 py-2 text-xs font-extrabold text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] transition hover:bg-[#e7d6c2] cursor-pointer active:translate-y-0.5"
+          >
+            ← Kembali
+          </button>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <Card className="p-6 sm:p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#b8a492] mb-4">Kirim Pesan kepada Tim Nyumbangin</h2>
-            <p className="text-[#b8a492]/80 font-mono text-sm">
-              Ada pertanyaan, saran, atau butuh bantuan? Jangan ragu untuk menghubungi kami. 
-              Kami akan merespons dalam waktu 1x24 jam.
+        {/* Main Card */}
+        <div className="rounded-2xl border-2 border-[#2d2d2d] bg-[#fffdf9] p-6 shadow-[6px_6px_0px_#2d2d2d] sm:p-8">
+          <div className="border-b-2 border-[#2d2d2d]/15 pb-4">
+            <span className="inline-block rounded-lg border-2 border-[#2d2d2d] bg-[#f2e4d4] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#2d2d2d] shadow-[1px_1px_0px_#2d2d2d]">
+              Layanan Dukungan
+            </span>
+            <h1 className="mt-2.5 text-2xl font-black tracking-tight text-[#2d2d2d] sm:text-3xl">
+              Hubungi Kami
+            </h1>
+            <p className="mt-1 text-xs font-semibold text-[#696057]">
+              Ada pertanyaan seputar transaksi QRIS, akun kreator, atau pencairan dana? Kirimkan pesan di bawah ini.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Nama */}
               <div>
-                <label htmlFor="name" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
-                  Nama Lengkap <span className="text-red-400">*</span>
+                <label htmlFor="name" className="block text-xs font-extrabold text-[#2d2d2d] mb-1.5">
+                  Nama Lengkap <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
@@ -175,15 +166,15 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono"
+                  className="w-full rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] px-3.5 py-2.5 text-sm font-bold text-[#2d2d2d] placeholder:text-[#8f857b] focus:bg-[#fffdf9] focus:outline-none focus:shadow-[3px_3px_0px_#2d2d2d] transition"
                   placeholder="Masukkan nama lengkap Anda"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
-                  Email <span className="text-red-400">*</span>
+                <label htmlFor="email" className="block text-xs font-extrabold text-[#2d2d2d] mb-1.5">
+                  Alamat Email <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="email"
@@ -192,7 +183,7 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono"
+                  className="w-full rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] px-3.5 py-2.5 text-sm font-bold text-[#2d2d2d] placeholder:text-[#8f857b] focus:bg-[#fffdf9] focus:outline-none focus:shadow-[3px_3px_0px_#2d2d2d] transition"
                   placeholder="nama@email.com"
                 />
               </div>
@@ -200,8 +191,8 @@ export default function ContactPage() {
 
             {/* Subject */}
             <div>
-              <label htmlFor="subject" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
-                Subjek <span className="text-red-400">*</span>
+              <label htmlFor="subject" className="block text-xs font-extrabold text-[#2d2d2d] mb-1.5">
+                Subjek <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
@@ -210,13 +201,15 @@ export default function ContactPage() {
                 value={formData.subject}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono"
-                placeholder="Contoh: Pertanyaan tentang payout"
+                className="w-full rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] px-3.5 py-2.5 text-sm font-bold text-[#2d2d2d] placeholder:text-[#8f857b] focus:bg-[#fffdf9] focus:outline-none focus:shadow-[3px_3px_0px_#2d2d2d] transition"
+                placeholder="Contoh: Kendala verifikasi pembayaran / Perubahan rekening payout"
               />
-            </div>            {/* Message */}
+            </div>
+
+            {/* Message */}
             <div>
-              <label htmlFor="message" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
-                Pesan <span className="text-red-400">*</span>
+              <label htmlFor="message" className="block text-xs font-extrabold text-[#2d2d2d] mb-1.5">
+                Detail Pesan <span className="text-red-600">*</span>
               </label>
               <textarea
                 id="message"
@@ -224,23 +217,23 @@ export default function ContactPage() {
                 value={formData.message}
                 onChange={handleChange}
                 required
-                rows="6"
-                className="w-full px-3 py-3 bg-[#2d2d2d] border-2 border-[#b8a492] rounded-lg text-[#b8a492] placeholder-[#b8a492]/60 focus:outline-none focus:ring-2 focus:ring-[#b8a492] font-mono resize-none"
-                placeholder="Tulis pesan Anda dengan detail..."
+                rows="5"
+                className="w-full rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] px-3.5 py-2.5 text-sm font-bold text-[#2d2d2d] placeholder:text-[#8f857b] focus:bg-[#fffdf9] focus:outline-none focus:shadow-[3px_3px_0px_#2d2d2d] transition resize-none"
+                placeholder="Tuliskan detail pertanyaan atau kendala yang Anda alami..."
               />
             </div>
 
             {/* Image Upload */}
             <div>
-              <label htmlFor="image" className="block text-sm font-bold text-[#b8a492] font-mono mb-2">
-                Lampiran Gambar (Opsional)
+              <label htmlFor="image" className="block text-xs font-extrabold text-[#2d2d2d] mb-1">
+                Lampiran Bukti / Screenshot (Opsional)
               </label>
-              <p className="text-xs text-[#b8a492]/60 mb-2">
-                Upload screenshot atau gambar pendukung (Max 5MB)
+              <p className="text-[11px] font-medium text-[#696057] mb-2">
+                Unggah tangkapan layar bukti transaksi atau kendala (PNG/JPG maks. 5MB).
               </p>
-              
+
               {!imagePreview ? (
-                <div className="relative">
+                <div>
                   <input
                     type="file"
                     id="image"
@@ -250,28 +243,28 @@ export default function ContactPage() {
                   />
                   <label
                     htmlFor="image"
-                    className="flex items-center justify-center w-full px-4 py-8 bg-[#2d2d2d] border-2 border-dashed border-[#b8a492] rounded-lg cursor-pointer hover:bg-[#3d3d3d] transition-all"
+                    className="flex flex-col items-center justify-center w-full px-4 py-6 rounded-xl border-2 border-dashed border-[#2d2d2d] bg-[#fbf8f3] cursor-pointer hover:bg-[#f2e4d4]/60 transition"
                   >
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">📷</div>
-                      <p className="text-[#b8a492] font-bold">Klik untuk upload gambar</p>
-                      <p className="text-xs text-[#b8a492]/60 mt-1">PNG, JPG, GIF hingga 5MB</p>
-                    </div>
+                    <svg className="w-7 h-7 text-[#2d2d2d] mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs font-extrabold text-[#2d2d2d]">Klik untuk pilih gambar</span>
+                    <span className="text-[11px] font-medium text-[#696057] mt-0.5">PNG, JPG, GIF hingga 5MB</span>
                   </label>
                 </div>
               ) : (
-                <div className="relative border-2 border-[#b8a492] rounded-lg p-4 bg-[#2d2d2d]">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="max-h-64 mx-auto rounded-lg"
+                <div className="relative rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] p-4 shadow-[2px_2px_0px_#2d2d2d]">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="max-h-60 mx-auto rounded-lg border border-[#2d2d2d]/20 object-contain"
                   />
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-red-700 transition-all text-sm"
+                    className="absolute top-3 right-3 rounded-lg border-2 border-[#2d2d2d] bg-red-500 px-3 py-1 text-xs font-extrabold text-white shadow-[2px_2px_0px_#2d2d2d] hover:bg-red-600 transition cursor-pointer"
                   >
-                    🗑️ Hapus
+                    Hapus
                   </button>
                 </div>
               )}
@@ -281,42 +274,43 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#b8a492] text-[#2d2d2d] py-3 px-6 rounded-lg font-extrabold text-lg border-2 border-[#2d2d2d] hover:bg-[#d6c6b9] focus:outline-none focus:ring-2 focus:ring-[#b8a492] disabled:opacity-50 disabled:cursor-not-allowed font-mono transition-all duration-200"
+              className="w-full rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] py-3.5 px-6 text-sm font-black text-[#fbf8f3] shadow-[4px_4px_0px_#b8a492] hover:bg-black transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5"
             >
-              {loading ? 'Mengirim...' : '📧 Kirim Pesan'}
+              {loading ? 'Mengirim Pesan...' : 'Kirim Pesan Sekarang'}
             </button>
           </form>
 
           {/* Info tambahan */}
-          <div className="mt-8 p-4 bg-[#b8a492]/10 border-2 border-[#b8a492] rounded-lg">
-            <h3 className="text-lg font-bold text-[#b8a492] mb-2">💡 Tips Menghubungi Kami:</h3>
-            <ul className="text-sm text-[#b8a492]/80 font-mono space-y-1">
-              <li>• Berikan detail yang jelas agar kami bisa membantu dengan lebih baik</li>
-              <li>• Untuk masalah teknis, sertakan screenshot jika memungkinkan</li>
-              <li>• Untuk pertanyaan payout, sertakan username Anda</li>
-              <li>• Kami akan merespons melalui email dalam 1x24 jam</li>
+          <div className="mt-6 rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] p-4 shadow-[3px_3px_0px_#2d2d2d]">
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#2d2d2d]">
+              Tips Menghubungi Tim Dukungan
+            </h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs font-medium text-[#4a433d]">
+              <li>Sertakan <strong>username kreator</strong> atau <strong>ID Pesanan (Order ID)</strong> untuk pengecekan transaksi yang lebih cepat.</li>
+              <li>Untuk kendala pembayaran QRIS, lampirkan bukti mutasi yang menampilkan <strong>nominal beserta kode unik</strong>.</li>
             </ul>
           </div>
-        </Card>
-      </main>
 
-      {/* Footer */}
-      <footer className="w-full py-6 text-center text-[#b8a492] bg-[#2d2d2d] text-sm mt-8 flex flex-col items-center gap-2">
-        <div>
-          <a href="/privacy" className="underline hover:text-[#fff] transition-colors">Kebijakan Privasi</a>
-          <span className="mx-2">|</span>
-          <a href="/terms" className="underline hover:text-[#fff] transition-colors">Syarat & Ketentuan</a>
-          <span className="mx-2">|</span>
-          <a href="/faq" className="underline hover:text-[#fff] transition-colors">FAQ & Bantuan</a>
+          {/* Footer Navigation inside Card */}
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-[#2d2d2d]/15 pt-5 text-xs font-semibold text-[#696057]">
+            <span>© {new Date().getFullYear()} Nyumbangin</span>
+            <nav className="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-extrabold text-[#2d2d2d]">
+              <Link href="/privacy" className="hover:underline">
+                Kebijakan Privasi
+              </Link>
+              <Link href="/terms" className="hover:underline">
+                Syarat &amp; Ketentuan
+              </Link>
+              <Link href="/faq" className="hover:underline">
+                FAQ &amp; Bantuan
+              </Link>
+              <Link href="/contact" className="underline decoration-[#b8a492] decoration-2">
+                Hubungi Kami
+              </Link>
+            </nav>
+          </div>
         </div>
-        <div>
-          &copy; {new Date().getFullYear()} Nyumbangin.
-        </div>
-      </footer>
-      
-      <style jsx global>{`
-        body, .font-mono { font-family: 'IBM Plex Mono', 'Fira Mono', 'Roboto Mono', monospace; }
-      `}</style>
+      </div>
     </div>
   );
 }

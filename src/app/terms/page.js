@@ -158,23 +158,23 @@ export default function TermsPage() {
             </section>
           </div>
 
+          {/* Footer Navigation inside Card */}
           <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-[#2d2d2d]/15 pt-5 text-xs font-semibold text-[#696057]">
-            <p>
-              Jika ada pertanyaan atau kendala pembayaran, silakan{' '}
-              <Link
-                href="/contact"
-                className="font-extrabold text-[#2d2d2d] underline decoration-[#b8a492] decoration-2 hover:text-[#8f857b]"
-              >
-                hubungi tim kami
+            <span>© {new Date().getFullYear()} Nyumbangin</span>
+            <nav className="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-extrabold text-[#2d2d2d]">
+              <Link href="/privacy" className="hover:underline">
+                Kebijakan Privasi
               </Link>
-              .
-            </p>
-            <Link
-              href="/privacy"
-              className="font-extrabold text-[#2d2d2d] hover:underline"
-            >
-              Baca Kebijakan Privasi &rarr;
-            </Link>
+              <Link href="/terms" className="underline decoration-[#b8a492] decoration-2">
+                Syarat &amp; Ketentuan
+              </Link>
+              <Link href="/faq" className="hover:underline">
+                FAQ &amp; Bantuan
+              </Link>
+              <Link href="/contact" className="hover:underline">
+                Hubungi Kami
+              </Link>
+            </nav>
           </div>
         </div>
       </div>
