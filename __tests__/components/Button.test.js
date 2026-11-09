@@ -10,14 +10,14 @@ describe('Button Component', () => {
   test('renders with primary variant by default', () => {
     const { container } = render(<Button>Test</Button>);
     const button = container.querySelector('button');
-    expect(button).toHaveClass('bg-[#b8a492]');
+    expect(button).toHaveClass('bg-[#2d2d2d]');
   });
 
   test('renders with secondary variant', () => {
     const { container } = render(<Button variant="secondary">Test</Button>);
     const button = container.querySelector('button');
-    expect(button).toHaveClass('bg-transparent');
-    expect(button).toHaveClass('text-[#b8a492]');
+    expect(button).toHaveClass('bg-white');
+    expect(button).toHaveClass('text-[#2d2d2d]');
   });
 
   test('renders with danger variant', () => {
@@ -29,15 +29,15 @@ describe('Button Component', () => {
   test('renders with success variant', () => {
     const { container } = render(<Button variant="success">Save</Button>);
     const button = container.querySelector('button');
-    expect(button).toHaveClass('bg-green-500');
+    expect(button).toHaveClass('bg-emerald-600');
   });
 
   test('renders with small size', () => {
     const { container } = render(<Button size="small">Small</Button>);
     const button = container.querySelector('button');
     expect(button).toHaveClass('px-3');
-    expect(button).toHaveClass('py-1');
-    expect(button).toHaveClass('text-sm');
+    expect(button).toHaveClass('py-1.5');
+    expect(button).toHaveClass('text-xs');
   });
 
   test('renders with medium size by default', () => {
@@ -50,9 +50,9 @@ describe('Button Component', () => {
   test('renders with large size', () => {
     const { container } = render(<Button size="large">Large</Button>);
     const button = container.querySelector('button');
-    expect(button).toHaveClass('px-6');
-    expect(button).toHaveClass('py-3');
-    expect(button).toHaveClass('text-lg');
+    expect(button).toHaveClass('px-5');
+    expect(button).toHaveClass('py-2.5');
+    expect(button).toHaveClass('text-base');
   });
 
   test('handles onClick event', () => {

@@ -48,7 +48,11 @@ const DonationHistorySchema = new mongoose.Schema({
   },
   transactionId: String,
   paymentMethod: String,
-  midtransData: Object,
+  totalAmount: Number,
+  uniqueCode: Number,
+  paidAt: Date,
+  checkoutUrl: String,
+  qrisgateData: Object,
   
   // Archive metadata
   originalDonationId: { 
@@ -153,7 +157,11 @@ DonationHistorySchema.statics.archiveDonation = async function(donation, reason 
     merchant_ref: donation.merchant_ref,
     transactionId: donation.transactionId,
     paymentMethod: donation.paymentMethod,
-    midtransData: donation.midtransData,
+    totalAmount: donation.totalAmount,
+    uniqueCode: donation.uniqueCode,
+    paidAt: donation.paidAt,
+    checkoutUrl: donation.checkoutUrl,
+    qrisgateData: donation.qrisgateData,
     ipAddress: donation.ipAddress,
     userAgent: donation.userAgent,
     

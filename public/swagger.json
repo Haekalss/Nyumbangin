@@ -1021,9 +1021,43 @@
       }
     },
     "/api/check-payment-status": {
-      "post": {
-        "summary": "POST /api/check-payment-status",
+      "get": {
+        "summary": "GET /api/check-payment-status",
         "description": "Auto-generated from pages/api/check-payment-status.js",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/checkout": {
+      "post": {
+        "summary": "POST /api/checkout",
+        "description": "Auto-generated from pages/api/checkout.js",
         "responses": {
           "200": {
             "description": "Success",
@@ -1059,13 +1093,49 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "merchant_ref": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "creatorId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "customer_name": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "integer"
+                  },
+                  "items": {
+                    "type": "string"
+                  },
+                  "message=''": {
+                    "type": "string"
+                  },
+                  "mediaShare": {
+                    "type": "string"
+                  },
+                  "payment_method": {
+                    "type": "string"
+                  },
+                  "bank_code": {
                     "type": "string"
                   }
                 }
               },
               "example": {
-                "merchant_ref": "string"
+                "username": "string",
+                "creatorId": "642b1f...",
+                "name": "string",
+                "customer_name": "string",
+                "amount": 10000,
+                "items": "string",
+                "message=''": "string",
+                "mediaShare": "string",
+                "payment_method": "string",
+                "bank_code": "string"
               }
             }
           }
@@ -2009,6 +2079,9 @@
                   },
                   "payment_method": {
                     "type": "string"
+                  },
+                  "bank_code": {
+                    "type": "string"
                   }
                 }
               },
@@ -2017,7 +2090,8 @@
                 "amount": 10000,
                 "message=''": "string",
                 "mediaShare": "string",
-                "payment_method": "string"
+                "payment_method": "string",
+                "bank_code": "string"
               }
             }
           }
@@ -2323,6 +2397,50 @@
         "parameters": [
           {
             "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/order/{id}": {
+      "get": {
+        "summary": "GET /api/order/{id}",
+        "description": "Auto-generated from pages/api/order/[id].js",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -2784,10 +2902,10 @@
         }
       }
     },
-    "/api/webhook/midtrans": {
+    "/api/webhooks/qrisgate": {
       "post": {
-        "summary": "POST /api/webhook/midtrans",
-        "description": "Auto-generated from pages/api/webhook/midtrans.js",
+        "summary": "POST /api/webhooks/qrisgate",
+        "description": "Auto-generated from pages/api/webhooks/qrisgate.js",
         "responses": {
           "200": {
             "description": "Success",
@@ -2814,48 +2932,6 @@
           },
           "500": {
             "description": "Server error"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "order_id": {
-                    "type": "string"
-                  },
-                  "transaction_status": {
-                    "type": "string"
-                  },
-                  "status_code": {
-                    "type": "string"
-                  },
-                  "gross_amount": {
-                    "type": "integer"
-                  },
-                  "signature_key": {
-                    "type": "string"
-                  },
-                  "transaction_id": {
-                    "type": "string"
-                  },
-                  "payment_type": {
-                    "type": "string"
-                  }
-                }
-              },
-              "example": {
-                "order_id": "642b1f...",
-                "transaction_status": "string",
-                "status_code": "string",
-                "gross_amount": 10000,
-                "signature_key": "string",
-                "transaction_id": "642b1f...",
-                "payment_type": "string"
-              }
-            }
           }
         }
       }

@@ -6,7 +6,7 @@ Nyumbangin adalah platform donasi digital modern dan agregator stream overlay in
 
 Repositori ini berisi seluruh kode sumber (source code) sistem Nyumbangin yang berfungsi sebagai pusat pengembangan untuk tiga domain utama:
 
-- **Monetisasi Kreator**: Menyediakan antarmuka transaksi bagi pendukung untuk memberikan donasi ke streamer menggunakan payment gateway (Midtrans) dengan dukungan pembayaran lokal (QRIS, E-Wallet, Virtual Account).
+- **Monetisasi Kreator**: Menyediakan antarmuka transaksi bagi pendukung untuk memberikan donasi ke streamer menggunakan payment gateway (QRISGate) dengan dukungan pembayaran lokal (QRIS dan Transfer Bank).
 
 - **Notifikasi Interaktif Real-Time**: Menyediakan widget browser source untuk OBS Studio/Streamlabs yang memicu notifikasi visual, pesan pendukung, progress goal, dan efek suara (audio alert) secara instan saat transaksi terverifikasi.
 
@@ -21,7 +21,7 @@ Repositori ini berisi seluruh kode sumber (source code) sistem Nyumbangin yang b
 | **Who** | Ditujukan bagi Streamers/Creators (penerima donasi), Supporters/Donators (pendukung), serta Admins (pengelola sistem & verifikasi payout). |
 | **Where** | Aplikasi web terdistribusi dengan browser source widget yang kompatibel dengan OBS Studio, Streamlabs, dan vMix. |
 | **When** | Beroperasi 24/7 dengan arsitektur pemrosesan transaksi real-time berbasis webhooks dan websockets. |
-| **How** | Transaksi diinisiasi pendukung → Divalidasi oleh Midtrans Payment Gateway → Server memicu event Socket.io → Overlay di layar stream memperbarui tampilan secara real-time. |
+| **How** | Transaksi diinisiasi pendukung → Divalidasi oleh QRISGate Payment Gateway → Server memicu pembaruan notifikasi & leaderboard → Overlay di layar stream memperbarui tampilan secara real-time. |
 
 ## Fitur Utama
 
@@ -52,7 +52,7 @@ Repositori ini berisi seluruh kode sumber (source code) sistem Nyumbangin yang b
 [ Donator ] ──( 1. Buat Donasi )──> [ Next.js Frontend ]
                                         │
                                         ▼ ( 2. Request Transaction )
-                                [ Midtrans Gateway ]
+                                [ QRISGate Gateway ]
                                         │
                                         ▼ ( 3. Pembayaran Sukses )
                               [ Webhook Handler API ]
@@ -65,16 +65,16 @@ Repositori ini berisi seluruh kode sumber (source code) sistem Nyumbangin yang b
                                         [ OBS / Streamlabs ]
 ```
 
-### Payment Webhook Contract (POST /api/webhooks/midtrans)
+### Payment Webhook Contract (POST /api/webhooks/qrisgate)
 
-Menerima callback otomatis dari Midtrans untuk pembaruan status transaksi.
+Menerima callback otomatis dari QRISGate untuk pembaruan status transaksi.
 
-- **Headers**: `Content-Type: application/json`
+- **Headers**: `Content-Type: application/json`, `x-qrisgate-signature`, `x-qrisgate-timestamp`, `x-qrisgate-delivery-id`
 
 **Trigger Process**:
-1. Validasi signature_key berbasis SHA-512.
-2. Jika status settlement atau capture, ubah status donasi di DB menjadi PAID.
-3. Emit pesan ke namespace Socket.io `/overlay` untuk memicu alert di OBS.
+1. Validasi `x-qrisgate-signature` berbasis HMAC-SHA256 secara timing-safe dan `x-qrisgate-timestamp` (anti-replay 5 menit).
+2. Jika event `payment.paid`, ubah status donasi di DB menjadi `PAID` dan jalankan fulfillment secara idempoten.
+3. Buat notifikasi overlay / media share untuk OBS serta perbarui leaderboard dan statistik kreator.
 
 ## Keamanan & Moderasi Konten
 
@@ -93,7 +93,7 @@ Nyumbangin/
 ├── public/                 # Aset statis (logo, audio alerts, gambar)
 ├── src/
 │   ├── components/         # UI Components (UI Kit, Modals, Forms)
-│   ├── config/             # Konfigurasi Midtrans, Database, & Auth
+│   ├── config/             # Konfigurasi QRISGate, Database, & Auth
 │   ├── lib/                # Helper functions, DB connection, & Utilities
 │   ├── models/             # Schema Mongoose (User, Donation, Campaign, Payout)
 │   ├── pages/              # Next.js Pages & API Routes
@@ -114,7 +114,7 @@ Nyumbangin/
 - **Node.js**: v18.x atau lebih baru
 - **Package Manager**: npm atau pnpm
 - **Database**: MongoDB (Lokal atau MongoDB Atlas)
-- **Payment Gateway**: Akun Sandbox/Production Midtrans
+- **Payment Gateway**: Akun QRISGate (`https://qrisgate.web.id`)
 
 ### 1. Cloning Repositori
 
@@ -144,8 +144,9 @@ Isi variabel berikut sesuai lingkungan pengembangan Anda:
 | `NEXT_PUBLIC_APP_URL` | Base URL aplikasi | `http://localhost:3000` |
 | `MONGODB_URI` | Connection string MongoDB | `mongodb+srv://user:pass@cluster.mongodb.net/nyumbangin` |
 | `NEXTAUTH_SECRET` | Secret key untuk autentikasi | `super-secret-key-32-chars` |
-| `MIDTRANS_SERVER_KEY` | Server Key dari Dashboard Midtrans | `SB-Mid-server-XXXXX` |
-| `MIDTRANS_CLIENT_KEY` | Client Key dari Dashboard Midtrans | `SB-Mid-client-XXXXX` |
+| `QRISGATE_BASE_URL` | Base URL API QRISGate | `https://qrisgate.web.id` |
+| `QRISGATE_API_KEY` | API Key dari Dashboard QRISGate | `qg_live_XXXXX` |
+| `QRISGATE_WEBHOOK_SECRET` | Webhook Secret dari Dashboard QRISGate | `whsec_XXXXX` |
 | `NEXT_PUBLIC_SOCKET_URL` | Endpoint Server WebSocket | `http://localhost:3000` |
 
 ### 4. Menjalankan Mode Pengembangan
@@ -160,7 +161,7 @@ Aplikasi dapat diakses melalui `http://localhost:3000`.
 
 ### Q: Mengapa Overlay di OBS tidak muncul saat ada donasi di mode Sandbox?
 
-**Solusi**: Pastikan URL WebSockets di `.env.local` (`NEXT_PUBLIC_SOCKET_URL`) dapat diakses oleh browser OBS, dan pastikan konfigurasi Midtrans di server lokal sudah terhubung dengan ngrok atau webhook URL yang valid.
+**Solusi**: Pastikan URL WebSockets di `.env.local` (`NEXT_PUBLIC_SOCKET_URL`) dapat diakses oleh browser OBS, dan pastikan konfigurasi QRISGate di server lokal sudah terhubung dengan webhook URL yang valid atau halaman status pesanan (`/order/[id]`).
 
 ### Q: Mengapa Audio Alert tidak terdengar di OBS Studio?
 

@@ -47,7 +47,7 @@ describe('LeaderboardModal', () => {
       />
     );
 
-    expect(screen.getByText('Leaderboard')).toBeInTheDocument();
+    expect(screen.getByText('Top Donatur Bulan Ini')).toBeInTheDocument();
   });
 
   test('renders subtitle text', () => {
@@ -58,7 +58,7 @@ describe('LeaderboardModal', () => {
       />
     );
 
-    expect(screen.getByText('Sultan bulan ini')).toBeInTheDocument();
+    expect(screen.getByText(/Total Saweran Sultan Bulan Ini/)).toBeInTheDocument();
   });
 
   test('renders all leaderboard entries', () => {
@@ -97,11 +97,11 @@ describe('LeaderboardModal', () => {
       />
     );
 
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('#2')).toBeInTheDocument();
+    expect(screen.getByText('#3')).toBeInTheDocument();
+    expect(screen.getByText('#4')).toBeInTheDocument();
+    expect(screen.getByText('#5')).toBeInTheDocument();
   });
 
   test('calculates and displays total amount', () => {
@@ -124,7 +124,7 @@ describe('LeaderboardModal', () => {
       />
     );
 
-    expect(screen.getByText(/5 donatur/)).toBeInTheDocument();
+    expect(screen.getByText(/5 Donatur Teratas/)).toBeInTheDocument();
   });
 
   test('renders empty state when no data', () => {
@@ -146,7 +146,7 @@ describe('LeaderboardModal', () => {
       />
     );
 
-    expect(screen.getByText('Top Donatur')).toBeInTheDocument();
+    expect(screen.getByText(/Top Donatur/)).toBeInTheDocument();
   });
 
   test('handles single donor correctly', () => {
@@ -160,7 +160,7 @@ describe('LeaderboardModal', () => {
     );
 
     expect(screen.getByText('Solo Sultan')).toBeInTheDocument();
-    expect(screen.getByText(/1 donatur/)).toBeInTheDocument();
+    expect(screen.getByText(/1 Donatur Teratas/)).toBeInTheDocument();
     expect(screen.getAllByText(/Rp 1.000.000/).length).toBeGreaterThan(0);
   });
 });

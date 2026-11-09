@@ -19,9 +19,9 @@ describe('AdminSidebar', () => {
       />
     );
     
-    expect(screen.getByAltText('Nyumbangin Logo')).toBeInTheDocument();
-    expect(screen.getByText('Nyumbangin')).toBeInTheDocument();
-    expect(screen.getByText('ADMIN PANEL')).toBeInTheDocument();
+    expect(screen.getByAltText('Nyumbangin')).toBeInTheDocument();
+    expect(screen.getByText('nyumbangin')).toBeInTheDocument();
+    expect(screen.getByText('Admin Panel')).toBeInTheDocument();
   });
 
   test('renders navigation buttons', () => {
@@ -48,7 +48,7 @@ describe('AdminSidebar', () => {
     );
     
     const dashboardBtn = screen.getByText('Dashboard').closest('button');
-    expect(dashboardBtn).toHaveClass('bg-[#b8a492]', 'text-[#2d2d2d]');
+    expect(dashboardBtn).toHaveClass('bg-[#2d2d2d]', 'text-[#fbf8f3]');
   });
 
   test('highlights active section (creator)', () => {
@@ -61,7 +61,7 @@ describe('AdminSidebar', () => {
     );
     
     const creatorBtn = screen.getByText('Creator').closest('button');
-    expect(creatorBtn).toHaveClass('bg-[#b8a492]', 'text-[#2d2d2d]');
+    expect(creatorBtn).toHaveClass('bg-[#2d2d2d]', 'text-[#fbf8f3]');
   });
 
   test('highlights active section (payout)', () => {
@@ -74,7 +74,7 @@ describe('AdminSidebar', () => {
     );
     
     const payoutBtn = screen.getByText('Payout').closest('button');
-    expect(payoutBtn).toHaveClass('bg-[#b8a492]', 'text-[#2d2d2d]');
+    expect(payoutBtn).toHaveClass('bg-[#2d2d2d]', 'text-[#fbf8f3]');
   });
 
   test('calls setActiveSection when clicking dashboard', async () => {
@@ -128,7 +128,7 @@ describe('AdminSidebar', () => {
       />
     );
     
-    expect(screen.getByText('Logout')).toBeInTheDocument();
+    expect(screen.getByText('Keluar')).toBeInTheDocument();
   });
 
   test('calls onLogout when clicking logout button', async () => {
@@ -141,7 +141,7 @@ describe('AdminSidebar', () => {
       />
     );
     
-    await user.click(screen.getByText('Logout'));
+    await user.click(screen.getByText('Keluar'));
     expect(mockOnLogout).toHaveBeenCalledTimes(1);
   });
 });

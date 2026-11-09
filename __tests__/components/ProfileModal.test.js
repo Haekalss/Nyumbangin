@@ -134,7 +134,7 @@ describe('ProfileModal', () => {
       />
     );
 
-    expect(screen.getByText('Edit Profil')).toBeInTheDocument();
+    expect(screen.getByText('Pengaturan Profil Kreator')).toBeInTheDocument();
   });
 
   test('displays profile image', () => {
@@ -182,9 +182,8 @@ describe('ProfileModal', () => {
     );
 
     expect(screen.getByText('Informasi Dasar')).toBeInTheDocument();
-    expect(screen.getByText('Social Media Links')).toBeInTheDocument();
-    expect(screen.getByText('Ubah Password')).toBeInTheDocument();
-    expect(screen.getByText('Pengaturan Rekening Penarikan')).toBeInTheDocument();
+    expect(screen.getByText('Tautan Media Sosial')).toBeInTheDocument();
+    expect(screen.getByText('Rekening Pencairan Dana')).toBeInTheDocument();
   });
 
   test('calls onSubmit when form is submitted', async () => {
@@ -202,7 +201,7 @@ describe('ProfileModal', () => {
       />
     );
 
-    await user.click(screen.getByText('Simpan Perubahan'));
+    await user.click(screen.getByText('Simpan Profil'));
     expect(mockOnSubmit).toHaveBeenCalled();
   });
 
@@ -234,7 +233,7 @@ describe('ProfileModal', () => {
       />
     );
 
-    const usernameInput = screen.getByPlaceholderText('Username untuk link donasi');
+    const usernameInput = screen.getByPlaceholderText('Username untuk tautan donasi');
     expect(usernameInput).toBeDisabled();
   });
 
@@ -267,7 +266,7 @@ describe('ProfileModal', () => {
       />
     );
 
-    expect(screen.getByText('Perhatian!')).toBeInTheDocument();
+    expect(screen.getByText('Perhatian Rekening')).toBeInTheDocument();
   });
 
   test('renders logout button when onLogout provided', () => {
@@ -283,7 +282,7 @@ describe('ProfileModal', () => {
       />
     );
 
-    expect(screen.getByText('Logout')).toBeInTheDocument();
+    expect(screen.getByText(/Logout/)).toBeInTheDocument();
   });
 
   test('calls onLogout when logout button clicked', async () => {
@@ -300,7 +299,7 @@ describe('ProfileModal', () => {
       />
     );
 
-    await user.click(screen.getByText('Logout'));
+    await user.click(screen.getByText(/Logout/));
     expect(mockOnLogout).toHaveBeenCalled();
   });
 

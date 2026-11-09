@@ -35,34 +35,37 @@ export default function RootLayout({ children }) {
           {children}
           <Toaster
             position="top-right"
+            gutter={12}
             toastOptions={{
               duration: 4000,
               style: {
-                background: '#2d2d2d',
-                color: '#b8a492',
-                border: '2px solid #b8a492',
-                fontFamily: 'monospace',
-                fontSize: '14px'
+                background: '#fffdf9',
+                color: '#2d2d2d',
+                border: '2px solid #2d2d2d',
+                borderRadius: '14px',
+                boxShadow: '4px 4px 0px #2d2d2d',
+                fontFamily:
+                  'var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif',
+                fontSize: '14px',
+                fontWeight: 600,
+                padding: '12px 16px',
+                maxWidth: '420px',
               },
               success: {
-                style: {
-                  background: '#2d2d2d',
-                  color: '#b8a492',
-                  border: '2px solid #b8a492',
-                },
                 iconTheme: {
-                  primary: '#b8a492',
-                  secondary: '#2d2d2d',
+                  primary: '#15803d',
+                  secondary: '#fffdf9',
                 },
               },
               error: {
-                style: {
-                  background: '#2d2d2d',
-                  color: '#ff6b6b',
-                  border: '2px solid #ff6b6b',
-                },
                 iconTheme: {
-                  primary: '#ff6b6b',
+                  primary: '#dc2626',
+                  secondary: '#fffdf9',
+                },
+              },
+              loading: {
+                iconTheme: {
+                  primary: '#b8a492',
                   secondary: '#2d2d2d',
                 },
               },

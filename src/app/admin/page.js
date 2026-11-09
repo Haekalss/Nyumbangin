@@ -6,13 +6,14 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminData } from "@/hooks/useAdminData";
-import AdminSidebar from "@/components/organisms/AdminSidebar";
+import AdminSidebar, { adminSections } from "@/components/organisms/AdminSidebar";
 import AdminDashboard from "@/components/organisms/AdminDashboard";
 import PayoutSection from "@/components/organisms/PayoutSection";
 import CreatorSection from "@/components/organisms/CreatorSection";
 import FeedbackSection from "@/components/organisms/FeedbackSection";
 import PayoutNotesModal from "@/components/organisms/PayoutNotesModal";
-import CreatorDetailModal from '../../components/organisms/CreatorDetailModal';
+import CreatorDetailModal from "../../components/organisms/CreatorDetailModal";
+import { confirmToast } from "@/utils/confirmToast";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -21,11 +22,11 @@ export default function AdminPage() {
   const router = useRouter();
   const { user, isAuthChecking } = useAdminAuth();
   const { data, loading, errors, refetch } = useAdminData();
-  
+
   // UI state
   const [activeSection, setActiveSection] = useState('dashboard');
   const [search, setSearch] = useState("");
-  
+
   // Modal state
   const [modalState, setModalState] = useState({
     showNotes: false,
@@ -49,16 +50,16 @@ export default function AdminPage() {
 
   const handleSubmitNotes = async () => {
     if (!modalState.notesId) return;
-    
+
     try {
-      await axios.put(`/api/admin/payouts`, { 
-        id: modalState.notesId, 
-        status: modalState.notesType, 
-        notes: modalState.notesInput 
+      await axios.put(`/api/admin/payouts`, {
+        id: modalState.notesId,
+        status: modalState.notesType,
+        notes: modalState.notesInput
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      
+
       toast.success(modalState.notesType === 'PROCESSED' ? 'Payout berhasil diproses!' : 'Payout ditolak!');
       setModalState(prev => ({ ...prev, showNotes: false, notesId: null, notesType: '', notesInput: '' }));
       refetch.payouts();
@@ -66,60 +67,23 @@ export default function AdminPage() {
       toast.error(err.response?.data?.error || 'Gagal memproses payout!');
     }
   };
-  const handleDelete = async (creatorId) => {
-    // Custom toast confirmation
-    const confirmDelete = () => {
-      return new Promise((resolve) => {
-        toast((t) => (
-          <div className="flex flex-col gap-3">
-            <div className="font-bold text-[#2d2d2d] dark:text-[#f5e9da]">
-              Hapus Creator?
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Akun creator ini akan dihapus permanen beserta semua data terkait
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(false);
-                }}
-              >
-                Batal
-              </button>
-              <button
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(true);
-                }}
-              >
-                Hapus
-              </button>
-            </div>
-          </div>
-        ), { 
-          duration: Infinity,
-          style: {
-            background: '#fff',
-            padding: '16px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-          }
-        });
-      });
-    };
 
-    const confirmed = await confirmDelete();
+  const handleDelete = async (creatorId) => {
+    const confirmed = await confirmToast({
+      title: 'Hapus creator ini?',
+      description: 'Akun creator akan dihapus permanen beserta seluruh data terkait.',
+      confirmLabel: 'Hapus',
+      danger: true,
+    });
+
     if (!confirmed) return;
-    
+
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`/api/admin/creators/${creatorId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       toast.success('Creator berhasil dihapus!');
       refetch.creators();
     } catch (err) {
@@ -131,11 +95,11 @@ export default function AdminPage() {
   const handleFeedbackStatusChange = async (id, status, adminNotes) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put('/api/admin/feedback', 
+      await axios.put('/api/admin/feedback',
         { id, status, adminNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       toast.success('Status feedback berhasil diupdate!');
       refetch.feedbacks();
     } catch (err) {
@@ -150,7 +114,7 @@ export default function AdminPage() {
       await axios.delete(`/api/admin/feedback?id=${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       toast.success('Feedback berhasil dihapus!');
       refetch.feedbacks();
     } catch (err) {
@@ -159,96 +123,131 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    toast.dismiss();
-    toast((t) => (
-      <div className="flex flex-col space-y-2">
-        <span className="font-medium">Yakin ingin keluar?</span>
-        <div className="flex space-x-2">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              
-              // Set manual logout flag FIRST to prevent "sesi berakhir" toast
-              const { sessionManager } = await import('@/utils/sessionManager');
-              sessionManager.isManualLogout = true;
-              
-              // Clear all auth data
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              sessionStorage.clear();
-              
-              toast.success('Berhasil logout!', { duration: 1000 });
-              
-              setTimeout(() => {
-                router.replace('/login');
-                sessionManager.isManualLogout = false; // Reset flag
-                setTimeout(() => {
-                  window.location.href = '/login';
-                }, 100);
-              }, 500);
-            }}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium"
-          >
-            Ya, Keluar
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm font-medium"
-          >
-            Batal
-          </button>
-        </div>
-      </div>
-    ), { duration: 6000 });
+  const handleLogout = async () => {
+    const confirmed = await confirmToast({
+      title: 'Yakin ingin keluar?',
+      description: 'Kamu perlu masuk kembali untuk mengakses panel admin.',
+      confirmLabel: 'Ya, Keluar',
+      danger: true,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      // Set manual logout flag FIRST to prevent "sesi berakhir" toast
+      const { sessionManager } = await import('@/utils/sessionManager');
+      sessionManager.isManualLogout = true;
+
+      // Clear all auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      sessionStorage.clear();
+
+      toast.success('Berhasil logout!', { duration: 1000 });
+
+      setTimeout(() => {
+        router.replace('/login');
+        sessionManager.isManualLogout = false; // Reset flag
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      }, 500);
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Gagal logout. Silakan coba lagi.');
+    }
   };
 
   if (isAuthChecking || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492]">
+      <div className="flex min-h-screen items-center justify-center bg-[#fbf8f3] text-[#2d2d2d]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#2d2d2d] mx-auto mb-4"></div>
-          <p className="text-[#2d2d2d] font-mono font-bold">Memuat...</p>
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#2d2d2d] border-t-transparent" />
+          <p className="text-xs font-medium text-[#8c8276]">Memuat panel admin...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-[#f5e9da] via-[#d6c6b9] to-[#b8a492] text-[#2d2d2d] font-mono">
-      <AdminSidebar 
+    <div className="min-h-screen bg-[#fbf8f3] text-[#2d2d2d] font-sans antialiased">
+      <AdminSidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
         onLogout={handleLogout}
       />
-      
-      <main className="flex-grow w-full font-mono">
-        <div className="ml-72 max-w-6xl mx-auto py-8 px-4 h-screen overflow-y-auto">
+
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-40 border-b-2 border-[#2d2d2d] bg-[#fffdf9] md:hidden">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Nyumbangin" className="h-7 w-7 object-contain" />
+            <div>
+              <span className="block text-sm font-black leading-tight tracking-tight text-[#2d2d2d]">
+                nyumbangin
+              </span>
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#8f857b]">
+                Admin Panel
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-xl border-2 border-[#2d2d2d] bg-[#fffdf9] px-3 py-1.5 text-xs font-extrabold text-red-600 shadow-[2px_2px_0px_#2d2d2d] transition hover:bg-red-50 cursor-pointer active:translate-y-0.5"
+          >
+            Keluar
+          </button>
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto px-3 pb-3">
+          {adminSections.map((item) => {
+            const isActive = activeSection === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setActiveSection(item.key)}
+                className={`shrink-0 rounded-xl border-2 px-3 py-1.5 text-xs font-extrabold transition cursor-pointer ${
+                  isActive
+                    ? 'border-[#2d2d2d] bg-[#2d2d2d] text-[#fbf8f3] shadow-[2px_2px_0px_#b8a492]'
+                    : 'border-[#2d2d2d]/20 bg-[#fffdf9] text-[#2d2d2d] hover:border-[#2d2d2d] hover:bg-[#f2e4d4]'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <main className="min-w-0 md:ml-72">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
           {activeSection === 'dashboard' && (
-            <AdminDashboard 
+            <AdminDashboard
               creators={data.creators}
               payouts={data.payouts}
               donations={data.donations}
             />
           )}
-          
+
           {activeSection === 'payout' && (
-            <PayoutSection 
+            <PayoutSection
               payouts={data.payouts}
               loading={loading.payouts}
               error={errors.payouts}
               onOpenNotesModal={openNotesModal}
             />
           )}
-            {activeSection === 'creator' && (
-            <CreatorSection 
+
+          {activeSection === 'creator' && (
+            <CreatorSection
               creators={data.creators}
               search={search}
               onSearchChange={(e) => setSearch(e.target.value)}
-              onCreatorClick={(creator) => setModalState(prev => ({ 
-                ...prev, 
-                showCreatorDetail: true, 
-                selectedCreator: creator 
+              onCreatorClick={(creator) => setModalState(prev => ({
+                ...prev,
+                showCreatorDetail: true,
+                selectedCreator: creator
               }))}
               onDelete={handleDelete}
             />
@@ -268,7 +267,7 @@ export default function AdminPage() {
         </div>
       </main>
 
-      <PayoutNotesModal 
+      <PayoutNotesModal
         isOpen={modalState.showNotes}
         type={modalState.notesType}
         notes={modalState.notesInput}
@@ -280,10 +279,10 @@ export default function AdminPage() {
       {modalState.showCreatorDetail && modalState.selectedCreator && (
         <CreatorDetailModal
           creator={modalState.selectedCreator}
-          onClose={() => setModalState(prev => ({ 
-            ...prev, 
-            showCreatorDetail: false, 
-            selectedCreator: null 
+          onClose={() => setModalState(prev => ({
+            ...prev,
+            showCreatorDetail: false,
+            selectedCreator: null
           }))}
         />
       )}

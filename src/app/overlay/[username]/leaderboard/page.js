@@ -100,24 +100,28 @@ export default function LeaderboardOverlay() {
   }
 
   return (
-    <div className="fixed inset-0 font-mono">
+    <div className="fixed inset-0 font-sans">
       {/* Leaderboard */}
       {overlayConfig.showLeaderboard && leaderboardData.length > 0 && (
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
           <Card className="p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
-            <div className="text-center text-[#b8a492] font-mono font-bold mb-4 text-lg">
-              🏆 Sultan Bulan Ini
+            <div className="mb-4 flex items-center justify-center gap-2 border-b-2 border-[#2d2d2d]/10 pb-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#2d2d2d] bg-[#f2e4d4] text-base shadow-[1px_1px_0px_#2d2d2d]">🏆</span>
+              <div className="text-center">
+                <p className="text-base font-black text-[#2d2d2d]">Sultan Bulan Ini</p>
+                <p className="text-[11px] font-bold text-[#8f857b]">Top donatur leaderboard</p>
+              </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {leaderboardData.map((donor, idx) => (
-                <div key={idx} className="text-[#b8a492] font-mono flex justify-between items-center py-1">
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 bg-[#b8a492] text-[#2d2d2d] rounded-full flex items-center justify-center font-bold text-sm">
+                <div key={idx} className="flex items-center justify-between gap-3 border-b-2 border-[#2d2d2d]/10 py-2 text-[#2d2d2d] last:border-0">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 border-[#2d2d2d] bg-[#b8a492] text-xs font-black shadow-[1px_1px_0px_#2d2d2d]">
                       {idx + 1}
                     </span>
-                    <span className="truncate text-base">{donor.name}</span>
+                    <span className="truncate text-sm font-extrabold">{donor.name}</span>
                   </div>
-                  <span className="text-sm font-bold">{formatRupiah(donor.totalAmount)}</span>
+                  <span className="shrink-0 font-mono text-xs font-black">{formatRupiah(donor.totalAmount)}</span>
                 </div>
               ))}
             </div>
@@ -129,10 +133,14 @@ export default function LeaderboardOverlay() {
       {(!leaderboardData.length && overlayConfig.showLeaderboard) && (
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
           <Card className="p-6 pointer-events-auto" style={{ minWidth: 400, maxWidth: 500 }}>
-            <div className="text-center text-[#b8a492] font-mono font-bold mb-4 text-lg">
-              🏆 Sultan Bulan Ini
+            <div className="mb-4 flex items-center justify-center gap-2 border-b-2 border-[#2d2d2d]/10 pb-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#2d2d2d] bg-[#f2e4d4] text-base shadow-[1px_1px_0px_#2d2d2d]">🏆</span>
+              <div className="text-center">
+                <p className="text-base font-black text-[#2d2d2d]">Sultan Bulan Ini</p>
+                <p className="text-[11px] font-bold text-[#8f857b]">Top donatur leaderboard</p>
+              </div>
             </div>
-            <div className="text-center text-[#b8a492] font-mono text-base opacity-70 py-4">
+            <div className="py-4 text-center text-sm font-medium text-[#696057]">
               Belum ada donasi bulan ini
             </div>
           </Card>

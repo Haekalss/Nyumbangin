@@ -79,7 +79,7 @@ const CreatorSchema = new mongoose.Schema({
   
   // Donation settings
   donationSettings: {
-    minAmount: { type: Number, default: 5000 }, // Rp 5k
+    minAmount: { type: Number, default: 1 }, // Min Rp 1 (QRISGate mendukung mulai Rp 1)
     maxAmount: { type: Number, default: 10000000 }, // Rp 10jt
     isEnabled: { type: Boolean, default: true },
     mediaShareEnabled: { type: Boolean, default: true }, // Enable/disable media share feature

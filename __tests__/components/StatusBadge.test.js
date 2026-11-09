@@ -6,9 +6,9 @@ describe('StatusBadge', () => {
     const { container } = render(<StatusBadge status="PAID" />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('bg-green-600/30');
-    expect(badge).toHaveClass('text-green-200');
-    expect(badge).toHaveClass('border-green-400');
+    expect(badge).toHaveClass('bg-emerald-100');
+    expect(badge).toHaveClass('text-emerald-800');
+    expect(badge).toHaveClass('border-emerald-700');
     expect(screen.getByText('PAID')).toBeInTheDocument();
   });
 
@@ -16,9 +16,9 @@ describe('StatusBadge', () => {
     const { container } = render(<StatusBadge status="UNPAID" />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('bg-yellow-600/30');
-    expect(badge).toHaveClass('text-yellow-200');
-    expect(badge).toHaveClass('border-yellow-400');
+    expect(badge).toHaveClass('bg-amber-100');
+    expect(badge).toHaveClass('text-amber-800');
+    expect(badge).toHaveClass('border-amber-700');
     expect(screen.getByText('UNPAID')).toBeInTheDocument();
   });
 
@@ -26,8 +26,8 @@ describe('StatusBadge', () => {
     const { container } = render(<StatusBadge status="PENDING" />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('bg-yellow-600/30');
-    expect(badge).toHaveClass('text-yellow-200');
+    expect(badge).toHaveClass('bg-amber-100');
+    expect(badge).toHaveClass('text-amber-800');
     expect(screen.getByText('PENDING')).toBeInTheDocument();
   });
 
@@ -35,9 +35,9 @@ describe('StatusBadge', () => {
     const { container } = render(<StatusBadge status="FAILED" />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('bg-red-600/30');
-    expect(badge).toHaveClass('text-red-200');
-    expect(badge).toHaveClass('border-red-400');
+    expect(badge).toHaveClass('bg-red-100');
+    expect(badge).toHaveClass('text-red-800');
+    expect(badge).toHaveClass('border-red-700');
     expect(screen.getByText('FAILED')).toBeInTheDocument();
   });
 
@@ -52,16 +52,16 @@ describe('StatusBadge', () => {
     const { container } = render(<StatusBadge status="UNKNOWN" />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('bg-[#b8a492]/20');
+    expect(badge).toHaveClass('bg-[#f2e4d4]');
     expect(badge).toHaveClass('text-[#2d2d2d]');
-    expect(badge).toHaveClass('border-[#b8a492]');
+    expect(badge).toHaveClass('border-[#2d2d2d]');
   });
 
   test('defaults to PAID when no status provided', () => {
     const { container } = render(<StatusBadge />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('bg-green-600/30');
+    expect(badge).toHaveClass('bg-emerald-100');
     expect(screen.getByText('PAID')).toBeInTheDocument();
   });
 
@@ -69,12 +69,12 @@ describe('StatusBadge', () => {
     const { container } = render(<StatusBadge status="PAID" />);
     
     const badge = container.firstChild;
-    expect(badge).toHaveClass('text-xs');
-    expect(badge).toHaveClass('font-bold');
-    expect(badge).toHaveClass('rounded-full');
+    expect(badge).toHaveClass('text-[11px]');
+    expect(badge).toHaveClass('font-extrabold');
+    expect(badge).toHaveClass('rounded-md');
     expect(badge).toHaveClass('px-2');
-    expect(badge).toHaveClass('py-1');
+    expect(badge).toHaveClass('py-0.5');
     expect(badge).toHaveClass('border-2');
-    expect(badge).toHaveClass('font-mono');
+    expect(badge).toHaveClass('shadow-[1px_1px_0px_#2d2d2d]');
   });
 });

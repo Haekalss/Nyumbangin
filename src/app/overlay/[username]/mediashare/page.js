@@ -251,13 +251,13 @@ export default function MediaShareOverlay() {
   /* ================= RENDER (DOM SELALU ADA) ================= */
   return (
     <div
-      className={`fixed inset-0 bg-transparent flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 flex items-center justify-center bg-transparent font-sans transition-opacity duration-300 ${
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
       <div className="w-full flex justify-center px-6">
         <div style={{ width: 'min(90vw, 880px)' }}>
-          <div className={`${transparentMode ? 'bg-transparent border-0' : 'bg-[#e9e9e9] border-4 border-[#b8a492]'} rounded-xl overflow-hidden`}>
+          <div className={`${transparentMode ? 'bg-transparent border-0' : 'bg-[#fffdf9] border-2 border-[#2d2d2d] shadow-[6px_6px_0px_#2d2d2d]'} overflow-hidden rounded-2xl`}>
             {/* Video area (can be transparent for TikTok Studio) */}
             <div
               className={`${transparentMode ? 'bg-transparent' : 'bg-white'} w-full flex items-center justify-center`}
@@ -268,11 +268,11 @@ export default function MediaShareOverlay() {
 
           {/* Info area */}
           {video && (
-            <div className={`${transparentMode ? 'bg-transparent' : 'bg-[#b8a492]'} p-6 ${transparentMode ? '' : 'border-t-2 border-[#2d2d2d]'} ${transparentMode ? 'text-white' : 'text-[#2d2d2d]'}`}>
+            <div className={`${transparentMode ? 'bg-transparent' : 'bg-[#fffdf9]'} p-6 ${transparentMode ? '' : 'border-t-2 border-[#2d2d2d]'} ${transparentMode ? 'text-white' : 'text-[#2d2d2d]'}`}>
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                  <p className={`${transparentMode ? 'text-white' : 'text-[#2d2d2d]'} text-2xl font-extrabold font-mono`}>{video.donorName}</p>
-                  <p className={`${transparentMode ? 'text-white' : 'text-[#2d2d2d]'} text-lg font-mono mt-1`}>
+                  <p className={`${transparentMode ? 'text-white' : 'text-[#2d2d2d]'} text-2xl font-black tracking-tight`}>{video.donorName}</p>
+                  <p className={`${transparentMode ? 'text-white' : 'text-[#2d2d2d]'} mt-1 font-mono text-lg font-extrabold`}>
                     {new Intl.NumberFormat("id-ID", {
                       style: "currency",
                       currency: "IDR",
@@ -282,7 +282,7 @@ export default function MediaShareOverlay() {
                 </div>
 
                 {video.message ? (
-                  <div className={`${transparentMode ? 'text-white/80' : 'text-[#2d2d2d]/80'} text-sm md:text-base font-mono`}>
+                  <div className={`${transparentMode ? 'text-white/80' : 'text-[#696057]'} max-w-md text-sm font-medium md:text-base`}>
                     <div className="italic">{video.message}</div>
                   </div>
                 ) : null}

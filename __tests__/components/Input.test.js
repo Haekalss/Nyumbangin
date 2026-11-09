@@ -70,7 +70,7 @@ describe('Input Component', () => {
   test('applies normal styling when no error', () => {
     const { container } = render(<Input />);
     const input = container.querySelector('input');
-    expect(input).toHaveClass('border-[#b8a492]');
+    expect(input).toHaveClass('border-[#2d2d2d]');
   });
 
   test('applies custom className', () => {
@@ -83,11 +83,11 @@ describe('Input Component', () => {
     const { container } = render(<Input />);
     const input = container.querySelector('input');
     expect(input).toHaveClass('w-full');
-    expect(input).toHaveClass('px-3');
-    expect(input).toHaveClass('py-2');
-    expect(input).toHaveClass('bg-[#2d2d2d]');
-    expect(input).toHaveClass('text-[#b8a492]');
-    expect(input).toHaveClass('font-mono');
+    expect(input).toHaveClass('px-3.5');
+    expect(input).toHaveClass('py-2.5');
+    expect(input).toHaveClass('bg-white');
+    expect(input).toHaveClass('text-[#2d2d2d]');
+    expect(input).toHaveClass('font-semibold');
   });
 
   test('forwards additional props', () => {

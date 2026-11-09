@@ -1,46 +1,57 @@
-import Card from '../atoms/Card';
+import Modal from '../atoms/Modal';
+import Button from '../atoms/Button';
 
-export default function PayoutNotesModal({ 
-  isOpen, 
-  type, 
-  notes, 
-  onNotesChange, 
-  onClose, 
-  onSubmit 
+export default function PayoutNotesModal({
+  isOpen,
+  type,
+  notes,
+  onNotesChange,
+  onClose,
+  onSubmit
 }) {
-  if (!isOpen) return null;
+  const isProcessing = type === 'PROCESSED';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-      <Card className="p-6 w-full max-w-md shadow-xl">
-        <h2 className="text-xl font-extrabold text-[#b8a492] mb-2">
-          {type === 'PROCESSED' ? 'Proses Payout' : 'Tolak Payout'}
-        </h2>
-        <label className="block mb-2 font-semibold text-[#b8a492]">
-          Catatan (opsional)
-        </label>
-        <textarea
-          className="w-full border-2 border-[#b8a492] rounded-lg p-2 mb-4 bg-[#fbe8d4] text-[#2d2d2d] font-mono focus:outline-none focus:ring-2 focus:ring-[#b8a492] placeholder-[#b8a492]"
-          rows={3}
-          value={notes}
-          onChange={onNotesChange}
-          placeholder="Isi catatan untuk payout ini..."
-        />
-        <div className="flex gap-2 justify-end">
-          <button 
-            className="px-4 py-2 rounded-lg bg-[#b8a492] text-[#2d2d2d] font-bold border-2 border-[#b8a492] hover:bg-[#d6c6b9] transition-all" 
-            onClick={onClose}
-          >
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isProcessing ? 'Proses Payout' : 'Tolak Payout'}
+      maxWidth="max-w-md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" size="small" onClick={onClose}>
             Batal
-          </button>
-          <button 
-            className="px-4 py-2 rounded-lg bg-[#2d2d2d] text-[#b8a492] font-bold border-2 border-[#b8a492] hover:bg-[#b8a492] hover:text-[#2d2d2d] transition-all" 
+          </Button>
+          <Button
+            variant={isProcessing ? 'primary' : 'danger'}
+            size="small"
             onClick={onSubmit}
           >
-            Simpan & {type === 'PROCESSED' ? 'Proses' : 'Tolak'}
-          </button>
+            Simpan &amp; {isProcessing ? 'Proses' : 'Tolak'}
+          </Button>
         </div>
-      </Card>
-    </div>
+      }
+    >
+      <p className="mb-4 text-sm font-medium leading-relaxed text-[#696057]">
+        {isProcessing
+          ? 'Tambahkan catatan sebelum menyelesaikan pengajuan pencairan ini.'
+          : 'Berikan alasan penolakan agar creator tahu langkah selanjutnya.'}
+      </p>
+
+      <label
+        htmlFor="payout-notes"
+        className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider text-[#8f857b]"
+      >
+        Catatan (opsional)
+      </label>
+      <textarea
+        id="payout-notes"
+        rows={3}
+        value={notes}
+        onChange={onNotesChange}
+        placeholder="Tulis catatan untuk payout ini..."
+        className="w-full resize-none rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] px-3.5 py-2.5 text-sm font-medium text-[#2d2d2d] placeholder:text-[#a89c90] transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#b8a492]"
+      />
+    </Modal>
   );
 }

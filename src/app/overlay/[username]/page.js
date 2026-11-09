@@ -52,7 +52,7 @@ export default function OverlayIndexPage() {
 
   if (!username || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f7f4f0]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fbf8f3]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#2d2d2d] border-t-transparent mx-auto mb-3"></div>
           <p className="text-xs font-medium text-[#8c8276]">Memuat overlay...</p>

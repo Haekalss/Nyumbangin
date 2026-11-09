@@ -223,7 +223,7 @@ export default async function handler(req, res) {
     await donation.save();
     console.log('Donation marked as PAID:', donation._id);
 
-    // Process post-payment actions similar to Midtrans webhook
+    // Process post-payment actions similar to QRISGate webhook
     try {
       const freshDonation = await Donation.findById(donation._id);
 

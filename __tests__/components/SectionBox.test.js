@@ -35,24 +35,24 @@ describe('SectionBox', () => {
     const { container } = render(<SectionBox>Content</SectionBox>);
     
     const box = container.firstChild;
-    expect(box).toHaveClass('bg-[#b8a492]/10');
-    expect(box).toHaveClass('border-[#b8a492]/30');
+    expect(box).toHaveClass('bg-[#f5e9da]/40');
+    expect(box).toHaveClass('border-[#2d2d2d]/20');
   });
 
   test('applies danger tone styles', () => {
     const { container } = render(<SectionBox tone="danger">Content</SectionBox>);
     
     const box = container.firstChild;
-    expect(box).toHaveClass('bg-red-500/10');
-    expect(box).toHaveClass('border-red-500/30');
+    expect(box).toHaveClass('bg-red-50');
+    expect(box).toHaveClass('border-red-300');
   });
 
   test('applies success tone styles', () => {
     const { container } = render(<SectionBox tone="success">Content</SectionBox>);
     
     const box = container.firstChild;
-    expect(box).toHaveClass('bg-green-500/10');
-    expect(box).toHaveClass('border-green-500/30');
+    expect(box).toHaveClass('bg-emerald-50');
+    expect(box).toHaveClass('border-emerald-300');
   });
 
   test('applies custom className', () => {

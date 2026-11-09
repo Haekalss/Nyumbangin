@@ -14,7 +14,7 @@ describe('StatsCard', () => {
       <StatsCard title="Test" value="100" />
     );
     
-    expect(container.querySelector('.bg-\\[\\#2d2d2d\\]')).toBeInTheDocument();
+    expect(container.querySelector('.bg-\\[\\#fffdf9\\]')).toBeInTheDocument();
   });
 
   test('renders with custom color prop', () => {
@@ -37,9 +37,9 @@ describe('StatsCard', () => {
     );
     
     const cardDiv = container.firstChild;
-    expect(cardDiv).toHaveClass('bg-[#2d2d2d]');
-    expect(cardDiv).toHaveClass('border-4');
-    expect(cardDiv).toHaveClass('border-[#b8a492]');
-    expect(cardDiv).toHaveClass('rounded-xl');
+    expect(cardDiv).toHaveClass('bg-[#fffdf9]');
+    expect(cardDiv).toHaveClass('border-2');
+    expect(cardDiv).toHaveClass('border-[#2d2d2d]');
+    expect(cardDiv).toHaveClass('rounded-2xl');
   });
 });

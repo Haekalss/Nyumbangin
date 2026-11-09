@@ -33,10 +33,10 @@ describe('StatsSection', () => {
       />
     );
     
-    expect(screen.getByText('Total Donasi')).toBeInTheDocument();
+    expect(screen.getByText('Total Dukungan')).toBeInTheDocument();
     expect(screen.getByText('50')).toBeInTheDocument();
     
-    expect(screen.getByText('Total Terkumpul')).toBeInTheDocument();
+    expect(screen.getByText('Saldo Terkumpul')).toBeInTheDocument();
     expect(screen.getByText('Rp 1.500.000')).toBeInTheDocument();
   });
 
@@ -49,8 +49,8 @@ describe('StatsSection', () => {
       />
     );
     
-    expect(screen.getByText('Riwayat Harian')).toBeInTheDocument();
-    expect(screen.getAllByText('Klik untuk lihat')).toHaveLength(2);
+    expect(screen.getByText('Buka Riwayat Lengkap')).toBeInTheDocument();
+    expect(screen.getByText('Kelola Pencairan')).toBeInTheDocument();
   });
 
   test('renders leaderboard button', () => {
@@ -62,7 +62,7 @@ describe('StatsSection', () => {
       />
     );
     
-    expect(screen.getByText('Leaderboard Bulanan')).toBeInTheDocument();
+    expect(screen.getByText('Lihat Peringkat Donatur')).toBeInTheDocument();
   });
 
   test('calls onHistoryClick when history card clicked', () => {
@@ -76,7 +76,7 @@ describe('StatsSection', () => {
       />
     );
     
-    const historyCard = screen.getByText('Riwayat Harian').closest('div').parentElement;
+    const historyCard = screen.getByText('Buka Riwayat Lengkap');
     fireEvent.click(historyCard);
     
     expect(mockHistoryClick).toHaveBeenCalled();
@@ -93,7 +93,7 @@ describe('StatsSection', () => {
       />
     );
     
-    const leaderboardCard = screen.getByText('Leaderboard Bulanan').closest('div').parentElement;
+    const leaderboardCard = screen.getByText('Lihat Peringkat Donatur');
     fireEvent.click(leaderboardCard);
     
     expect(mockLeaderboardClick).toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe('StatsSection', () => {
     );
     
     expect(screen.getByText('0')).toBeInTheDocument();
-    expect(screen.getByText('Rp 0')).toBeInTheDocument();
+    expect(screen.getAllByText(/Rp 0/).length).toBeGreaterThan(0);
   });
 
   test('handles missing stats properties', () => {

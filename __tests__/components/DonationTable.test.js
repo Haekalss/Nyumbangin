@@ -37,7 +37,7 @@ describe('DonationTable', () => {
     
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    expect(screen.getByText('Semangat!')).toBeInTheDocument();
+    expect(screen.getByText(/Semangat!/)).toBeInTheDocument();
   });
 
   test('shows "Tidak ada pesan" when message is empty', () => {
@@ -49,7 +49,7 @@ describe('DonationTable', () => {
       />
     );
     
-    expect(screen.getByText('Tidak ada pesan')).toBeInTheDocument();
+    expect(screen.getByText('Tanpa pesan')).toBeInTheDocument();
   });
 
   test('formats amounts using formatRupiah', () => {
@@ -74,8 +74,8 @@ describe('DonationTable', () => {
       />
     );
     
-    expect(screen.getByText('PAID')).toBeInTheDocument();
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('Berhasil')).toBeInTheDocument();
+    expect(screen.getByText('Menunggu')).toBeInTheDocument();
   });
 
   test('formats dates correctly', () => {
@@ -87,8 +87,8 @@ describe('DonationTable', () => {
       />
     );
     
-    // Date formatting will depend on locale
-    const dateElements = screen.getAllByText(/\//);
+    // Time is rendered in id-ID 24h format with WIB suffix
+    const dateElements = screen.getAllByText(/WIB/);
     expect(dateElements.length).toBeGreaterThan(0);
   });
 
@@ -155,10 +155,10 @@ describe('DonationTable', () => {
       />
     );
     
-    expect(screen.getByText('Donatur')).toBeInTheDocument();
-    expect(screen.getByText('Jumlah')).toBeInTheDocument();
+    expect(screen.getByText('Donatur & Pesan')).toBeInTheDocument();
+    expect(screen.getByText('Nominal')).toBeInTheDocument();
     expect(screen.getByText('Status')).toBeInTheDocument();
-    expect(screen.getByText('Tanggal')).toBeInTheDocument();
+    expect(screen.getByText('Waktu')).toBeInTheDocument();
     expect(screen.getByText('Aksi')).toBeInTheDocument();
   });
 
@@ -188,7 +188,7 @@ describe('DonationTable', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  test('uses default PAID status when status is missing', () => {
+  test('shows pending status when status is missing', () => {
     const donationWithoutStatus = [{
       _id: '3',
       name: 'No Status',
@@ -204,6 +204,6 @@ describe('DonationTable', () => {
       />
     );
     
-    expect(screen.getByText('PAID')).toBeInTheDocument();
+    expect(screen.getByText('Menunggu')).toBeInTheDocument();
   });
 });

@@ -13,6 +13,7 @@ import { filterMessage } from '@/utils/messageFilter';
 import { getTodayDonations } from '@/utils/dateUtils';
 import CreatorAppLayout from '@/components/dashboard/CreatorAppLayout';
 import Link from 'next/link';
+import { confirmToast } from '@/utils/confirmToast';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -198,37 +199,13 @@ export default function Dashboard() {
   };
 
   const deleteDonation = async (donationId) => {
-    const confirmDelete = () => {
-      return new Promise((resolve) => {
-        toast((t) => (
-          <div className="flex flex-col gap-2 p-1">
-            <span className="font-bold text-sm text-[#2d2d2d]">Hapus riwayat donasi ini?</span>
-            <div className="flex gap-2 mt-1">
-              <button
-                className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-700 cursor-pointer"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(true);
-                }}
-              >
-                Hapus
-              </button>
-              <button
-                className="bg-gray-200 text-[#2d2d2d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-300 cursor-pointer"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(false);
-                }}
-              >
-                Batal
-              </button>
-            </div>
-          </div>
-        ), { duration: 6000 });
-      });
-    };
+    const confirmed = await confirmToast({
+      title: 'Hapus riwayat donasi ini?',
+      description: 'Riwayat donasi akan dihapus permanen dan tidak bisa dikembalikan.',
+      confirmLabel: 'Hapus',
+      danger: true,
+    });
 
-    const confirmed = await confirmDelete();
     if (!confirmed) return;
 
     try {
@@ -288,49 +265,37 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    toast((t) => (
-      <div className="flex flex-col gap-2 p-1">
-        <span className="font-bold text-sm text-[#2d2d2d]">Yakin ingin keluar?</span>
-        <div className="flex gap-2 mt-1">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              try {
-                stopMonitoring();
-                const { sessionManager } = await import('@/utils/sessionManager');
-                sessionManager.isManualLogout = true;
-                
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                
-                if (session) {
-                  await signOut({ redirect: false, callbackUrl: '/login' });
-                }
-                
-                toast.success('Berhasil keluar!');
-                setTimeout(() => {
-                  router.replace('/');
-                  sessionManager.isManualLogout = false;
-                }, 500);
-              } catch (error) {
-                console.error('Logout error:', error);
-                toast.error('Gagal keluar.');
-              }
-            }}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
-          >
-            Ya, Keluar
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-200 hover:bg-gray-300 text-[#2d2d2d] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
-          >
-            Batal
-          </button>
-        </div>
-      </div>
-    ), { duration: 6000 });
+  const handleLogout = async () => {
+    const confirmed = await confirmToast({
+      title: 'Yakin ingin keluar?',
+      description: 'Kamu perlu masuk kembali untuk mengakses dashboard kreator.',
+      confirmLabel: 'Ya, Keluar',
+      danger: true,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      stopMonitoring();
+      const { sessionManager } = await import('@/utils/sessionManager');
+      sessionManager.isManualLogout = true;
+
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      if (session) {
+        await signOut({ redirect: false, callbackUrl: '/login' });
+      }
+
+      toast.success('Berhasil keluar!');
+      setTimeout(() => {
+        router.replace('/');
+        sessionManager.isManualLogout = false;
+      }, 500);
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Gagal keluar.');
+    }
   };
 
   const toggleDonationStatus = async () => {

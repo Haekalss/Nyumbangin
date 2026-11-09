@@ -72,7 +72,7 @@ describe('AdminDashboard', () => {
       />
     );
 
-    expect(screen.getByText(/Selamat datang di panel admin Nyumbangin/)).toBeInTheDocument();
+    expect(screen.getByText(/Ringkasan performa platform/)).toBeInTheDocument();
   });
 
   test('renders total creator stats', () => {
@@ -172,7 +172,7 @@ describe('AdminDashboard', () => {
       />
     );
 
-    expect(screen.getByText('Belum ada data donasi untuk ditampilkan')).toBeInTheDocument();
+    expect(screen.getByText('Belum ada data donasi')).toBeInTheDocument();
   });
 
   test('shows empty state message', () => {

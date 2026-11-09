@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { signOut } from 'next-auth/react';
+import { confirmToast } from '@/utils/confirmToast';
 
 const Header = ({ user, openProfile, onLogout }) => {
   const router = useRouter();
@@ -23,42 +24,30 @@ const Header = ({ user, openProfile, onLogout }) => {
     },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (onLogout) {
       onLogout();
       return;
     }
 
-    toast((t) => (
-      <div className="flex flex-col gap-2 p-1">
-        <span className="font-bold text-sm text-[#2d2d2d]">Yakin ingin keluar?</span>
-        <div className="flex gap-2 mt-1">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              try {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                await signOut({ redirect: false });
-                toast.success('Berhasil keluar!');
-                router.replace('/');
-              } catch {
-                router.replace('/login');
-              }
-            }}
-            className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 cursor-pointer"
-          >
-            Ya, Keluar
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="rounded-lg border-2 border-[#2d2d2d] bg-white px-3 py-1.5 text-xs font-bold text-[#2d2d2d] hover:bg-gray-100 cursor-pointer"
-          >
-            Batal
-          </button>
-        </div>
-      </div>
-    ), { duration: 5000 });
+    const confirmed = await confirmToast({
+      title: 'Yakin ingin keluar?',
+      description: 'Kamu perlu masuk kembali untuk mengakses dashboard.',
+      confirmLabel: 'Ya, Keluar',
+      danger: true,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      await signOut({ redirect: false });
+      toast.success('Berhasil keluar!');
+      router.replace('/');
+    } catch {
+      router.replace('/login');
+    }
   };
 
   return (

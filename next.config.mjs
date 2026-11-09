@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    // Suppress XHR poll error in development
-    if (dev && !isServer) {
-      config.devtool = 'cheap-module-source-map';
-    }
-    return config;
+  onDemandEntries: {
+    // Keep compiled pages in memory longer during development to prevent ChunkLoadError
+    maxInactiveAge: 15 * 60 * 1000,
+    pagesBufferLength: 20,
   },
 };
 

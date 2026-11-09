@@ -54,10 +54,30 @@ const DonationSchema = new mongoose.Schema({
   },
   transactionId: String,
   paymentMethod: String,
-  midtransData: {
+
+  // QRISGate payment data
+  // `amount` = nominal dasar donasi, `totalAmount` = nominal yang dibayar
+  // (amount + unique_code yang dialokasikan QRISGate, jangan dibulatkan).
+  totalAmount: Number,
+  uniqueCode: Number,
+  checkoutUrl: String,
+  expiresAt: Date,
+  paidAt: Date,
+  qrisgateData: {
     type: Object,
     default: {}
   },
+
+  // Fulfillment tracking (idempotent post-payment work)
+  fulfillmentStatus: {
+    type: String,
+    enum: ['NONE', 'PROCESSING', 'DONE', 'FAILED'],
+    default: 'NONE'
+  },
+  fulfillmentStartedAt: Date,
+  fulfillmentCompletedAt: Date,
+  fulfillmentError: String,
+  lastStatusCheckAt: Date,
   
   // Metadata
   ipAddress: String,

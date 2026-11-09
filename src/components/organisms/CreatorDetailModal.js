@@ -1,38 +1,53 @@
-import React from "react";
-import Card from '../atoms/Card';
+import React from 'react';
+import Modal from '../atoms/Modal';
+
+const DetailRow = ({ label, value, mono = false }) => (
+  <div className="flex flex-col gap-0.5 border-b border-[#2d2d2d]/10 pb-2.5 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <span className="text-xs font-extrabold uppercase tracking-wider text-[#8f857b]">
+      {label}
+    </span>
+    <span
+      className={`text-sm font-bold text-[#2d2d2d] break-all sm:text-right ${
+        mono ? 'font-mono' : ''
+      }`}
+    >
+      {value}
+    </span>
+  </div>
+);
 
 export default function CreatorDetailModal({ creator, onClose }) {
   if (!creator) return null;
+
+  const payout = creator.payoutSettings || {};
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 cursor-default"
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Detail Creator"
+      maxWidth="max-w-md"
     >
-      <Card
-        className="p-6 w-full max-w-md max-h-full overflow-hidden shadow-xl relative font-mono"
-        onClick={e => e.stopPropagation()}
-      >
-        <h3 className="text-2xl font-extrabold text-[#b8a492] mb-2 font-mono text-center">Detail Creator</h3>
-        <button
-          onClick={onClose}
-          aria-label="Tutup modal"
-          className="absolute top-3 right-3 text-3xl text-[#b8a492] hover:text-[#d6c6b9] font-bold font-mono cursor-pointer bg-transparent border-none p-0 m-0 leading-none"
-          style={{ background: 'none', border: 'none' }}
-        >
-          &times;
-        </button>
-        <div className="max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 mt-4 space-y-3">
-          <div><span className="font-bold text-[#b8a492]">Username:</span> <span className="text-white">{creator.username}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Email:</span> <span className="text-white">{creator.email}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Nama:</span> <span className="text-white">{creator.displayName}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Payout Account:</span> <span className="text-white">{creator.payoutSettings?.accountNumber || <span className='text-red-400'>-</span>}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Payout Holder:</span> <span className="text-white">{creator.payoutSettings?.accountHolder || <span className='text-red-400'>-</span>}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Payout Type:</span> <span className="text-white">{creator.payoutSettings?.type || <span className='text-red-400'>-</span>}</span></div>
-          <div><span className="font-bold text-[#b8a492]">Tanggal Daftar:</span> <span className="text-white">{creator.createdAt ? new Date(creator.createdAt).toLocaleString() : '-'}</span></div>
-        </div>
-      </Card>
-    </div>
+      <div className="space-y-3">
+        <DetailRow label="Username" value={creator.username || '-'} mono />
+        <DetailRow label="Email" value={creator.email || '-'} />
+        <DetailRow label="Nama" value={creator.displayName || '-'} />
+        <DetailRow
+          label="No. Rekening"
+          value={payout.accountNumber || '-'}
+          mono
+        />
+        <DetailRow label="Atas Nama" value={payout.accountHolder || '-'} />
+        <DetailRow label="Tipe Payout" value={payout.type || '-'} />
+        <DetailRow
+          label="Tanggal Daftar"
+          value={
+            creator.createdAt
+              ? new Date(creator.createdAt).toLocaleString('id-ID')
+              : '-'
+          }
+        />
+      </div>
+    </Modal>
   );
 }

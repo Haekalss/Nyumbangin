@@ -38,7 +38,7 @@ Folder ini berisi script manual untuk maintenance, debugging, dan development. S
 
 ### Testing & Development
 - `test-mediashare-api.js` - Test API mediashare
-- `test-webhook-manually.js` - Simulasi webhook Midtrans manual
+- `test-webhook-manually.js` - Simulasi webhook QRISGate manual
 - `create-test-mediashare.js` - Buat data test mediashare
 - `check-last-donation.js` - Cek donasi terakhir
 - `check-latest-real-donation.js` - Cek donasi terakhir yang valid
