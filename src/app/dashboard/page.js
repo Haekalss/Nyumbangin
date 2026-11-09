@@ -873,9 +873,15 @@ export default function Dashboard() {
           </div>
           {user?.isPayoutReady ? (
             <div className="bg-[#fbf8f3] border-2 border-[#2d2d2d] rounded-xl p-3 shadow-[2px_2px_0px_#2d2d2d] space-y-1">
-              <div className="font-extrabold text-sm text-[#2d2d2d]">{user.payoutBank}</div>
-              <div className="font-mono font-bold text-sm text-[#2d2d2d]">{user.payoutAccountNumber}</div>
-              <div className="text-xs font-medium text-[#696057]">a.n {user.payoutAccountName}</div>
+              <div className="font-extrabold text-sm text-[#2d2d2d]">
+                {user?.payoutBankName || user?.payoutSettings?.bankName || user?.payoutBank || '-'}
+              </div>
+              <div className="font-mono font-bold text-sm text-[#2d2d2d]">
+                {user?.payoutAccountNumber || user?.payoutSettings?.accountNumber || '-'}
+              </div>
+              <div className="text-xs font-medium text-[#696057]">
+                a.n {user?.payoutAccountHolder || user?.payoutSettings?.accountName || user?.payoutAccountName || '-'}
+              </div>
             </div>
           ) : (
             <div className="flex items-start gap-2 text-xs font-bold text-amber-900 bg-amber-100 border-2 border-[#2d2d2d] p-3 rounded-xl shadow-[2px_2px_0px_#2d2d2d]">

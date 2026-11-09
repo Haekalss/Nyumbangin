@@ -220,8 +220,8 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <main className="min-w-0 md:ml-72">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="min-w-0 md:ml-72 min-h-screen flex flex-col justify-between">
+        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 flex-1">
           {activeSection === 'dashboard' && (
             <AdminDashboard
               creators={data.creators}
@@ -265,6 +265,31 @@ export default function AdminPage() {
             />
           )}
         </div>
+
+        {/* Footer Info & Tautan Resmi */}
+        <footer className="mt-10 border-t-2 border-[#2d2d2d] bg-[#fffdf9] px-5 py-6 text-xs font-semibold text-[#696057] sm:px-8 lg:px-10">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="Nyumbangin" className="h-5 w-5 object-contain" />
+              <span className="font-bold text-[#2d2d2d]">© {new Date().getFullYear()} Nyumbangin</span>
+              <span className="hidden sm:inline text-[#8f857b]">• Admin Panel</span>
+            </div>
+            <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 font-bold">
+              <a href="/privacy" className="transition hover:text-[#2d2d2d] hover:underline">
+                Kebijakan Privasi
+              </a>
+              <a href="/terms" className="transition hover:text-[#2d2d2d] hover:underline">
+                Syarat &amp; Ketentuan
+              </a>
+              <a href="/faq" className="transition hover:text-[#2d2d2d] hover:underline">
+                FAQ &amp; Bantuan
+              </a>
+              <a href="/contact" className="transition hover:text-[#2d2d2d] hover:underline">
+                Hubungi Kami
+              </a>
+            </nav>
+          </div>
+        </footer>
       </main>
 
       <PayoutNotesModal

@@ -215,10 +215,35 @@ export default function CreatorAppLayout({ user, onLogout, children }) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10 overflow-y-auto">
-        <div className="max-w-5xl mx-auto space-y-8">
+      <main className="flex-1 min-w-0 flex flex-col justify-between overflow-y-auto">
+        <div className="w-full max-w-5xl mx-auto p-5 sm:p-8 lg:p-10 space-y-8 flex-1">
           {children}
         </div>
+
+        {/* Footer Info & Tautan Resmi */}
+        <footer className="mt-10 border-t-2 border-[#2d2d2d] bg-[#fffdf9] px-5 py-6 text-xs font-semibold text-[#696057] sm:px-8 lg:px-10">
+          <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="Nyumbangin" className="h-5 w-5 object-contain" />
+              <span className="font-bold text-[#2d2d2d]">© {new Date().getFullYear()} Nyumbangin</span>
+              <span className="hidden sm:inline text-[#8f857b]">• Platform Apresiasi Kreator</span>
+            </div>
+            <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 font-bold">
+              <Link href="/privacy" className="transition hover:text-[#2d2d2d] hover:underline">
+                Kebijakan Privasi
+              </Link>
+              <Link href="/terms" className="transition hover:text-[#2d2d2d] hover:underline">
+                Syarat &amp; Ketentuan
+              </Link>
+              <Link href="/faq" className="transition hover:text-[#2d2d2d] hover:underline">
+                FAQ &amp; Bantuan
+              </Link>
+              <Link href="/contact" className="transition hover:text-[#2d2d2d] hover:underline">
+                Hubungi Kami
+              </Link>
+            </nav>
+          </div>
+        </footer>
       </main>
     </div>
   );

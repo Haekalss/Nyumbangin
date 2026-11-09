@@ -56,6 +56,11 @@ export default async function handler(req, res) {
         userType: 'creator',
         role: 'user',
         payoutSettings: user.payoutSettings,
+        payoutBankName: user.payoutBankName || user.payoutSettings?.bankName || '',
+        payoutBank: user.payoutBankName || user.payoutSettings?.bankName || '',
+        payoutAccountNumber: user.payoutAccountNumber || user.payoutSettings?.accountNumber || '',
+        payoutAccountHolder: user.payoutAccountHolder || user.payoutSettings?.accountName || '',
+        payoutAccountName: user.payoutAccountHolder || user.payoutSettings?.accountName || '',
         donationSettings: user.donationSettings,
         isPayoutReady: user.hasCompletePayoutSettings(),
         stats: user.stats

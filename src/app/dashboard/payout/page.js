@@ -36,7 +36,7 @@ export default function PayoutPage() {
 
   // Check auth and fetch user
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
       
@@ -47,6 +47,20 @@ export default function PayoutPage() {
 
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
+
+      // Sinkronkan data profil terbaru (termasuk rekening penerima)
+      try {
+        const res = await axios.get('/api/user/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data?.user) {
+          const updatedUser = { ...parsedUser, ...res.data.user };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      } catch (e) {
+        // Gunakan fallback dari localStorage jika gagal
+      }
     };
     checkAuth();
   }, [router]);
@@ -162,6 +176,9 @@ export default function PayoutPage() {
   const availableBalance = calculateAvailableBalance();
   const platformFee = calculatePlatformFee();
   const totalPaid = stats?.paidAmount || 0;
+  const payoutBankDisplay = user?.payoutBankName || user?.payoutSettings?.bankName || user?.payoutBank || '-';
+  const payoutAccountNumberDisplay = user?.payoutAccountNumber || user?.payoutSettings?.accountNumber || '-';
+  const payoutAccountHolderDisplay = user?.payoutAccountHolder || user?.payoutSettings?.accountName || user?.payoutAccountName || '-';
 
   return (
     <CreatorAppLayout user={user}>
@@ -204,7 +221,7 @@ export default function PayoutPage() {
             {user?.isPayoutReady && (
               <div className="text-xs font-medium text-white/60">
                 <span className="block font-bold">Rekening Tujuan:</span>
-                <span className="text-white font-mono font-bold">{user.payoutBank} - {user.payoutAccountNumber}</span>
+                <span className="text-white font-mono font-bold">{payoutBankDisplay} - {payoutAccountNumberDisplay}</span>
               </div>
             )}
             <button
@@ -236,15 +253,15 @@ export default function PayoutPage() {
                 </div>
                 <div>
                   <span className="text-[11px] font-bold text-[#8f857b] block">Bank / E-Wallet</span>
-                  <span className="text-base font-black text-[#2d2d2d]">{user?.payoutBank || '-'}</span>
+                  <span className="text-base font-black text-[#2d2d2d]">{payoutBankDisplay}</span>
                 </div>
                 <div>
                   <span className="text-[11px] font-bold text-[#8f857b] block">Nomor Rekening</span>
-                  <span className="text-base font-mono font-black text-[#2d2d2d]">{user?.payoutAccountNumber || '-'}</span>
+                  <span className="text-base font-mono font-black text-[#2d2d2d]">{payoutAccountNumberDisplay}</span>
                 </div>
                 <div>
                   <span className="text-[11px] font-bold text-[#8f857b] block">Nama Pemilik</span>
-                  <span className="text-sm font-extrabold text-[#2d2d2d]">{user?.payoutAccountName || '-'}</span>
+                  <span className="text-sm font-extrabold text-[#2d2d2d]">{payoutAccountHolderDisplay}</span>
                 </div>
               </div>
             ) : (

@@ -38,9 +38,11 @@ export default async function handler(req, res) {
       }
       
       // Explicitly ensure payout virtual fields are included
-      creatorObj.payoutBankName = creator.payoutBankName || '';
-      creatorObj.payoutAccountNumber = creator.payoutAccountNumber || '';
-      creatorObj.payoutAccountHolder = creator.payoutAccountHolder || '';
+      creatorObj.payoutBankName = creator.payoutBankName || creator.payoutSettings?.bankName || '';
+      creatorObj.payoutBank = creatorObj.payoutBankName;
+      creatorObj.payoutAccountNumber = creator.payoutAccountNumber || creator.payoutSettings?.accountNumber || '';
+      creatorObj.payoutAccountHolder = creator.payoutAccountHolder || creator.payoutSettings?.accountName || '';
+      creatorObj.payoutAccountName = creatorObj.payoutAccountHolder;
       
       // Add isPayoutReady status
       creatorObj.isPayoutReady = creator.hasCompletePayoutSettings();
@@ -187,9 +189,11 @@ export default async function handler(req, res) {
     }
     
     // Explicitly ensure payout virtual fields are included
-    sanitized.payoutBankName = currentCreator.payoutBankName || '';
-    sanitized.payoutAccountNumber = currentCreator.payoutAccountNumber || '';
-    sanitized.payoutAccountHolder = currentCreator.payoutAccountHolder || '';
+    sanitized.payoutBankName = currentCreator.payoutBankName || currentCreator.payoutSettings?.bankName || '';
+    sanitized.payoutBank = sanitized.payoutBankName;
+    sanitized.payoutAccountNumber = currentCreator.payoutAccountNumber || currentCreator.payoutSettings?.accountNumber || '';
+    sanitized.payoutAccountHolder = currentCreator.payoutAccountHolder || currentCreator.payoutSettings?.accountName || '';
+    sanitized.payoutAccountName = sanitized.payoutAccountHolder;
     
     // Add isPayoutReady status
     sanitized.isPayoutReady = currentCreator.hasCompletePayoutSettings();
