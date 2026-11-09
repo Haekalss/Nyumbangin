@@ -11,6 +11,8 @@ export default function Home() {
   const [usernameInput, setUsernameInput] = useState('');
   const [selectedAmount, setSelectedAmount] = useState('Rp25.000');
   const [demoAlertActive, setDemoAlertActive] = useState(false);
+  const [demoAlertTime, setDemoAlertTime] = useState('');
+  const [demoProgress, setDemoProgress] = useState(0);
 
   // Auto redirect if already logged in
   useEffect(() => {
@@ -70,9 +72,19 @@ export default function Home() {
   };
 
   const handleTestDonation = () => {
+    setDemoAlertTime(new Date().toLocaleTimeString('id-ID'));
+    setDemoProgress(0);
     setDemoAlertActive(true);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setDemoProgress(100);
+      });
+    });
+
     setTimeout(() => {
       setDemoAlertActive(false);
+      setDemoProgress(0);
     }, 4000);
   };
 
@@ -110,7 +122,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-18 md:py-20">
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm3py-18 m15py-20">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
           {/* Kolom Kiri: Headline & Input Klaim */}
           <div>
@@ -198,20 +210,33 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Simulasi Interaktif: Pop-up Notifikasi Alert */}
+              {/* Simulasi Interaktif: Pop-up Notifikasi Alert (Sama persis dengan Overlay Riil) */}
               {demoAlertActive ? (
-                <div className="mt-4 rounded-xl border-2 border-[#2d2d2d] bg-[#b8a492] p-3.5 transition-all">
-                  <div className="flex items-center justify-between font-mono text-xs font-extrabold">
-                    <span>Saweran Masuk!</span>
-                    <span className="rounded bg-[#2d2d2d] px-2 py-0.5 text-white">
-                      {selectedAmount}
-                    </span>
+                <div className="mt-4 flex w-full flex-col overflow-hidden rounded-2xl border-2 border-[#2d2d2d] bg-[#fffdf9] px-4 py-4 text-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] transition-all">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#2d2d2d] bg-[#b8a492] shadow-[2px_2px_0px_#2d2d2d]">
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1 pr-6">
+                      <div className="text-sm sm:text-base font-black leading-snug text-[#2d2d2d]">
+                        Donasi baru dari Budi sebesar {selectedAmount}
+                      </div>
+                      <div className="mt-1 break-words text-xs font-medium leading-relaxed text-[#696057]">
+                        Pesan: Semangat terus ngontennya bang, ditunggu karya berikutnya!
+                      </div>
+                      <div className="mt-1 font-mono text-[11px] font-bold text-[#8f857b]">
+                        {demoAlertTime}
+                      </div>
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs font-bold text-[#2d2d2d]">
-                    Budi <span className="font-normal">mendukung</span> @{previewName}
-                  </p>
-                  <div className="mt-1.5 rounded-lg border border-[#2d2d2d]/30 bg-white/70 p-2 text-xs italic text-[#2d2d2d]">
-                    "Semangat terus ngontennya bang, ditunggu karya berikutnya!"
+
+                  <div className="mt-3.5 h-2 w-full overflow-hidden rounded-full border border-[#2d2d2d]/20 bg-[#f2e4d4]">
+                    <div
+                      className="h-full rounded-full bg-[#2d2d2d] transition-all duration-[3900ms] ease-linear"
+                      style={{ width: `${demoProgress}%` }}
+                    />
                   </div>
                 </div>
               ) : (
