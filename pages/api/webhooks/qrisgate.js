@@ -42,6 +42,10 @@ function getDeliveryId(req, payload, data) {
 }
 
 export default async function handler(req, res) {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return res.status(200).json({ ok: true, service: 'qrisgate-webhook' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
