@@ -81,7 +81,7 @@ export default function PrivacyPolicy() {
         <ul className="list-disc ml-6 text-[#2d2d2d]">
           <li>Nama, email, dan username saat mendaftar (baik melalui OAuth atau registrasi manual)</li>
           <li>Data donasi (jumlah, pesan, waktu)</li>
-          <li>Data pembayaran (diproses melalui <strong>QRISGate</strong> - payment gateway QRIS/transfer bank, tidak disimpan di server kami)</li>
+          <li>Data pembayaran (diproses melalui <strong>QRISGate</strong> - sistem pembayaran QRIS Dinamis, tidak disimpan di server kami)</li>
           <li>Informasi profil creator (bio, foto, social media links) - opsional</li>
         </ul>
         
@@ -114,7 +114,7 @@ export default function PrivacyPolicy() {
         <h2 className="text-xl font-bold mt-8 mb-2 text-[#b8a492]">Pembagian Data dengan Pihak Ketiga</h2>
         <p className="text-[#2d2d2d] mb-2">Kami hanya membagikan data dengan pihak ketiga dalam konteks berikut:</p>
         <ul className="list-disc ml-6 text-[#2d2d2d]">
-          <li><strong>QRISGate</strong> - Payment gateway untuk memproses transaksi donasi via QRIS atau transfer bank secara aman</li>
+          <li><strong>QRISGate</strong> - Sistem pembayaran untuk memproses dan memverifikasi transaksi donasi via QRIS Dinamis secara aman</li>
           <li><strong>Google OAuth</strong> - Hanya untuk autentikasi, tidak ada data tambahan yang dibagikan</li>
           <li>Kami <strong>tidak menjual, menyewakan, atau membagikan</strong> data Anda untuk tujuan marketing</li>
         </ul>

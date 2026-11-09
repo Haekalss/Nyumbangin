@@ -588,7 +588,7 @@ export default function DonatePage() {
                       QRIS (QRISGate)
                     </span>
                     <span className="block text-[10px] font-medium text-[#696057]">
-                      Mendukung GoPay, OVO, DANA, ShopeePay, LinkAja, dan semua Mobile Banking
+                      GoPay, OVO, DANA, ShopeePay, LinkAja, dan semua Mobile Banking
                     </span>
                   </span>
                 </div>

@@ -174,7 +174,9 @@ export default function Dashboard() {
         setMediaShareEnabled(profileRes.data.creator.donationSettings.mediaShareEnabled);
       }
 
-      const allDonations = donationsRes.data.data || [];
+      const allDonations = (donationsRes.data.data || []).filter(
+        (donation) => donation.status === 'PAID'
+      );
       const todayDonations = getTodayDonations(allDonations);
 
       if (showNewDonationNotif && donations.length > 0 && todayDonations.length > donations.length) {

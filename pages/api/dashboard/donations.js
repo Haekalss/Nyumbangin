@@ -38,10 +38,10 @@ export default async function handler(req, res) {
       }
     }
 
-    // Only fetch donations for the authenticated creator
-    // Support both old and new data structure
-    // Show all donations (PENDING, PAID, etc) in the table
-    const donations = await Donation.find({ 
+    // Only fetch PAID donations for the authenticated creator
+    // (PENDING, CANCELLED/expired, and FAILED are excluded from the dashboard)
+    const donations = await Donation.find({
+      status: 'PAID',
       $or: [
         { createdByUsername: creator.username },
         { createdBy: creator._id }

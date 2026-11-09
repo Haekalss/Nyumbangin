@@ -56,7 +56,7 @@ export default function FaqPage() {
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#b8a492] mb-2">Kapan dana donasi bisa dicairkan?</h2>
-            <p>Dana bisa dicairkan setelah status donasi <span className="font-bold">PAID</span>. Proses payout biasanya 1-2 hari kerja setelah permintaan pencairan.</p>
+            <p>Dana bisa dicairkan setelah status donasi <span className="font-bold">PAID</span>. Proses payout membutuhkan waktu estimasi 2–3 hari kerja setelah permintaan pencairan diajukan.</p>
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#b8a492] mb-2">Bagaimana cara promosi link donasi?</h2>

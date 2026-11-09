@@ -262,7 +262,7 @@ export default function PayoutPage() {
           </div>
 
           <p className="mt-4 pt-3 border-t-2 border-[#2d2d2d]/10 text-xs font-bold text-[#8f857b]">
-            Proses 1x24 jam hari kerja. Min. penarikan Rp10.000.
+            Estimasi proses 2–3 hari kerja. Min. penarikan Rp10.000.
           </p>
         </div>
       </div>

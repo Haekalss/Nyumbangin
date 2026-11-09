@@ -38,8 +38,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fetch all donations for admin
-    const donations = await Donation.find({})
+    // Fetch only PAID donations for admin dashboard
+    const donations = await Donation.find({ status: 'PAID' })
       .sort({ createdAt: -1 })
       .limit(limit);
 

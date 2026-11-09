@@ -29,9 +29,8 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Creator tidak ditemukan' });
     }
 
-    // For leaderboard, fetch ALL donations from ALL users
-    // No ownerUsername filter - this is global leaderboard
-    const donations = await Donation.find({})
+    // For leaderboard, fetch ONLY PAID donations
+    const donations = await Donation.find({ status: 'PAID' })
       .sort({ createdAt: -1 })
       .limit(1000);
 

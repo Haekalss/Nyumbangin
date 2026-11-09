@@ -31,27 +31,40 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Creator tidak ditemukan' });
     }
 
-    // Get stats for this specific creator only
-    // Support both old and new data structure
-    // Total donations count includes PENDING and PAID
-    const totalDonations = await Donation.countDocuments({ 
+    // Get stats for this specific creator only (PAID donations only)
+    const paidMatch = {
+      status: 'PAID',
       $or: [
         { createdByUsername: creator.username },
         { createdBy: creator._id }
       ]
-    });
+    };
+
+    const totalDonations = await Donation.countDocuments(paidMatch);
     
     // Total amount only from PAID donations
     const totalAmount = await Donation.aggregate([
-      { 
-        $match: { 
-          $or: [
-            { createdByUsername: creator.username, status: 'PAID' },
-            { createdBy: creator._id, status: 'PAID' }
-          ]
-        } 
-      },
+      { $match: paidMatch },
       { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+
+    // Today's PAID donations (since 00:00 local server time)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayStats = await Donation.aggregate([
+      {
+        $match: {
+          ...paidMatch,
+          createdAt: { $gte: startOfToday }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          todayAmount: { $sum: "$amount" },
+          todayDonations: { $sum: 1 }
+        }
+      }
     ]);
 
     const paidAmount = await Donation.aggregate([
@@ -93,6 +106,8 @@ export default async function handler(req, res) {
         totalDonations,
         totalAmount: totalAmount[0]?.total || 0,
         paidAmount: paidAmount[0]?.total || 0,
+        todayAmount: todayStats[0]?.todayAmount || 0,
+        todayDonations: todayStats[0]?.todayDonations || 0,
         uniqueDonors: uniqueDonors.length
       }
     });
