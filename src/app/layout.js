@@ -14,10 +14,40 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Nyumbangin - Platform Apresiasi Kreator Indonesia",
-  description: "Platform apresiasi kreator Indonesia. Dukung kreator favoritmu, langsung dan mudah.",
-  keywords: "apresiasi kreator, dukung kreator, donasi, saweran, creator, nyumbangin",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://nyumbangin.web.id"),
+  title: {
+    default: "Nyumbangin - Platform Apresiasi Kreator Indonesia",
+    template: "%s | Nyumbangin",
+  },
+  description:
+    "Nyumbangin: platform apresiasi kreator Indonesia. Buat link saweran & donasi untuk streamer, VTuber, dan content creator, lengkap dengan overlay OBS. Gratis daftar.",
+  keywords: [
+    "nyumbangin",
+    "apresiasi kreator",
+    "saweran online",
+    "donasi streamer",
+    "link donasi kreator",
+    "overlay donasi OBS",
+    "dukung kreator",
+  ],
   authors: [{ name: "Nyumbangin Team" }],
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Nyumbangin",
+    url: "/",
+    title: "Nyumbangin - Platform Apresiasi Kreator Indonesia",
+    description:
+      "Dukung kreator favoritmu, langsung dan mudah. Buat link saweran & donasi untuk kreator dalam 1 menit.",
+    images: [{ url: "/Logo2.png", alt: "Nyumbangin" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nyumbangin - Platform Apresiasi Kreator Indonesia",
+    description: "Dukung kreator favoritmu, langsung dan mudah.",
+    images: ["/Logo2.png"],
+  },
 };
 
 export const viewport = {
