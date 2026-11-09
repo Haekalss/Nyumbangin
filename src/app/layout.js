@@ -32,6 +32,7 @@ export const metadata = {
   ],
   authors: [{ name: "Nyumbangin Team" }],
   robots: { index: true, follow: true },
+  verification: { google: "Fq51gFydPSmh6bwfm2qMj6CqT4xD90RnYnowMHY6KZ0" },
   openGraph: {
     type: "website",
     locale: "id_ID",
