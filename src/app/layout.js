@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Nyumbangin - Platform Donasi Digital",
-  description: "Platform donasi digital untuk mendukung creator favorit Anda",
-  keywords: "donasi, digital, creator, support, nyumbangin",
+  title: "Nyumbangin - Platform Apresiasi Kreator Indonesia",
+  description: "Platform apresiasi kreator Indonesia. Dukung kreator favoritmu, langsung dan mudah.",
+  keywords: "apresiasi kreator, dukung kreator, donasi, saweran, creator, nyumbangin",
   authors: [{ name: "Nyumbangin Team" }],
 };
 

@@ -127,7 +127,7 @@ export default function Home() {
           {/* Kolom Kiri: Headline & Input Klaim */}
           <div>
             <div className="inline-flex items-center rounded-full border-2 border-[#2d2d2d] bg-[#f2e4d4] px-3.5 py-1 text-xs font-extrabold text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d]">
-              Platform Saweran & Apresiasi Kreator
+              Platform Apresiasi Kreator Indonesia
             </div>
 
             <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-[#2d2d2d] sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
