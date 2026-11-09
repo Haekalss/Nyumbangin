@@ -491,13 +491,13 @@ export default function Dashboard() {
             <p className="text-xs font-extrabold uppercase tracking-wider text-[#8f857b] mb-2">Tautan Donasi</p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               <div className="flex-1 flex items-center px-4 py-2.5 rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] font-mono text-sm font-bold text-[#2d2d2d] select-all overflow-hidden">
-                <span className="truncate">nyumbangin.web.id/donate/{user?.username || 'namamu'}</span>
+                <span className="truncate">nyumbangin.web.id/{user?.username || 'namamu'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    const url = `${baseUrl}/donate/${user?.username}`;
+                    const url = `${baseUrl}/${user?.username}`;
                     navigator.clipboard.writeText(url);
                     toast.success('Tautan disalin!');
                   }}
@@ -510,7 +510,7 @@ export default function Dashboard() {
                 </button>
                 {user?.username && (
                   <a
-                    href={`/donate/${user.username}`}
+                    href={`/${user.username}`}
                     target="_blank"
                     rel="noreferrer"
                     className="px-4 py-2.5 rounded-xl border-2 border-[#2d2d2d] bg-[#b8a492] text-[#2d2d2d] text-xs font-extrabold shadow-[2px_2px_0px_#2d2d2d] hover:bg-[#cabaa9] transition text-center shrink-0 active:translate-y-0.5"
@@ -763,7 +763,7 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => {
-                const url = `${baseUrl}/donate/${user?.username}`;
+                const url = `${baseUrl}/${user?.username}`;
                 navigator.clipboard.writeText(url);
                 toast.success('Tautan disalin!');
               }}

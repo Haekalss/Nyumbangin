@@ -309,7 +309,7 @@ function ProfileContent() {
 
                 {formData.username && (
                   <a
-                    href={`/donate/${formData.username}`}
+                    href={`/${formData.username}`}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border-2 border-[#2d2d2d] bg-[#fbf8f3] text-[#2d2d2d] text-xs font-extrabold shadow-[2px_2px_0px_#2d2d2d] hover:bg-[#ede3d3] transition active:translate-y-0.5"
@@ -377,7 +377,7 @@ function ProfileContent() {
                 </p>
               ) : (
                 <p className="mt-1 text-[11px] font-medium text-[#696057]">
-                  Tautan donasi publik: <span className="font-mono font-bold text-[#2d2d2d]">nyumbangin.web.id/donate/{formData.username || 'namamu'}</span>
+                  Tautan donasi publik: <span className="font-mono font-bold text-[#2d2d2d]">nyumbangin.web.id/{formData.username || 'namamu'}</span>
                 </p>
               )}
             </div>

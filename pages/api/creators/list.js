@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         : '/default-avatar.png',
       totalDonations: creator.stats?.totalDonations || 0,
       totalAmount: creator.stats?.totalAmount || 0,
-      donationUrl: `/donate/${creator.username}`,
+      donationUrl: `/${creator.username}`,
       socialLinks: creator.socialLinks || {}
     }));
 

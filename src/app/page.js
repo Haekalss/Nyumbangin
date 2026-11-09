@@ -321,7 +321,7 @@ export default function Home() {
               {marqueeCreators.map((creator, index) => (
                 <Link
                   key={`${creator.username}-${index}`}
-                  href={creator.donationUrl || `/donate/${creator.username}`}
+                  href={creator.donationUrl || `/${creator.username}`}
                   className="flex min-w-[220px] items-center gap-3.5 rounded-xl border-2 border-[#2d2d2d] bg-white p-3.5 shadow-[3px_3px_0px_#2d2d2d] transition hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#2d2d2d]"
                 >
                   <img

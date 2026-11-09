@@ -10,7 +10,7 @@ const ShareModal = ({ isOpen, onClose, creatorUsername, donationId, onShare }) =
 
   // Generate donation URL
   const donationUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/donate/${creatorUsername}`
+    ? `${window.location.origin}/${creatorUsername}`
     : '';
 
   // Track share analytics

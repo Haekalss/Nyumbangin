@@ -147,7 +147,7 @@ const ProfileModal = ({
                   </p>
                 ) : (
                   <p className="mt-1 text-xs text-[#696057]">
-                    Tautan donasimu: nyumbangin.web.id/donate/{profileFormData.username}
+                    Tautan donasimu: nyumbangin.web.id/{profileFormData.username}
                   </p>
                 )}
               </div>

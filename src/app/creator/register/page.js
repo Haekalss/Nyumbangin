@@ -157,7 +157,7 @@ export default function Register() {
             </div>
             {formData.username && (
               <p className="mt-1 text-[11px] font-mono text-[#696057]">
-                nyumbangin.web.id/donate/{formData.username}
+                nyumbangin.web.id/{formData.username}
               </p>
             )}
           </div>

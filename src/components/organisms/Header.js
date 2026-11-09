@@ -96,7 +96,7 @@ const Header = ({ user, openProfile, onLogout }) => {
             {/* Tombol Preview Halaman Donasi */}
             {user?.username && (
               <a
-                href={`/donate/${user.username}`}
+                href={`/${user.username}`}
                 target="_blank"
                 rel="noreferrer"
                 className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-[#2d2d2d] bg-white text-xs font-bold text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] transition hover:bg-[#fbf8f3] hover:translate-x-[1px] hover:translate-y-[1px] active:translate-y-0.5"
@@ -185,7 +185,7 @@ const Header = ({ user, openProfile, onLogout }) => {
             ))}
             {user?.username && (
               <a
-                href={`/donate/${user.username}`}
+                href={`/${user.username}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-[#2d2d2d] bg-[#f5e9da] border border-[#2d2d2d]/20"

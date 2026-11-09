@@ -118,7 +118,7 @@ CreatorSchema.index({ isActive: 1 });
 
 // Virtual for donation URL
 CreatorSchema.virtual('donationUrl').get(function() {
-  return `/donate/${this.username}`;
+  return `/${this.username}`;
 });
 
 // Virtual for overlay URL

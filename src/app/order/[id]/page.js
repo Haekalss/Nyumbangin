@@ -336,7 +336,7 @@ export default function OrderStatusPage() {
               Pesanan ini tidak dapat dibayar lagi.
             </p>
             <Link
-              href={`/donate/${order.creator?.username}`}
+              href={`/${order.creator?.username}`}
               className="mt-3 inline-flex items-center justify-center rounded-xl border-2 border-[#2d2d2d] bg-[#2d2d2d] px-4 py-2.5 text-xs font-extrabold text-[#fbf8f3] shadow-[2px_2px_0px_#b8a492] transition hover:bg-black active:translate-y-0.5"
             >
               Buat Donasi Baru
@@ -383,7 +383,7 @@ export default function OrderStatusPage() {
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Link
-            href={`/donate/${order.creator?.username}`}
+            href={`/${order.creator?.username}`}
             className="inline-flex flex-1 items-center justify-center rounded-xl border-2 border-[#2d2d2d] bg-[#fffdf9] px-4 py-2.5 text-xs font-extrabold text-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] transition hover:bg-[#f2e4d4] active:translate-y-0.5"
           >
             Kembali ke Halaman Donasi

@@ -45,7 +45,7 @@ export default function FaqPage() {
   const faqItems = [
     {
       q: 'Bagaimana cara mengaktifkan halaman donasi saya?',
-      a: 'Lengkapi username serta data rekening bank atau e-wallet di menu Pengaturan Akun, lalu simpan. Setelah tersimpan, tautan donasi (/donate/username) otomatis aktif dan siap dibagikan ke pendukung Anda.'
+      a: 'Lengkapi username serta data rekening bank atau e-wallet di menu Pengaturan Akun, lalu simpan. Setelah tersimpan, tautan donasi (/username) otomatis aktif dan siap dibagikan ke pendukung Anda.'
     },
     {
       q: 'Metode pembayaran apa saja yang didukung?',
@@ -124,7 +124,7 @@ export default function FaqPage() {
             </h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-xs sm:text-sm font-medium text-[#4a433d]">
               <li>Pasang widget <strong>Notifikasi</strong>, <strong>Media Share</strong>, dan <strong>QR Donate</strong> di OBS saat live streaming.</li>
-              <li>Sematkan tautan <code>nyumbangin.web.id/donate/username</code> di bio sosial media dan deskripsi YouTube/TikTok.</li>
+              <li>Sematkan tautan <code>nyumbangin.web.id/username</code> di bio sosial media dan deskripsi YouTube/TikTok.</li>
               <li>Sapa dan ucapkan terima kasih secara langsung ketika notifikasi saweran muncul di layar.</li>
             </ul>
           </div>

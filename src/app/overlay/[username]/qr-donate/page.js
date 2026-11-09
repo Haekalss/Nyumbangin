@@ -11,7 +11,7 @@ export default function QRDonateOverlay() {
 
   useEffect(() => {
     if (username) {
-      const url = `${window.location.origin}/donate/${username}`;
+      const url = `${window.location.origin}/${username}`;
       setDonateUrl(url);
     }
   }, [username]);
