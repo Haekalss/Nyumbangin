@@ -228,11 +228,17 @@ export default function NotificationsOverlay() {
     };
 
     // Poll API for replay trigger (works with OBS)
+    // Waktu server saat trigger terakhir diproses (agar tiap klien hanya menampilkan sekali)
+    let lastReplayTimestamp = 0;
     const checkAPIReplay = async () => {
       try {
-        const res = await fetch(`/api/overlay/replay-trigger?username=${username}&type=notification`);
+        const res = await fetch(
+          `/api/overlay/replay-trigger?username=${username}&type=notification&after=${lastReplayTimestamp}`,
+          { cache: 'no-store' }
+        );
         const data = await res.json();
         if (data.success && data.trigger) {
+          lastReplayTimestamp = data.trigger.timestamp;
           showPreviewNotification(data.trigger.data);
         }
       } catch {}

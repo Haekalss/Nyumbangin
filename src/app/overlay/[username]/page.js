@@ -131,13 +131,21 @@ export default function OverlayIndexPage() {
 
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
             const testNotification = {
               message: 'Tes Notifikasi Nyumbangin',
               detail: 'Semangat terus live-nya!',
               time: new Date().toLocaleTimeString('id-ID'),
               timestamp: Date.now()
             };
+            // Kirim lewat server agar sampai ke TikTok Studio / OBS (browser terpisah)
+            try {
+              await fetch(`/api/overlay/replay-trigger?username=${encodeURIComponent(username)}&type=notification`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: testNotification })
+              });
+            } catch {}
             localStorage.setItem('overlay-notification-trigger', JSON.stringify(testNotification));
             window.dispatchEvent(new StorageEvent('storage', {
               key: 'overlay-notification-trigger',

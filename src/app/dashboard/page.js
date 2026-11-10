@@ -402,13 +402,19 @@ export default function Dashboard() {
     }
   };
 
-  const triggerTestSound = () => {
+  const triggerTestSound = async () => {
     const testNotification = {
       message: 'Tes Notifikasi Nyumbangin',
       detail: 'Semangat terus live-nya!',
       time: new Date().toLocaleTimeString('id-ID'),
       timestamp: Date.now()
     };
+    // Kirim lewat server agar sampai ke TikTok Studio / OBS (browser terpisah)
+    try {
+      await axios.post(`/api/overlay/replay-trigger?username=${user?.username}&type=notification`, {
+        data: testNotification
+      });
+    } catch {}
     localStorage.setItem('overlay-notification-trigger', JSON.stringify(testNotification));
     window.dispatchEvent(new StorageEvent('storage', {
       key: 'overlay-notification-trigger',

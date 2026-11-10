@@ -43,6 +43,16 @@ export default async function handler(req, res) {
     const key = `${username}-${type}`;
     const trigger = replayTriggers.get(key);
 
+    // Mode multi-klien: jika `after` dikirim, trigger tidak dihapus saat dibaca,
+    // sehingga banyak overlay (browser, TikTok Studio, OBS) sama-sama menerimanya.
+    const after = Number(req.query.after);
+    if (!Number.isNaN(after) && req.query.after !== undefined) {
+      if (trigger && Date.now() - trigger.timestamp < 10000 && trigger.timestamp > after) {
+        return res.status(200).json({ success: true, trigger });
+      }
+      return res.status(200).json({ success: true, trigger: null });
+    }
+
     if (trigger && Date.now() - trigger.timestamp < 10000) {
       // Clear after reading (one-time trigger)
       replayTriggers.delete(key);
